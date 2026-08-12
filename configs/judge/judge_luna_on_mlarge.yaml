@@ -1,0 +1,16 @@
+run_name: judge_luna_on_mlarge
+
+# Matrix cell: azure/gpt-5.6-luna judging the mlarge extraction, rubric v5 (critique, verdict, bad fields
+# and the fixes it would apply).
+llm_params:
+  model: azure/gpt-5.6-luna
+  api_key: ${azure_key}
+  api_base: https://karim-api-resource.openai.azure.com
+  api_version: "2024-12-01-preview"
+  max_tokens: 16000
+
+harness_params:
+  rubric_file: judge_rubric.txt
+  extraction_run: extract_mlarge/extract_mlarge_n4_r1
+  curated_data_markdown_dir: curated_data_markdown_by_doi
+  output_dir: judge_luna_on_mlarge

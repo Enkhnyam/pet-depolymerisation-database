@@ -1,0 +1,25 @@
+run_name: extract_luna
+
+# Matrix cell: extraction by azure/gpt-5.6-luna. Prompt, shots, seed and eval settings are identical across
+# every model in the matrix, so the extractor is the only variable.
+llm_params:
+  model: azure/gpt-5.6-luna
+  api_key: ${azure_key}
+  api_base: https://karim-api-resource.openai.azure.com
+  api_version: "2024-12-01-preview"
+  max_tokens: 16000
+
+harness_params:
+  prompt_file: extraction_prompt.txt
+  output_dir: extract_luna
+  curated_data_path: curated_data_json_by_doi.json
+  curated_data_markdown_dir: curated_data_markdown_by_doi
+  max_workers: 2
+  n_shots: 4
+  shot_selection: random
+  seed: 123
+  evaluation:
+    curated_data_path: curated_table_final.json
+    tp_threshold: 0.3
+    catalyst_threshold: 0.6
+    numeric_tolerance: 0.2

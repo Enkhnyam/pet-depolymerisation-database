@@ -1,0 +1,24 @@
+run_name: extract_mistral
+
+# Matrix cell: extraction by openai/mistral-small-4-119b-2603. Prompt, shots, seed and eval settings are identical across
+# every model in the matrix, so the extractor is the only variable.
+llm_params:
+  model: openai/mistral-small-4-119b-2603
+  api_key: ${openai_key}
+  api_base: https://chat.kiconnect.nrw/api/v1/
+  max_tokens: 8192
+
+harness_params:
+  prompt_file: extraction_prompt.txt
+  output_dir: extract_mistral
+  curated_data_path: curated_data_json_by_doi.json
+  curated_data_markdown_dir: curated_data_markdown_by_doi
+  max_workers: 3
+  n_shots: 4
+  shot_selection: random
+  seed: 123
+  evaluation:
+    curated_data_path: curated_table_final.json
+    tp_threshold: 0.3
+    catalyst_threshold: 0.6
+    numeric_tolerance: 0.2
