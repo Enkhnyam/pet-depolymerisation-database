@@ -83,11 +83,16 @@ def golden():
 
 
 def runs():
-    configured = {p.stem for p in (ROOT / "ablation_configs").glob("*.yaml")}
+    # Run dirs are named after their config. Configs moved from a flat ablation_configs/
+    # into configs/extract and configs/judge, so look in both.
+    configured = {p.stem for p in (ROOT / "configs").glob("*/*.yaml")}
     rows = []
-    for path in sorted(glob.glob(str(RUNS_DIR / "*/*/run_meta.json"))):
+    # Matrix runs nest one level deeper (extract_luna/extract_luna_n4_r1) than the mass runs
+    # (mass_luna), so match a run dir by its own name or its parent's.
+    for path in sorted(glob.glob(str(RUNS_DIR / "*/run_meta.json"))
+                       + glob.glob(str(RUNS_DIR / "*/*/run_meta.json"))):
         run_dir = Path(path).parent
-        if run_dir.parent.name not in configured:
+        if run_dir.name not in configured and run_dir.parent.name not in configured:
             continue
         meta = json.loads(Path(path).read_text())
         meta["run"] = str(run_dir.relative_to(RUNS_DIR))
