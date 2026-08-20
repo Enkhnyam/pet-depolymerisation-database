@@ -9,33 +9,35 @@ import sys
 from pathlib import Path
 
 SCRIPTS = [
-    "ground_truth/dataset.py",
-    "ground_truth/curation_quality.py",
-    "ground_truth/outcome_identity.py",
+    # the 24-paper benchmark: the answer key, the metric on it, grader against grader
+    "curated/answer_key.py",
+    "curated/faults.py",
+    "curated/consistency.py",
+    "curated/extractions.py",
+    "curated/penalties.py",
+    "curated/thresholds.py",
+    "curated/matching.py",
+    "curated/catalysts.py",
+    "curated/errors.py",
+    "curated/matrix.py",
+    "curated/field_types.py",
 
-    "metric/scores.py",
-    "metric/penalties.py",
-    "metric/threshold_sensitivity.py",
-    "metric/error_taxonomy.py",
-    "metric/matching_quality.py",
-    "metric/catalyst_gate.py",
-    "metric/catalyst_names.py",
-    "metric/cost.py",
-
-    "golden_set/composition.py",
-    "golden_set/growth.py",
-    "golden_set/disagreements.py",
-
-    "judge/scorecard.py",
-    "judge/significance.py",
-    "judge/rescues.py",
-    "judge/field_types.py",
-    "judge/matrix.py",
-    "judge/power.py",
-
+    # the 447-paper database
     "database/corpus.py",
     "database/verdicts.py",
     "database/provenance.py",
+
+    # the 48 records two chemists adjudicated
+    "human/composition.py",
+    "human/scorecard.py",
+    "human/significance.py",
+    "human/power.py",
+    "human/disagreements.py",
+    "human/rescues.py",
+    "human/catalyst_gate.py",
+    "human/growth.py",
+
+    "cost.py",
 ]
 
 if __name__ == "__main__":

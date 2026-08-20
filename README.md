@@ -37,22 +37,20 @@ Always go through `run.py` — the scripts do `from _setup import *`, and the ru
 
 | group | asks |
 |---|---|
-| `ground_truth/` | is the curated answer key itself sound? |
-| `metric/` | is the metric grader behaving? thresholds, catalyst matching, cost |
-| `golden_set/` | what the two chemists said about 48 records |
-| `judge/` | judge against metric, and against the chemists |
-| `database/` | the 447-paper corpus run, its verdicts, and whether its citations resolve |
+| `curated/` | the 24-paper benchmark — the answer key, the metric on it, grader vs grader |
+| `database/` | the 447-paper mass run — funnel, verdicts, citation provenance |
+| `human/` | the 48 records two chemists adjudicated |
+| `cost.py` | the spend ledger, which spans all of them |
 
 ## Getting the numbers
 
 Each script prints one group of results, using the checks that produce them.
 
 ```bash
-scripts/results_reference.sh   # the curated answer key and how the metric behaves on it
-scripts/results_graders.sh     # judge against metric — the agreement matrix
-scripts/results_evidence.sh    # what the human labels establish, and what they cannot
-scripts/results_database.sh    # the corpus, the extraction, the verdicts, citation provenance
-scripts/results_all.sh         # every check, in the order the paper uses them
+scripts/results_curated.sh    # the 24-paper benchmark: answer key, model scores, agreement matrix
+scripts/results_database.sh   # the 447-paper database: funnel, verdicts, citation provenance
+scripts/results_human.sh      # the 48 adjudicated records: what they establish and what they cannot
+scripts/results_all.sh        # all of it, grouped the way the paper uses it
 ```
 
 ## Adjudicating a new comparison

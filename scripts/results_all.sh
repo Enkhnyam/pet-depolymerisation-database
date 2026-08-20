@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Every check, in the order the paper uses them. Takes a few minutes: nothing is cached, so each
-# score is recomputed against the curated table as it stands now.
+# Every check, grouped as the paper uses them: the curated benchmark, then the database, then the
+# human-adjudicated records, then cost. Takes a few minutes -- nothing is cached, so every score
+# is recomputed against the curated table as it stands now.
 #
 #   scripts/results_all.sh              print to the terminal
 #   scripts/results_all.sh > out.txt    keep a copy

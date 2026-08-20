@@ -64,10 +64,16 @@ def main() -> None:
         needed = next((n for n in range(4, 400) if power_at(n, rate) >= POWER), None)
         rows.append({"if the judge is right this often": rate,
                      f"pairs for {POWER:.0%} power": needed,
-                     "have": have,
-                     "still to label": needed - have if needed else None})
-    show(f"what it would take at alpha {ALPHA}",
+                     "pool available": len(disagree),
+                     "pool, evaluable only": len(ev_disagree)})
+    show(f"what a new round on {judge_name}/{target} would take, alpha {ALPHA}",
          pd.DataFrame(rows).set_index("if the judge is right this often"), fmt="{:.0f}")
+
+    # The four pairs we already have came from a gpt-5.6-sol extraction judged by gpt-5.6-sol.
+    # Neither half is what the database ships, so they cannot be carried into a new round: a
+    # round on this pair starts from zero, and the pool above is what it draws from.
+    print(f"\n  the {have} pairs we already hold describe a different extraction and a different"
+          f"\n  judge, so a round on {judge_name}/{target} starts at zero")
 
 
 if __name__ == "__main__":
