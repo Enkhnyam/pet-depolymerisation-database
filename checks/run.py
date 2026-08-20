@@ -18,6 +18,8 @@ SCRIPTS = [
     "curated/errors.py",
     "curated/matrix.py",
     "curated/field_types.py",
+    "curated/shots.py",
+    "curated/source_tracking.py",
 
     # the 447-paper database
     "database/corpus.py",

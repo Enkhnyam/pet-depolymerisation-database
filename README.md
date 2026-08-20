@@ -68,6 +68,23 @@ scripts/results_human.sh      # the 48 adjudicated records: what they establish 
 scripts/results_all.sh        # all of it, grouped the way the paper uses it
 ```
 
+## Ablations
+
+```bash
+CONFIRM=1 scripts/ablation_shots.sh    # n_shots 0..6, three runs each — 21 runs, ~$8
+CONFIRM=1 scripts/ablation_source.sh   # cite sources on/off, three each — 6 runs, ~$3
+```
+
+Both bill Azure, so both require `CONFIRM=1`. Both resume: a condition that already finished is
+skipped, so an interrupted sweep picks up where it stopped. Results are read by
+`curated/shots.py` and `curated/source_tracking.py`, which say so if the runs are not there yet.
+
+`n_shots` caps at 6 — seven papers are open-licensed enough to redistribute as worked examples,
+minus the held-out target.
+
+Use `LIMIT=3` for a cheap wiring test, but delete the run directory afterwards: a limited run
+leaves an `eval.json` that the sweep would mistake for a finished condition.
+
 ## Adjudicating a new comparison
 
 ```bash

@@ -14,4 +14,6 @@ exec ./.venv/bin/python -W ignore checks/run.py \
   curated/catalysts.py \
   curated/errors.py \
   curated/matrix.py \
-  curated/field_types.py
+  curated/field_types.py \
+  curated/shots.py \
+  curated/source_tracking.py
