@@ -39,7 +39,7 @@ Always go through `run.py` — the scripts do `from _setup import *`, and the ru
 |---|---|
 | `curated/` | the 24-paper benchmark — the answer key, the metric on it, grader vs grader |
 | `database/` | the 447-paper mass run — funnel, verdicts, citation provenance |
-| `human/` | the 48 records two chemists adjudicated |
+| `human/` | the 48 records two chemists adjudicated — and why they cannot name a winner |
 | `cost.py` | the spend ledger, which spans all of them |
 
 ## Getting the numbers

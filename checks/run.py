@@ -11,10 +11,7 @@ from pathlib import Path
 SCRIPTS = [
     # the 24-paper benchmark: the answer key, the metric on it, grader against grader
     "curated/answer_key.py",
-    "curated/faults.py",
-    "curated/consistency.py",
     "curated/extractions.py",
-    "curated/penalties.py",
     "curated/thresholds.py",
     "curated/matching.py",
     "curated/catalysts.py",
@@ -31,9 +28,7 @@ SCRIPTS = [
     "human/composition.py",
     "human/scorecard.py",
     "human/significance.py",
-    "human/power.py",
     "human/disagreements.py",
-    "human/rescues.py",
     "human/catalyst_gate.py",
     "human/growth.py",
 

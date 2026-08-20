@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# The 24-paper benchmark: the curated answer key, how the metric grader behaves on it, how the
-# extraction models score, and how far each judge agrees with the metric.
+# The 24-paper benchmark: the curated answer key, how the extraction models score against it, how
+# the metric grader behaves, and how far each judge agrees with the metric.
 #
 # No human labels are involved here -- this is grader against grader on papers we curated.
 #
@@ -8,10 +8,7 @@
 set -u; cd "$(dirname "$0")/.."
 exec ./.venv/bin/python -W ignore checks/run.py \
   curated/answer_key.py \
-  curated/faults.py \
-  curated/consistency.py \
   curated/extractions.py \
-  curated/penalties.py \
   curated/thresholds.py \
   curated/matching.py \
   curated/catalysts.py \

@@ -1,11 +1,14 @@
-"""What the metric did to each record, crossed with what the judge said about it.
+"""What the metric did to each record, and how close its accepted matches were to the cutoff.
 
 A MISMATCH is a pair that was matched and then rejected, so it counts as both a false positive
-and a false negative -- which is why the reported FP and FN exceed the counts printed here.
+and a false negative -- which is why reported FP and FN exceed the counts here.
+
+If accepted matches cluster just under the cutoff the threshold is carrying the result and it is
+fragile; clustered near zero, the matches are comfortable.
 """
 import pandas as pd
 
-from _setup import judged, scored, show
+from _setup import ACCEPT, judged, scored, show, totals
 
 
 def main() -> None:
@@ -17,6 +20,12 @@ def main() -> None:
         "total": len(rejected),
         "on the catalyst name": (rejected.catalyst_match == False).sum(),  # noqa: E712
     }, fmt="{:.0f}")
+
+    show("field disagreements among matched pairs",
+         pd.Series(totals()["field_error_counts"]).sort_values(ascending=False), fmt="{:.0f}")
+
+    show(f"penalty of accepted matches (accepted below {ACCEPT:.2f})",
+         labels.query("verdict == 'TP'").avg_penalty.describe())
 
     both = labels.merge(judged(), on=["doi", "index"])
     show("judge against metric situation",
