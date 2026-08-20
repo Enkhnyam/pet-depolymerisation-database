@@ -26,8 +26,11 @@ def find_runs(pattern: str, meta_file: str) -> dict:
     return found
 
 
-def main() -> None:
-    sources(answer_key=CURATED, extractions=RUNS_DIR / 'extract_*', judges=RUNS_DIR / 'judge_*_on_*')
+def compute() -> pd.DataFrame:
+    """One row per judge x extraction cell. The numbers; no output.
+
+    Figures import this so a panel and its printed table can never disagree.
+    """
     extractions = {name.replace("extract_", ""): run_dir
                    for name, run_dir in find_runs("extract_*", "run_meta.json").items()}
     judges = {tuple(name.replace("judge_", "").split("_on_")): run_dir
@@ -50,7 +53,13 @@ def main() -> None:
             "agreement, evaluable": (evaluable.metric == evaluable.judge).mean(),
         })
 
-    frame = pd.DataFrame(rows)
+    return pd.DataFrame(rows)
+
+
+def main() -> None:
+    sources(answer_key=CURATED, extractions=RUNS_DIR / 'extract_*',
+            judges=RUNS_DIR / 'judge_*_on_*')
+    frame = compute()
     show("per cell", frame.set_index(["judge", "extraction"]))
     show("agreement over every record",
          frame.pivot(index="judge", columns="extraction", values="agreement"))
