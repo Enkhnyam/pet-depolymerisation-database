@@ -31,6 +31,7 @@ SCRIPTS = [
     "judge/rescues.py",
     "judge/field_types.py",
     "judge/matrix.py",
+    "judge/power.py",
 
     "database/corpus.py",
     "database/verdicts.py",
