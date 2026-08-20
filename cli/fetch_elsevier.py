@@ -29,6 +29,30 @@ from core.utils import doi_to_filename
 
 SEARCH = "https://api.elsevier.com/content/search/sciencedirect"
 SCOPUS = "https://api.elsevier.com/content/search/scopus"
+
+# "PET" is also positron emission tomography and "glycolysis" is sugar metabolism, so a query on
+# those two words alone returns oncology imaging. A title has to name the polymer AND a
+# depolymerisation route to be worth fetching.
+POLYMER = re.compile(r"\b(pet|poly\(?ethylene\s*terephthalate|polyethylene\s*terephthalate|"
+                     r"polyester|bhet|plastic\s*waste|pet\s*bottle)", re.I)
+ROUTE = re.compile(r"\b(glycolys|methanolys|hydrolys|alcoholys|solvolys|depolymeriz|depolymeris|"
+                   r"chemical\s*recycl|upcycl|monomer|terephthal|dmt|bhet)", re.I)
+REJECT = re.compile(r"\b(positron|tomograph|18f|fdg|psma|tumou?r|cancer|carcinoma|lymphoma|"
+                    r"patient|oncolog|glioma|metabolic\s*tumou?r|enzymat|petase|cutinase|"
+                    r"microplastic|a\s+review|review\s+of|systematic\s+review)", re.I)
+
+
+def worth_fetching(title):
+    """True when the title looks like a PET depolymerisation paper we could extract from."""
+    if not title:
+        return False, "no title"
+    if REJECT.search(title):
+        return False, "off-topic or a review"
+    if not POLYMER.search(title):
+        return False, "no polymer named"
+    if not ROUTE.search(title):
+        return False, "no depolymerisation route named"
+    return True, "ok"
 ARTICLE = "https://api.elsevier.com/content/article/doi"
 CHUNK_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_URL, "elsevier-fulltext-chunk")
 
@@ -93,14 +117,15 @@ def search_scopus(query, wanted, headers):
     dois, start = [], 0
     while len(dois) < wanted:
         url = (f"{SCOPUS}?query={urllib.parse.quote(query)}"
-               f"&count={min(25, wanted - len(dois))}&start={start}&field=doi")
+               f"&count={min(25, wanted - len(dois))}&start={start}&field=doi,dc:title")
         status, body = request(url, headers, "application/json")
         if status != 200:
             print(f"  scopus stopped at start={start}: HTTP {status}")
             break
         entries = json.loads(body)["search-results"].get("entry", [])
-        found = [e["prism:doi"] for e in entries if e.get("prism:doi")]
-        dois += found
+        for e in entries:
+            if e.get("prism:doi"):
+                dois.append((e["prism:doi"], e.get("dc:title") or ""))
         if len(entries) < 25:
             break
         start += len(entries)
@@ -272,23 +297,44 @@ def main():
     ap.add_argument("--out", default="mass_markdown_by_doi",
                     help="directory under artifacts/data to write into")
     ap.add_argument("--dois", nargs="*", help="fetch these DOIs instead of searching")
+    ap.add_argument("--dois-from", help="CSV from cli/harvest_corpus.py; fetches the rows it kept")
     args = ap.parse_args()
 
     headers = credentials()
     out_dir = data_path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    if args.dois:
+    if args.dois_from:
+        import csv as _csv
+        with data_path(args.dois_from).open(encoding="utf-8") as fh:
+            rows = list(_csv.DictReader(fh))
+        dois = [r["doi"] for r in rows if r["keep"].lower() == "true"]
+        print(f"  {len(rows)} candidates in {args.dois_from}, {len(dois)} passed the filter")
+    elif args.dois:
         dois = args.dois
     else:
         finder = search_scopus if args.source == "scopus" else search
-        dois = []
+        found_all = []
         for query in (args.query or ['TITLE-ABS-KEY(PET AND glycolysis AND catalyst)']):
             found = finder(query, args.limit, headers)
-            print(f"  {len(found):5d} from: {query}")
-            dois += found
-        dois = list(dict.fromkeys(dois))
-        print(f"  {len(dois)} unique DOIs after dedupe")
+            print(f"  {len(found):5d} hits: {query}")
+            found_all += found
+
+        seen, candidates, rejected = set(), [], {}
+        for doi, title in found_all:
+            if doi in seen:
+                continue
+            seen.add(doi)
+            keep, why = worth_fetching(title)
+            if keep:
+                candidates.append(doi)
+            else:
+                rejected[why] = rejected.get(why, 0) + 1
+        dois = candidates
+        print(f"\n  {len(seen)} unique DOIs")
+        for why, n in sorted(rejected.items(), key=lambda kv: -kv[1]):
+            print(f"    dropped {n:5d}  {why}")
+        print(f"  {len(dois)} worth fetching\n")
     print(f"{len(dois)} papers to fetch -> {out_dir}\n")
 
     written, skipped, failed = 0, 0, []

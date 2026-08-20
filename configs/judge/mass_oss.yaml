@@ -1,0 +1,21 @@
+run_name: mass_oss
+
+# The mass run's grader. gpt-oss-120b judging a luna extraction is the pair the agreement study
+# settled on (0.914 on records the metric could evaluate), and it is the cheap half of the pair --
+# the RWTH endpoint is unmetered, so judging 447 papers costs nothing beyond wall time.
+#
+# No curated table exists for this corpus, which is the whole point: the judge reads the paper and
+# the record and needs no reference. Its verdicts are what cli/apply_fixes.py turns into the
+# corrected database.
+llm_params:
+  model: openai/gpt-oss-120b
+  api_key: ${openai_key}
+  api_base: https://chat.kiconnect.nrw/api/v1/
+  max_tokens: 8192
+
+harness_params:
+  rubric_file: judge_rubric.txt
+  extraction_run: mass_luna
+  curated_data_markdown_dir: corpus_markdown
+  output_dir: mass_oss
+  max_workers: 3

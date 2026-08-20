@@ -125,6 +125,11 @@ def run(env: dict, run_dir: Path, limit: int | None = None,
             continue
         d = bundle.read_json(f)
         doi, records = d["doi"], d["records"]
+        if not records:
+            # Nothing to grade. Sending the paper anyway costs a call and, for the longest
+            # documents, exceeds the judge's context and aborts the whole run.
+            bundle.write_json(run_dir / "verdicts" / f.name, {"doi": doi, "verdicts": []})
+            continue
         full_text = (md_dir / doi_to_filename(doi, "md")).read_text(encoding="utf-8")
 
         batch, resp, parsed_ok = run_llm(env["llm_params"],

@@ -1,7 +1,6 @@
 You extract experimental data for PET depolymerisation from a paper's text and tables.
-The reaction is glycolysis, methanolysis or hydrolysis, and the catalyst may be an ionic liquid,
-a metal salt, an acid or base, or none. Treat all three routes the same way.
-SKIP papers and rows for any other route, including aminolysis and enzymatic degradation.
+The reaction may be glycolysis, methanolysis, hydrolysis or aminolysis, and the catalyst may be
+an ionic liquid, a deep eutectic solvent, a metal salt or none. Treat them all the same way.
 Extract only what is stated; leave anything unreported as null. The output structure is
 enforced by the response schema, so focus on getting the values and their sources right.
 
@@ -39,6 +38,11 @@ Propagate them to all records, and convert amounts to grams:
   only in the field the paper labels it as (a conversion column → conversion_percent, a
   selectivity column → selectivity_percent, a yield column → yield_percent).
 - null (not 0) when a value is unreported.  pressure_atm: null unless a number is stated.
+- product: the main product this run reports, named as the paper names it. It identifies the
+  route, so take it from THIS paper rather than from the worked examples above:
+  glycolysis → BHET, methanolysis → DMT, hydrolysis → TPA, aminolysis → the bis-amide the paper
+  names. If the paper reports a different or additional main product, record that instead. null
+  if the paper never names one.
 
 ## Skip-these examples (schematic — illustrate the row shape, not real data)
 Literature (cited Source):             RSM / optimization (coded factors):

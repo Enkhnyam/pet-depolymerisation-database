@@ -13,10 +13,6 @@ class Experiment(BaseModel):
 
     catalyst: str | None = Field(None, description="Catalyst name exactly as written")
     solvent: str | None = Field(None, description="Solvent name exactly as written")
-    # Which depolymerisation the run performed, in the paper's own words. Glycolysis gives BHET,
-    # methanolysis DMT, hydrolysis TPA, aminolysis a bis-amide, so this identifies the route
-    # without a separate field for it. Default None keeps every existing bundle parseable.
-    product: str | None = Field(None, description="Main product as the paper names it")
     temperature_c: float | None = Field(None, description="Temperature in Celsius")
     reaction_time_min: float | None = Field(None, description="Reaction time in minutes")
     catalyst_amount_g: float | None = Field(None, description="Catalyst amount in grams")
