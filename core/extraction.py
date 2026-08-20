@@ -117,6 +117,20 @@ def run(env: dict, run_dir: Path, limit: int | None = None) -> None:
     if limit:
         md_files = md_files[:limit]
 
+    # Papers already extracted into this run are skipped, so enlarging the corpus costs only the
+    # new papers. Set resume: false in harness_params to re-extract everything.
+    if env["harness_params"].get("resume", True):
+        already = {path.name for path in (run_dir / "extractions").glob("*.json")}
+        pending = [md for md in md_files
+                   if doi_to_filename(filename_to_doi(md.name), "json") not in already]
+        if already:
+            print(f"resuming: {len(already)} already extracted, {len(pending)} to do", flush=True)
+        md_files = pending
+
+    if not md_files:
+        print("nothing to extract; every paper in the corpus already has a result")
+        return
+
     response_model = (ExtractionResponseNoSource
                       if env["harness_params"].get("drop_source_chunks") else ExtractionResponse)
     config = bundle.unpack_config(env)
@@ -124,16 +138,20 @@ def run(env: dict, run_dir: Path, limit: int | None = None) -> None:
     bundle.write_json(run_dir / "config.json",
                       {"content_hash": bundle.content_hash(config), **config})
 
+    # A resumed run must not forget what the earlier pass cost.
+    before = {}
+    if (run_dir / "run_meta.json").exists():
+        before = json.loads((run_dir / "run_meta.json").read_text())
     meta = {
-        "seed":              env["harness_params"]["seed"], 
+        "seed":              env["harness_params"]["seed"],
         "model":             env["llm_params"]["model"],
-        "git_commit":        bundle.git_commit(), 
+        "git_commit":        bundle.git_commit(),
         "started_at":        bundle.now_iso(),
-        "n_papers":          len(md_files), 
-        "prompt_tokens":     0, 
-        "completion_tokens": 0,
-        "cost_usd":          0.0,
-        "parse_failed_papers": 0
+        "n_papers":          before.get("n_papers", 0) + len(md_files),
+        "prompt_tokens":     before.get("prompt_tokens", 0),
+        "completion_tokens": before.get("completion_tokens", 0),
+        "cost_usd":          before.get("cost_usd", 0.0),
+        "parse_failed_papers": before.get("parse_failed_papers", 0)
     }
 
     def extract_one(md):
