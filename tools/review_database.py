@@ -1,19 +1,20 @@
 """Build a self-contained HTML review page for an extraction and the judge's verdicts on it.
 
-One page per extraction/judge pair. Every record is shown with its fields, the judge's verdict
-and reasoning, any corrections the judge proposed, and the source text the record cites -- with
-the extracted values highlighted inside it, so a reader can check a number against the sentence
-it came from without opening the paper.
+The page is a two-pane reviewing tool, not a document: papers on the left, one paper's records on
+the right. Records are one line each until opened, so a paper with seventy-five of them is still
+a single screen. Opening a record shows its fields, the judge's verdict and reasoning, the
+corrections it proposed, and the source text the record cites -- with the extracted values
+highlighted inside that text, so a number can be checked against its sentence without opening
+the paper.
 
-The page carries both versions of the data. A toggle switches every corrected field between the
-value the extractor wrote and the value the judge proposed, so the corrected database can be
-reviewed without generating a second file.
+A toggle switches every corrected field between the value the extractor wrote and the value the
+judge proposed, so both versions of the database are reviewable from one file.
 
     review_database.py --extraction mass_luna --judge mass_oss/mass_oss
-    review_database.py --extraction smoke --judge smoke_judge/smoke_judge --out /tmp/smoke.html
+    review_database.py --extraction mass_oss/mass_oss_corrected --corpus corpus_markdown
 
 Any extraction and judge run work, whatever models produced them, as long as the judge ran
-against that extraction.
+against that extraction. Omit --judge to render an extraction on its own.
 """
 import argparse
 import html
@@ -30,11 +31,13 @@ FIELDS = ["catalyst", "solvent", "temperature_c", "reaction_time_min", "catalyst
           "PET_amount_g", "solvent_amount_g", "yield_percent", "selectivity_percent",
           "conversion_percent", "pressure_atm"]
 
-LABELS = {"catalyst": "catalyst", "solvent": "solvent", "temperature_c": "temp (°C)",
-          "reaction_time_min": "time (min)", "catalyst_amount_g": "catalyst (g)",
-          "PET_amount_g": "PET (g)", "solvent_amount_g": "solvent (g)",
-          "yield_percent": "yield (%)", "selectivity_percent": "selectivity (%)",
-          "conversion_percent": "conversion (%)", "pressure_atm": "pressure (atm)"}
+LABELS = {"catalyst": "catalyst", "solvent": "solvent", "temperature_c": "temp °C",
+          "reaction_time_min": "time min", "catalyst_amount_g": "cat. g",
+          "PET_amount_g": "PET g", "solvent_amount_g": "solv. g",
+          "yield_percent": "yield %", "selectivity_percent": "select. %",
+          "conversion_percent": "conv. %", "pressure_atm": "press. atm"}
+
+SUMMARY_FIELDS = ["catalyst", "temperature_c", "reaction_time_min", "yield_percent"]
 
 CHUNK_PATTERN = re.compile(r"^ID: ([0-9a-f-]{36})$", re.M)
 
@@ -55,292 +58,357 @@ def load_chunks(markdown_dir: Path, doi: str) -> dict:
         return {}
 
     text = path.read_text(encoding="utf-8")
-    pieces = CHUNK_PATTERN.split(text)
-    # split() yields [preamble, id, body, id, body, ...]
+    pieces = CHUNK_PATTERN.split(text)   # [preamble, id, body, id, body, ...]
     return {pieces[i]: pieces[i + 1].strip() for i in range(1, len(pieces) - 1, 2)}
 
 
 def paper_title(chunks: dict) -> str:
-    """The first non-empty line of the paper, which the parser puts the title on."""
+    """The first substantial line of the paper, which the parser puts the title on."""
     for body in chunks.values():
         for line in body.splitlines():
             cleaned = line.strip().lstrip("#").strip()
             if len(cleaned) > 20:
-                return cleaned
+                return cleaned[:180]
     return ""
 
 
-def value_forms(value) -> list[str]:
-    """The ways a value might literally appear in the paper's text."""
-    if value is None:
-        return []
-    if isinstance(value, str):
-        return [value] if len(value) > 2 else []
-
-    forms = {f"{value:g}"}
-    if float(value).is_integer():
-        forms.add(str(int(value)))
-    else:
-        forms.add(f"{value:.1f}".rstrip("0").rstrip("."))
-    return [form for form in forms if len(form) > 1]
+def state_of(verdict: dict) -> str:
+    """One word for what the judge decided, which drives colour and filtering."""
+    if not verdict:
+        return "unjudged"
+    if verdict.get("verdict") == "correct":
+        return "ok"
+    if verdict.get("drop_record"):
+        return "drop"
+    return "fixed"
 
 
-def highlight(text: str, record: dict) -> str:
-    """Escape chunk text, then mark every extracted value that appears in it."""
-    escaped = html.escape(text)
-
-    wanted = []
-    for field in FIELDS:
-        for form in value_forms(record.get(field)):
-            wanted.append((form, field))
-    # longest first, so "100" inside "100.5" does not win over the fuller match
-    wanted.sort(key=lambda pair: -len(pair[0]))
-
-    for form, field in wanted:
-        pattern = re.compile(rf"(?<![\w.]){re.escape(html.escape(form))}(?![\w.])")
-        escaped, _ = pattern.subn(
-            f'<mark class="v" data-field="{field}">{html.escape(form)}</mark>', escaped, count=3)
-    return escaped
-
-
-def render_value(value) -> str:
-    if value is None:
-        return '<span class="null">not reported</span>'
-    if isinstance(value, float) and value.is_integer():
-        return html.escape(str(int(value)))
-    return html.escape(str(value))
-
-
-def render_record(record: dict, verdict: dict, chunks: dict, index: int) -> str:
-    """One record: its fields, the verdict, the reasoning, and the text it cites."""
-    fixes = {fix["field"]: fix for fix in (verdict.get("fixes") or [])}
-    bad = set(verdict.get("bad_fields") or [])
-    passed = verdict.get("verdict") == "correct"
-    dropped = verdict.get("drop_record")
-
-    state = "ok" if passed else ("drop" if dropped else "fixed")
-    label = {"ok": "accepted", "drop": "judge would drop", "fixed": "corrected"}[state]
-
-    cells = []
-    for field in FIELDS:
-        original = record.get(field)
-        classes = ["cell"]
-        if field in bad:
-            classes.append("bad")
-
-        shown = f'<span class="orig">{render_value(original)}</span>'
-        if field in fixes:
-            shown += f'<span class="fix">{render_value(fixes[field]["value"])}</span>'
-            classes.append("has-fix")
-
-        cells.append(f'<div class="{" ".join(classes)}">'
-                     f'<span class="k">{LABELS[field]}</span>{shown}</div>')
-
-    cited = record.get("source_chunk_ids") or []
-    sources = []
-    for chunk_id in cited:
-        body = chunks.get(chunk_id)
-        if body is None:
-            sources.append(f'<div class="src missing">cited chunk not found: '
-                           f'<code>{html.escape(chunk_id)}</code></div>')
-            continue
-        sources.append(f'<div class="src"><code class="cid">{html.escape(chunk_id[:8])}</code>'
-                       f'<div class="txt">{highlight(body, record)}</div></div>')
-    if not cited:
-        sources.append('<div class="src missing">this record cites no source chunk</div>')
-
-    evidence = ""
-    if fixes:
-        items = "".join(
-            f"<li><b>{LABELS.get(f, f)}</b>: {render_value(record.get(f))} &rarr; "
-            f"{render_value(fix['value'])}<br><span class='ev'>"
-            f"{html.escape(fix.get('evidence') or '')}</span></li>"
-            for f, fix in fixes.items())
-        evidence = f'<ul class="fixes">{items}</ul>'
-
-    critique = html.escape(verdict.get("critique") or "")
-    return f"""<div class="rec {state}" data-state="{state}">
-  <div class="rechead"><span class="idx">#{index}</span>
-    <span class="badge {state}">{label}</span></div>
-  <div class="grid">{"".join(cells)}</div>
-  {f'<p class="crit">{critique}</p>' if critique else ""}
-  {evidence}
-  <details class="sources"><summary>{len(cited)} source chunk{"" if len(cited) == 1 else "s"}</summary>
-    {"".join(sources)}</details>
-</div>"""
-
-
-def render_paper(doi: str, records: list, verdicts: dict, chunks: dict) -> str:
-    title = paper_title(chunks)
-    blocks = [render_record(record, verdicts.get(i, {}), chunks, i)
-              for i, record in enumerate(records)]
-
-    fixed = sum(1 for i in range(len(records))
-                if (verdicts.get(i, {}).get("fixes") or []))
-    passed = sum(1 for i in range(len(records))
-                 if verdicts.get(i, {}).get("verdict") == "correct")
-    summary = (f'<span class="n">{len(records)} records</span>'
-               f'<span class="n ok">{passed} accepted</span>'
-               f'<span class="n fixed">{fixed} corrected</span>')
-
-    return f"""<details class="paper">
-  <summary><span class="doi">{html.escape(doi)}</span>
-    <span class="title">{html.escape(title)}</span>{summary}</summary>
-  {"".join(blocks)}
-</details>"""
-
-
-def build(extraction: Path, judge: Path | None, markdown_dir: Path, title: str) -> str:
+def build_payload(extraction: Path, judge: Path | None, markdown_dir: Path) -> tuple[list, dict]:
+    """Everything the page needs, as plain data the browser renders."""
     extractions = load_run(extraction, "extractions")
     verdicts_by_doi = load_run(judge, "verdicts") if judge else {}
 
-    total = corrected = accepted = dropped = 0
-    sections = []
+    papers = []
+    counts = {"records": 0, "ok": 0, "fixed": 0, "drop": 0, "unjudged": 0, "unresolved": 0}
+
     for doi in sorted(extractions):
         records = extractions[doi]["records"]
         if not records:
             continue
+
         payload = verdicts_by_doi.get(doi, {})
         verdicts = {v["extracted_index"]: v for v in payload.get("verdicts", [])}
-
-        total += len(records)
-        for i in range(len(records)):
-            verdict = verdicts.get(i, {})
-            if verdict.get("verdict") == "correct":
-                accepted += 1
-            elif verdict.get("drop_record"):
-                dropped += 1
-            elif verdict.get("fixes"):
-                corrected += 1
-
         chunks = load_chunks(markdown_dir, doi)
-        sections.append(render_paper(doi, records, verdicts, chunks))
 
-    papers = len(sections)
-    rate = f"{accepted / total:.1%}" if total else "n/a"
-    stats = [("papers", papers), ("records", total), ("accepted", accepted),
-             ("corrected", corrected), ("would drop", dropped), ("pass rate", rate)]
-    tiles = "".join(f'<div class="tile"><span class="num">{v}</span>'
-                    f'<span class="lab">{k}</span></div>' for k, v in stats)
+        cited_here = set()
+        rows = []
+        for index, record in enumerate(records):
+            verdict = verdicts.get(index, {})
+            state = state_of(verdict)
+            counts["records"] += 1
+            counts[state] += 1
 
-    return TEMPLATE.format(title=html.escape(title), tiles=tiles,
-                           extraction=html.escape(extraction.name),
-                           judge=html.escape(judge.name if judge else "none"),
-                           sections="\n".join(sections))
+            cited = record.get("source_chunk_ids") or []
+            resolved = [c for c in cited if c in chunks]
+            counts["unresolved"] += len(cited) - len(resolved)
+            cited_here.update(resolved)
+
+            rows.append({
+                "i": index,
+                "state": state,
+                "values": {f: record.get(f) for f in FIELDS},
+                "critique": verdict.get("critique") or "",
+                "bad": verdict.get("bad_fields") or [],
+                "fixes": [{"field": fix["field"], "to": fix["value"],
+                           "evidence": fix.get("evidence") or ""}
+                          for fix in (verdict.get("fixes") or [])],
+                "cited": cited,
+                "missing": [c for c in cited if c not in chunks],
+            })
+
+        papers.append({
+            "doi": doi,
+            "title": paper_title(chunks),
+            "records": rows,
+            # only the chunks this paper's records actually cite, so the page stays small
+            "chunks": {c: chunks[c] for c in sorted(cited_here)},
+        })
+
+    return papers, counts
 
 
-TEMPLATE = """<!doctype html>
+def build(extraction: Path, judge: Path | None, markdown_dir: Path, title: str) -> str:
+    papers, counts = build_payload(extraction, judge, markdown_dir)
+
+    judged = counts["records"] - counts["unjudged"]
+    rate = f"{counts['ok'] / judged:.1%}" if judged else "n/a"
+    tiles = [("papers", len(papers)), ("records", counts["records"]),
+             ("accepted", counts["ok"]), ("corrected", counts["fixed"]),
+             ("would drop", counts["drop"]), ("pass rate", rate)]
+
+    data = {"papers": papers, "fields": FIELDS, "labels": LABELS, "summary": SUMMARY_FIELDS}
+
+    # Plain substitution, not str.format: the template holds CSS braces and regex backslashes,
+    # and doubling every one of them to survive .format() is how the highlighter broke once.
+    page = TEMPLATE
+    for token, value in [
+        ("__TITLE__", html.escape(title)),
+        ("__EXTRACTION__", html.escape(extraction.name)),
+        ("__JUDGE__", html.escape(judge.name if judge else "not judged")),
+        ("__TILES__", "".join(f'<div class="tile"><b>{value}</b><span>{name}</span></div>'
+                              for name, value in tiles)),
+        ("__PAYLOAD__", json.dumps(data, ensure_ascii=False).replace("</", "<\\/")),
+    ]:
+        page = page.replace(token, value)
+    return page
+
+
+TEMPLATE = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{title}</title>
+<title>__TITLE__</title>
 <style>
-:root{{--bg:#f4f6f6;--card:#fff;--ink:#16211f;--dim:#5d716e;--line:#dbe4e2;
-  --ok:#3f6e46;--ok-bg:#e4efe4;--fix:#9a6510;--fix-bg:#f7ecd9;--drop:#a33a2e;--drop-bg:#f8e3de;
-  --mark:#ffe9a8;--accent:#0e7c6b}}
-@media(prefers-color-scheme:dark){{:root{{--bg:#0d1514;--card:#141f1e;--ink:#dee8e5;--dim:#93a7a4;
-  --line:#263634;--ok:#7fb187;--ok-bg:#16281a;--fix:#d6a054;--fix-bg:#2c2413;--drop:#d98374;
-  --drop-bg:#2e1a16;--mark:#5a4a1a;--accent:#4fc4ae}}}}
-*{{box-sizing:border-box}}
-body{{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 ui-sans-serif,system-ui,sans-serif}}
-.wrap{{max-width:1080px;margin:0 auto;padding:28px 20px 80px}}
-h1{{font-size:1.6rem;margin:0 0 6px}}
-.sub{{color:var(--dim);margin:0 0 22px;font-size:.92rem}}
-.tiles{{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}}
-.tile{{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px;min-width:104px}}
-.tile .num{{display:block;font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums}}
-.tile .lab{{display:block;color:var(--dim);font-size:.76rem;text-transform:uppercase;letter-spacing:.07em}}
-.bar{{display:flex;gap:10px;flex-wrap:wrap;align-items:center;position:sticky;top:0;z-index:5;
-  background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:18px}}
-input,select,button{{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:6px;
-  background:var(--card);color:var(--ink)}}
-input{{flex:1;min-width:200px}}
-button{{cursor:pointer}}
-button.on{{background:var(--accent);color:#fff;border-color:var(--accent)}}
-.paper{{background:var(--card);border:1px solid var(--line);border-radius:8px;margin-bottom:10px}}
-.paper>summary{{cursor:pointer;padding:13px 16px;display:flex;gap:12px;flex-wrap:wrap;align-items:baseline}}
-.paper>summary::marker{{color:var(--dim)}}
-.doi{{font-family:ui-monospace,monospace;font-size:.84rem;color:var(--accent)}}
-.title{{flex:1;min-width:200px;color:var(--dim);font-size:.9rem}}
-.n{{font-size:.76rem;color:var(--dim);white-space:nowrap}}
-.n.ok{{color:var(--ok)}} .n.fixed{{color:var(--fix)}}
-.rec{{border-top:1px solid var(--line);padding:14px 16px}}
-.rechead{{display:flex;gap:10px;align-items:center;margin-bottom:9px}}
-.idx{{font-family:ui-monospace,monospace;color:var(--dim);font-size:.8rem}}
-.badge{{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;padding:3px 8px;border-radius:4px}}
-.badge.ok{{background:var(--ok-bg);color:var(--ok)}}
-.badge.fixed{{background:var(--fix-bg);color:var(--fix)}}
-.badge.drop{{background:var(--drop-bg);color:var(--drop)}}
-.grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:7px;margin-bottom:10px}}
-.cell{{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:6px 9px;font-size:.86rem}}
-.cell .k{{display:block;color:var(--dim);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em}}
-.cell.bad{{border-color:var(--fix);background:var(--fix-bg)}}
-.null{{color:var(--dim);font-style:italic;font-size:.85em}}
-.fix{{display:none}}
-body.corrected .has-fix .orig{{display:none}}
-body.corrected .has-fix .fix{{display:inline;font-weight:600;color:var(--fix)}}
-.crit{{margin:0 0 10px;font-size:.9rem;color:var(--dim);border-left:2px solid var(--line);padding-left:11px}}
-.fixes{{margin:0 0 10px;padding-left:18px;font-size:.87rem}}
-.fixes li{{margin-bottom:6px}}
-.ev{{color:var(--dim);font-size:.9em}}
-.sources summary{{cursor:pointer;color:var(--dim);font-size:.82rem}}
-.src{{margin-top:9px;border-left:2px solid var(--line);padding-left:11px}}
-.src.missing{{color:var(--drop);font-size:.84rem}}
-.cid{{font-size:.72rem;color:var(--dim)}}
-.txt{{white-space:pre-wrap;font-size:.84rem;color:var(--dim);max-height:230px;overflow:auto;margin-top:4px}}
-mark.v{{background:var(--mark);color:var(--ink);border-radius:2px;padding:0 2px}}
-.hidden{{display:none}}
+:root{--bg:#eef2f1;--panel:#fff;--ink:#16211f;--dim:#61756f;--line:#d8e2df;--soft:#f5f8f7;
+ --ok:#3f6e46;--ok-bg:#e3efe4;--fix:#8f5f10;--fix-bg:#f7ecd8;--drop:#a33a2e;--drop-bg:#f8e2dd;
+ --accent:#0e7c6b;--mark:#ffe9a8;--markink:#4a3800}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1312;--panel:#131e1d;--ink:#dde7e4;--dim:#8ea29e;
+ --line:#243432;--soft:#0f1918;--ok:#7fb187;--ok-bg:#16281a;--fix:#d6a054;--fix-bg:#2c2413;
+ --drop:#d98374;--drop-bg:#2e1a16;--accent:#4fc4ae;--mark:#5d4c19;--markink:#ffeab5}}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font:14.5px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif}
+.app{display:grid;grid-template-columns:300px 1fr;height:100vh}
+@media(max-width:820px){.app{grid-template-columns:1fr}#side{display:none}}
+
+#side{border-right:1px solid var(--line);background:var(--panel);display:flex;
+ flex-direction:column;min-height:0}
+.brand{padding:16px 16px 12px;border-bottom:1px solid var(--line)}
+.brand h1{font-size:1rem;margin:0 0 4px;line-height:1.3}
+.brand p{margin:0;font-size:.74rem;color:var(--dim);font-family:ui-monospace,monospace}
+#search{margin:12px 16px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;
+ background:var(--soft);color:var(--ink);font:inherit;font-size:.86rem}
+#list{overflow-y:auto;flex:1;padding:0 8px 16px}
+.item{padding:9px 10px;border-radius:7px;cursor:pointer;border:1px solid transparent}
+.item:hover{background:var(--soft)}
+.item.sel{background:var(--soft);border-color:var(--accent)}
+.item .d{font-family:ui-monospace,monospace;font-size:.76rem;color:var(--accent);
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .t{font-size:.78rem;color:var(--dim);margin:2px 0 5px;
+ display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pips{display:flex;gap:3px;align-items:center}
+.pip{height:4px;border-radius:2px;flex:0 0 auto}
+.pip.ok{background:var(--ok)} .pip.fixed{background:var(--fix)} .pip.drop{background:var(--drop)}
+.pip.unjudged{background:var(--line)}
+.item .c{font-size:.7rem;color:var(--dim);margin-left:6px;font-variant-numeric:tabular-nums}
+
+#main{overflow-y:auto;min-height:0;scroll-behavior:smooth}
+.tiles{display:flex;gap:8px;flex-wrap:wrap;padding:16px 22px 0}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 14px}
+.tile b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums}
+.tile span{font-size:.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+
+.head{position:sticky;top:0;z-index:4;background:var(--bg);padding:14px 22px 10px;
+ border-bottom:1px solid var(--line)}
+.head h2{margin:0 0 3px;font-size:.95rem;font-family:ui-monospace,monospace;color:var(--accent)}
+.head p{margin:0 0 10px;font-size:.85rem;color:var(--dim)}
+.tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.tools button{font:inherit;font-size:.78rem;padding:5px 11px;border:1px solid var(--line);
+ border-radius:20px;background:var(--panel);color:var(--dim);cursor:pointer}
+.tools button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.recs{padding:6px 22px 60px}
+.rec{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--line);
+ border-radius:7px;margin-bottom:6px;overflow:hidden}
+.rec.ok{border-left-color:var(--ok)} .rec.fixed{border-left-color:var(--fix)}
+.rec.drop{border-left-color:var(--drop)}
+.row{display:flex;gap:12px;align-items:center;padding:9px 13px;cursor:pointer}
+.row:hover{background:var(--soft)}
+.ix{font-family:ui-monospace,monospace;font-size:.74rem;color:var(--dim);width:34px;flex:0 0 auto}
+.cat{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.88rem}
+.mini{font-size:.78rem;color:var(--dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{font-size:.64rem;text-transform:uppercase;letter-spacing:.07em;padding:3px 8px;
+ border-radius:4px;flex:0 0 auto}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.tag.fixed{background:var(--fix-bg);color:var(--fix)}
+.tag.drop{background:var(--drop-bg);color:var(--drop)}
+.tag.unjudged{background:var(--soft);color:var(--dim)}
+
+.body{display:none;padding:2px 13px 14px;border-top:1px solid var(--line)}
+.rec.open .body{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:6px;margin:11px 0}
+.cell{background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:5px 8px}
+.cell k{display:block;font-size:.63rem;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}
+.cell v{font-size:.85rem;font-variant-numeric:tabular-nums}
+.cell.bad{border-color:var(--fix);background:var(--fix-bg)}
+.cell .was{text-decoration:line-through;color:var(--dim);margin-right:5px}
+.null{color:var(--dim);font-style:italic;font-size:.9em}
+.crit{font-size:.86rem;color:var(--dim);border-left:2px solid var(--line);padding-left:11px;margin:0 0 11px}
+.fx{margin:0 0 11px;padding-left:17px;font-size:.84rem}
+.fx li{margin-bottom:5px}
+.ev{color:var(--dim);font-size:.93em}
+.srcs summary{cursor:pointer;font-size:.78rem;color:var(--dim)}
+.src{margin-top:8px;border-left:2px solid var(--line);padding-left:11px}
+.src .cid{font-family:ui-monospace,monospace;font-size:.68rem;color:var(--dim)}
+.src .txt{white-space:pre-wrap;font-size:.82rem;color:var(--dim);max-height:220px;
+ overflow:auto;margin-top:3px}
+.gone{color:var(--drop);font-size:.8rem;margin-top:7px}
+mark{background:var(--mark);color:var(--markink);border-radius:2px;padding:0 2px}
+.empty{padding:40px 22px;color:var(--dim)}
 </style></head><body>
-<div class="wrap">
-<h1>{title}</h1>
-<p class="sub">extraction <code>{extraction}</code> &middot; judge <code>{judge}</code>.
-Values highlighted in the source text are the ones this record claims. Open a paper to review it.</p>
-<div class="tiles">{tiles}</div>
-<div class="bar">
-  <input id="q" placeholder="filter by DOI or catalyst…">
-  <select id="state">
-    <option value="">all records</option>
-    <option value="ok">accepted only</option>
-    <option value="fixed">corrected only</option>
-    <option value="drop">would drop only</option>
-  </select>
-  <button id="toggle">show corrected values</button>
-  <button id="expand">expand all</button>
+<div class="app">
+  <aside id="side">
+    <div class="brand"><h1>__TITLE__</h1><p>__EXTRACTION__ · __JUDGE__</p></div>
+    <input id="search" placeholder="filter papers…" autocomplete="off">
+    <div id="list"></div>
+  </aside>
+  <main id="main">
+    <div class="tiles">__TILES__</div>
+    <div id="pane"></div>
+  </main>
 </div>
-{sections}
-</div>
+<script id="data" type="application/json">__PAYLOAD__</script>
 <script>
-const papers = [...document.querySelectorAll('.paper')];
-const q = document.getElementById('q'), state = document.getElementById('state');
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const {papers, fields, labels, summary} = DATA;
+const list = document.getElementById('list'), pane = document.getElementById('pane');
+const search = document.getElementById('search');
+let selected = 0, filter = '', corrected = false;
 
-function apply() {{
-  const needle = q.value.toLowerCase().trim(), want = state.value;
-  for (const paper of papers) {{
-    const recs = [...paper.querySelectorAll('.rec')];
-    let shown = 0;
-    for (const rec of recs) {{
-      const okState = !want || rec.dataset.state === want;
-      const okText = !needle || paper.querySelector('.doi').textContent.toLowerCase().includes(needle)
-                     || rec.textContent.toLowerCase().includes(needle);
-      const visible = okState && okText;
-      rec.classList.toggle('hidden', !visible);
-      if (visible) shown++;
-    }}
-    paper.classList.toggle('hidden', shown === 0);
-  }}
-}}
-q.addEventListener('input', apply);
-state.addEventListener('change', apply);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const fmt = v => v === null || v === undefined
+  ? '<span class="null">not reported</span>'
+  : esc(typeof v === 'number' && Number.isInteger(v) ? v : v);
 
-document.getElementById('toggle').addEventListener('click', e => {{
-  const on = document.body.classList.toggle('corrected');
-  e.target.classList.toggle('on', on);
-  e.target.textContent = on ? 'showing corrected values' : 'show corrected values';
-}});
-document.getElementById('expand').addEventListener('click', e => {{
-  const on = e.target.classList.toggle('on');
-  papers.forEach(p => {{ if (!p.classList.contains('hidden')) p.open = on; }});
-  e.target.textContent = on ? 'collapse all' : 'expand all';
-}});
+function forms(v) {
+  if (v === null || v === undefined) return [];
+  if (typeof v === 'string') return v.length > 2 ? [v] : [];
+  const out = new Set([String(v)]);
+  if (Number.isInteger(v)) out.add(String(v)); else out.add(v.toFixed(1).replace(/\\.0$/, ''));
+  return [...out].filter(s => s.length > 1);
+}
+
+// The needle is escaped for HTML first, because the text being searched is already escaped,
+// then escaped again for use inside a regex. No lookbehind: unsupported on older Safari, so the
+// leading boundary is captured and put back.
+const RX_SPECIAL = /[.*+?^${}()|[\]\\]/g;
+
+function mark(text, values) {
+  const wanted = [];
+  for (const f of fields) for (const s of forms(values[f])) wanted.push(s);
+  wanted.sort((a, b) => b.length - a.length);
+
+  let out = esc(text);
+  for (const s of wanted) {
+    const needle = esc(s).replace(RX_SPECIAL, '\\$&');
+    const re = new RegExp('(^|[^\\w.])(' + needle + ')(?![\\w.])', 'g');
+    let hits = 0;
+    out = out.replace(re, (whole, before, hit) =>
+      hits++ < 3 ? before + '<mark>' + hit + '</mark>' : whole);
+  }
+  return out;
+}
+
+function paperCounts(p) {
+  const c = {ok: 0, fixed: 0, drop: 0, unjudged: 0};
+  for (const r of p.records) c[r.state]++;
+  return c;
+}
+
+function drawList() {
+  const needle = filter.toLowerCase();
+  list.innerHTML = '';
+  papers.forEach((p, i) => {
+    if (needle && !(p.doi + ' ' + p.title).toLowerCase().includes(needle)) return;
+    const c = paperCounts(p), n = p.records.length;
+    const pips = ['ok', 'fixed', 'drop', 'unjudged']
+      .filter(k => c[k]).map(k => `<i class="pip ${k}" style="width:${c[k] / n * 100}%"></i>`).join('');
+    const el = document.createElement('div');
+    el.className = 'item' + (i === selected ? ' sel' : '');
+    el.innerHTML = `<div class="d">${esc(p.doi)}</div><div class="t">${esc(p.title)}</div>
+      <div class="pips">${pips}<span class="c">${n}</span></div>`;
+    el.onclick = () => { selected = i; drawList(); drawPaper(); document.getElementById('main').scrollTop = 0; };
+    list.appendChild(el);
+  });
+  if (!list.children.length) list.innerHTML = '<p class="empty">no papers match</p>';
+}
+
+function drawPaper() {
+  const p = papers[selected];
+  if (!p) { pane.innerHTML = '<p class="empty">nothing to show</p>'; return; }
+
+  const rows = p.records.map(r => {
+    const v = r.values;
+    const fixMap = Object.fromEntries(r.fixes.map(f => [f.field, f]));
+    const cells = fields.map(f => {
+      const has = f in fixMap;
+      const shown = corrected && has
+        ? `<span class="was">${fmt(v[f])}</span>${fmt(fixMap[f].to)}`
+        : fmt(v[f]);
+      return `<div class="cell${r.bad.includes(f) ? ' bad' : ''}">
+        <k>${labels[f]}</k><v>${shown}</v></div>`;
+    }).join('');
+
+    const fixes = r.fixes.length ? `<ul class="fx">${r.fixes.map(f =>
+      `<li><b>${labels[f.field] || f.field}</b>: ${fmt(v[f.field])} &rarr; ${fmt(f.to)}
+       <br><span class="ev">${esc(f.evidence)}</span></li>`).join('')}</ul>` : '';
+
+    const srcs = r.cited.filter(c => p.chunks[c]).map(c =>
+      `<div class="src"><div class="cid">${c.slice(0, 8)}</div>
+       <div class="txt">${mark(p.chunks[c], v)}</div></div>`).join('');
+    const gone = r.missing.length
+      ? `<div class="gone">${r.missing.length} cited chunk${r.missing.length > 1 ? 's' : ''} not found in this paper</div>`
+      : '';
+
+    const mini = summary.slice(1).map(f => v[f] === null ? '—' : v[f]).join(' · ');
+    return `<div class="rec ${r.state}" data-state="${r.state}">
+      <div class="row"><span class="ix">#${r.i}</span>
+        <span class="cat">${fmt(v.catalyst)}</span>
+        <span class="mini">${esc(mini)}</span>
+        <span class="tag ${r.state}">${r.state === 'ok' ? 'accepted' : r.state === 'fixed' ? 'corrected' : r.state === 'drop' ? 'would drop' : 'unjudged'}</span></div>
+      <div class="body">
+        <div class="grid">${cells}</div>
+        ${r.critique ? `<p class="crit">${esc(r.critique)}</p>` : ''}
+        ${fixes}
+        ${srcs ? `<details class="srcs"><summary>${r.cited.length} source chunk${r.cited.length > 1 ? 's' : ''}</summary>${srcs}</details>` : ''}
+        ${gone}
+      </div></div>`;
+  }).join('');
+
+  pane.innerHTML = `<div class="head">
+      <h2>${esc(p.doi)}</h2><p>${esc(p.title)}</p>
+      <div class="tools">
+        <button data-f="" class="on">all ${p.records.length}</button>
+        <button data-f="ok">accepted</button>
+        <button data-f="fixed">corrected</button>
+        <button data-f="drop">would drop</button>
+        <button id="corr" class="${corrected ? 'on' : ''}">${corrected ? 'showing corrected' : 'show corrected'}</button>
+        <button id="all">expand all</button>
+      </div></div>
+    <div class="recs">${rows}</div>`;
+
+  pane.querySelectorAll('.row').forEach(row =>
+    row.onclick = () => row.parentElement.classList.toggle('open'));
+
+  pane.querySelectorAll('.tools button[data-f]').forEach(btn => btn.onclick = () => {
+    pane.querySelectorAll('.tools button[data-f]').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    const want = btn.dataset.f;
+    pane.querySelectorAll('.rec').forEach(rec =>
+      rec.style.display = (!want || rec.dataset.state === want) ? '' : 'none');
+  });
+
+  document.getElementById('corr').onclick = () => { corrected = !corrected; drawPaper(); };
+  document.getElementById('all').onclick = e => {
+    const on = !e.target.classList.contains('on');
+    e.target.classList.toggle('on', on);
+    e.target.textContent = on ? 'collapse all' : 'expand all';
+    pane.querySelectorAll('.rec').forEach(r => r.classList.toggle('open', on));
+  };
+}
+
+search.addEventListener('input', e => { filter = e.target.value; drawList(); });
+drawList(); drawPaper();
 </script>
 </body></html>"""
 
@@ -354,7 +422,7 @@ def main() -> None:
     parser.add_argument("--corpus", default="corpus_markdown",
                         help="chunked markdown directory under artifacts/data")
     parser.add_argument("--out", default=None, help="output HTML path")
-    parser.add_argument("--title", default="PET depolymerisation database — record review")
+    parser.add_argument("--title", default="PET depolymerisation database")
     args = parser.parse_args()
 
     extraction = RUNS_DIR / args.extraction
@@ -365,7 +433,8 @@ def main() -> None:
         parser.error(f"no verdicts/ in {judge}")
 
     page = build(extraction, judge, data_path(args.corpus), args.title)
-    out = Path(args.out) if args.out else ARTIFACTS / f"review_{args.extraction.replace('/', '_')}.html"
+    default = ARTIFACTS / f"review_{args.extraction.replace('/', '_')}.html"
+    out = Path(args.out) if args.out else default
     out.write_text(page, encoding="utf-8")
     print(f"wrote {out}  ({out.stat().st_size / 1e6:.1f} MB)")
 

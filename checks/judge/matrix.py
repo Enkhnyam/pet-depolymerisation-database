@@ -11,6 +11,7 @@ import glob
 from pathlib import Path
 
 import pandas as pd
+from sklearn.metrics import cohen_kappa_score
 
 from _setup import RUNS_DIR, judged, scored, show
 
@@ -45,6 +46,9 @@ def main() -> None:
             "extraction": target,
             "records": len(both),
             "agreement": (both.metric == both.judge).mean(),
+            # kappa discounts agreement expected by chance; reported because it looks poor and
+            # the paper argues it is the wrong measure on a reference this patchy
+            "kappa": cohen_kappa_score(both.metric, both.judge),
             "evaluable": len(evaluable),
             "agreement, evaluable": (evaluable.metric == evaluable.judge).mean(),
         })
@@ -55,6 +59,10 @@ def main() -> None:
          frame.pivot(index="judge", columns="extraction", values="agreement"))
     show("agreement over records the metric could evaluate",
          frame.pivot(index="judge", columns="extraction", values="agreement, evaluable"))
+    show("kappa between the two graders",
+         frame.pivot(index="judge", columns="extraction", values="kappa"))
+    print(f"\nkappa range across the {len(frame)} cells: "
+          f"{frame.kappa.min():.2f} to {frame.kappa.max():.2f}")
 
 
 if __name__ == "__main__":
