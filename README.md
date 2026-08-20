@@ -31,6 +31,21 @@ Judging is resumable; extraction is not, and re-runs every paper from the start.
 ./.venv/bin/python -W ignore checks/run.py metric/scores.py   # one or several
 ```
 
+Every check prints the bundles it reads before its numbers — which extraction, which judge,
+which model produced each, and the matching thresholds — so any figure can be traced to the files
+behind it:
+
+```
+reads
+  labels              artifacts/gold/golden_set.json
+  labelled_run        artifacts/gold/source_run   azure/gpt-5.6-sol · 24 papers · config.json
+  shipped_extraction  artifacts/runs/extract_luna/...   azure/gpt-5.6-luna · 24 papers · config.json
+  thresholds          accept 0.30 · catalyst 0.60 · tolerance 0.20
+```
+
+Each run directory holds the `config.json` that produced it, with a content hash, and a
+`run_meta.json` with the model, token counts, cost and git commit.
+
 Always go through `run.py` — the scripts do `from _setup import *`, and the runner is what puts
 `checks/` on the import path. None of them take arguments: what is being measured is set in
 `checks/_setup.py`, in one place, so no two checks can disagree.

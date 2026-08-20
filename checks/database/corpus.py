@@ -8,7 +8,7 @@ from collections import Counter
 
 import pandas as pd
 
-from _setup import DATABASE, records, show
+from _setup import DATABASE, records, show, sources
 from core.paths import data_path
 
 ELSEVIER = "10.1016"
@@ -17,6 +17,7 @@ PUBLISHERS = {ELSEVIER: "Elsevier", "10.1002": "Wiley", "10.1021": "ACS",
 
 
 def main() -> None:
+    sources(funnel='corpus_candidates.csv', corpus='corpus_markdown', extraction=DATABASE)
     with data_path("corpus_candidates.csv").open(encoding="utf-8") as handle:
         candidates = list(csv.DictReader(handle))
     kept = [row for row in candidates if row["keep"].lower() == "true"]

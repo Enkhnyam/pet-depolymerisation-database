@@ -7,7 +7,7 @@ could resolve.
 """
 import pandas as pd
 
-from _setup import curated, records, scored, show
+from _setup import CURATED, EXTRACTION, curated, records, scored, show, sources
 
 BOTH_PLAIN = "plain chemical name / plain chemical name"
 
@@ -26,6 +26,7 @@ def kind_of(name: object) -> str:
 
 
 def main() -> None:
+    sources(answer_key=CURATED, extraction=EXTRACTION)
     names = sorted(set(curated().catalyst.dropna()) | set(records().catalyst.dropna()))
     population = pd.Series([kind_of(name) for name in names]).value_counts()
     show(f"all {len(names)} distinct catalyst names", population, fmt="{:.0f}")

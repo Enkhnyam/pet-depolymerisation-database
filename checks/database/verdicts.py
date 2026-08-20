@@ -11,10 +11,11 @@ from collections import Counter
 
 import pandas as pd
 
-from _setup import DATABASE_JUDGE, show
+from _setup import DATABASE, DATABASE_JUDGE, show, sources
 
 
 def main() -> None:
+    sources(extraction=DATABASE, judge=DATABASE_JUDGE)
     verdicts = []
     for path in (DATABASE_JUDGE / "verdicts").glob("*.json"):
         verdicts += json.loads(path.read_text())["verdicts"]

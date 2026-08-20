@@ -154,6 +154,40 @@ def runs() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def sources(**named) -> None:
+    """Print the bundles a check reads, so any number can be traced back to the files behind it.
+
+    Run directories are named with the model that produced them and the config that defines them,
+    because that is what a reviewer needs to check a claim: which model, under which settings,
+    over which papers.
+    """
+    width = max([len(label) for label in named] + [len("thresholds")])
+    print("reads")
+    for label, target in named.items():
+        if isinstance(target, str) and not str(target).startswith("/"):
+            print(f"  {label:{width}s}  artifacts/data/{target}")
+            continue
+
+        path = Path(target)
+        where = path.relative_to(ROOT) if path.is_absolute() and ROOT in path.parents else path
+        detail = []
+        for meta_name in ("run_meta.json", "judge_meta.json"):
+            meta_file = path / meta_name
+            if meta_file.exists():
+                meta = json.loads(meta_file.read_text())
+                detail.append(meta.get("model", ""))
+                if meta.get("n_papers"):
+                    detail.append(f"{meta['n_papers']} papers")
+                break
+        if (path / "config.json").exists():
+            detail.append("config.json")
+        note = "   " + " · ".join(d for d in detail if d) if detail else ""
+        print(f"  {label:{width}s}  {where}{note}")
+
+    print(f"  {'thresholds':{width}s}  accept {ACCEPT:.2f} · catalyst {CATALYST:.2f} · "
+          f"tolerance {TOLERANCE:.2f}")
+
+
 def show(title: str, data, fmt: str = "{:.3f}") -> None:
     """Print one titled block. The only output helper the checks use."""
     if isinstance(data, dict):

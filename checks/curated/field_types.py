@@ -9,13 +9,14 @@ from collections import Counter
 
 import pandas as pd
 
-from _setup import judged, scored, show
+from _setup import CURATED, EXTRACTION, JUDGE, judged, scored, show, sources
 
 TEXT_FIELDS = {"catalyst", "solvent"}
 UNMATCHED = "no curated counterpart"
 
 
 def main() -> None:
+    sources(answer_key=CURATED, extraction=EXTRACTION, judge=JUDGE)
     comparable = scored().query("situation != @UNMATCHED")
     both = comparable.merge(judged(), on=["doi", "index"])
 

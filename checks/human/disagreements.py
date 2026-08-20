@@ -7,12 +7,13 @@ identifies no substance, so rejecting it was right for the wrong reason.
 """
 import pandas as pd
 
-from _setup import LABELLED, golden, scored, show
+from _setup import CURATED, LABELLED, LABELS, golden, scored, show, sources
 
 GRADERS = ["judge", "metric"]
 
 
 def main() -> None:
+    sources(labels=LABELS, labelled_run=LABELLED, answer_key=CURATED)
     labelled = golden()
     print(f"\nthe chemists rejected {(labelled.human == 'incorrect').sum()} "
           f"of {len(labelled)} records")

@@ -9,12 +9,13 @@ The test half was fixed before the final rubric was written, so it is genuinely 
 import pandas as pd
 from sklearn.metrics import precision_recall_fscore_support
 
-from _setup import golden, show
+from _setup import CURATED, LABELLED, LABELS, golden, show, sources
 
 GRADERS = ["judge", "metric"]
 
 
 def main() -> None:
+    sources(labels=LABELS, labelled_run=LABELLED, answer_key=CURATED)
     labelled = golden()
     rejected = (labelled.human == "incorrect").sum()
     print(f"\nthe chemists rejected {rejected} of {len(labelled)} records")

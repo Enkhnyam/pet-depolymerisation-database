@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from _setup import RUNS_DIR, judged, scored, show
+from _setup import CURATED, RUNS_DIR, judged, scored, show, sources
 
 UNMATCHED = "no curated counterpart"
 
@@ -27,6 +27,7 @@ def find_runs(pattern: str, meta_file: str) -> dict:
 
 
 def main() -> None:
+    sources(answer_key=CURATED, extractions=RUNS_DIR / 'extract_*', judges=RUNS_DIR / 'judge_*_on_*')
     extractions = {name.replace("extract_", ""): run_dir
                    for name, run_dir in find_runs("extract_*", "run_meta.json").items()}
     judges = {tuple(name.replace("judge_", "").split("_on_")): run_dir

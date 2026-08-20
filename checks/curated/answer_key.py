@@ -5,12 +5,13 @@ any score computed from it. The last block is the one check that needs no extern
 should equal conversion x selectivity, and a wide spread means the three numbers were transcribed
 from different tables.
 """
-from _setup import FIELDS, OUTCOMES, curated, show
+from _setup import CURATED, FIELDS, OUTCOMES, curated, show, sources
 
 MEASURED = ["temperature_c", "reaction_time_min", "PET_amount_g", "catalyst_amount_g"]
 
 
 def main() -> None:
+    sources(answer_key=CURATED)
     table = curated()
     percentages = table[OUTCOMES]
     amounts = table[FIELDS].select_dtypes("number")

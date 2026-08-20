@@ -5,12 +5,13 @@ names, or accepting any name at all, are both worse than the middle.
 """
 import pandas as pd
 
-from _setup import LABELLED, golden, scored, show
+from _setup import CURATED, LABELLED, LABELS, golden, scored, show, sources
 
 REQUIREMENTS = [0.0, 0.2, 0.4, 0.6, 0.8, 0.9, 1.0]
 
 
 def main() -> None:
+    sources(labels=LABELS, labelled_run=LABELLED, answer_key=CURATED)
     labelled = golden()[["doi", "index", "human", "judge"]]
 
     rows = {}

@@ -9,7 +9,7 @@ import json
 import re
 from pathlib import Path
 
-from _setup import DATABASE, show
+from _setup import DATABASE, show, sources
 from core.licensing import licensable_dois
 from core.paths import data_path
 from core.utils import doi_to_filename
@@ -25,6 +25,7 @@ def chunk_ids(markdown_dir: Path, doi: str) -> set:
 
 
 def main() -> None:
+    sources(corpus='corpus_markdown', extraction=DATABASE)
     corpus = data_path("corpus_markdown")
 
     # ids belonging to the worked examples, to spot the model copying them into its answer

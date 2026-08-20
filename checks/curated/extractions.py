@@ -8,10 +8,11 @@ from pathlib import Path
 
 import pandas as pd
 
-from _setup import RUNS_DIR, curated, records, show, totals
+from _setup import CURATED, RUNS_DIR, curated, records, show, sources, totals
 
 
 def main() -> None:
+    sources(answer_key=CURATED, extractions=RUNS_DIR / 'extract_*')
     rows = []
     for path in sorted(glob.glob(str(RUNS_DIR / "extract_*/*/run_meta.json"))):
         run_dir = Path(path).parent

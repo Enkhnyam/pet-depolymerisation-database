@@ -12,10 +12,11 @@ import hashlib
 
 import pandas as pd
 
-from _setup import LABELLED, LABELS, golden, show
+from _setup import CURATED, LABELLED, LABELS, golden, show, sources
 
 
 def main() -> None:
+    sources(labels=LABELS, labelled_run=LABELLED, answer_key=CURATED)
     labelled = golden()
 
     show("set", {

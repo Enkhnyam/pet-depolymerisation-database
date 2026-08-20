@@ -12,7 +12,7 @@ disagreements, not a random sample -- which is what made the existing set so uni
 import pandas as pd
 from scipy.stats import binom, binomtest
 
-from _setup import RUNS_DIR, golden, judged, scored, show
+from _setup import LABELLED, LABELS, RUNS_DIR, golden, judged, scored, show, sources
 
 ALPHA = 0.05
 POWER = 0.80
@@ -27,6 +27,7 @@ def power_at(n: int, rate: float) -> float:
 
 
 def main() -> None:
+    sources(labels=LABELS, labelled_run=LABELLED, shipped_extraction=RUNS_DIR / 'extract_luna/extract_luna_n4_r1', shipped_judge=RUNS_DIR / 'judge_oss_on_luna/judge_oss_on_luna')
     labelled = golden()
     judge_only = ((labelled.judge == labelled.human) & (labelled.metric != labelled.human)).sum()
     metric_only = ((labelled.metric == labelled.human) & (labelled.judge != labelled.human)).sum()

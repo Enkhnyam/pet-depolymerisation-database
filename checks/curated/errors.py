@@ -8,10 +8,11 @@ fragile; clustered near zero, the matches are comfortable.
 """
 import pandas as pd
 
-from _setup import ACCEPT, judged, scored, show, totals
+from _setup import (ACCEPT, CURATED, EXTRACTION, JUDGE, judged, scored, show, sources, totals)
 
 
 def main() -> None:
+    sources(answer_key=CURATED, extraction=EXTRACTION, judge=JUDGE)
     labels = scored()
     show("the metric's verdict on every record", labels.verdict.value_counts(), fmt="{:.0f}")
 

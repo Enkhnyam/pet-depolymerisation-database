@@ -4,7 +4,7 @@ If the reported settings sit on a plateau rather than a peak, they were not cher
 """
 import pandas as pd
 
-from _setup import ACCEPT, CATALYST, TOLERANCE, show, totals
+from _setup import (ACCEPT, CATALYST, CURATED, EXTRACTION, TOLERANCE, show, sources, totals)
 
 
 def sweep(setting: str, values: list[float]) -> pd.DataFrame:
@@ -17,6 +17,7 @@ def sweep(setting: str, values: list[float]) -> pd.DataFrame:
 
 
 def main() -> None:
+    sources(answer_key=CURATED, extraction=EXTRACTION)
     show(f"acceptance cutoff (using {ACCEPT:.2f})",
          sweep("accept", [0.2, 0.25, 0.3, 0.35, 0.4, 0.5]))
     show(f"catalyst similarity (using {CATALYST:.2f})",

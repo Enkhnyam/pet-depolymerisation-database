@@ -5,7 +5,8 @@ re-pairs them greedily -- closest pair first -- and compares the number of corre
 both find the same, the metric loses records *after* pairing, when deciding whether a pair is
 acceptable, not while choosing which pairs to make.
 """
-from _setup import ACCEPT, CATALYST, CURATED, EXTRACTION, TOLERANCE, experiments, show, totals
+from _setup import (ACCEPT, CATALYST, CURATED, EXTRACTION, TOLERANCE, experiments, show,
+                    sources, totals)
 from core.paths import data_path
 from core.schema import load_curated
 from core.evaluation import record_penalty
@@ -37,6 +38,7 @@ def greedy_matches(curated_rows: list, extracted_rows: list) -> int:
 
 
 def main() -> None:
+    sources(answer_key=CURATED, extraction=EXTRACTION)
     reference = load_curated(data_path(CURATED))
     extraction = experiments(EXTRACTION)
 

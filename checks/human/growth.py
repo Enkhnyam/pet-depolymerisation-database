@@ -10,8 +10,8 @@ import json
 import numpy as np
 import pandas as pd
 
-from _setup import (ACCEPT, CATALYST, CURATED, LABELLED, TOLERANCE, experiments, golden, judged,
-                    scored, show)
+from _setup import (ACCEPT, CATALYST, CURATED, JUDGE, LABELLED, LABELS, TOLERANCE, experiments,
+                    golden, judged, scored, show, sources)
 from core.evaluation import evaluate
 from core.paths import data_path
 from core.schema import Experiment
@@ -41,6 +41,7 @@ def verdicts_with(reference: dict) -> pd.DataFrame:
 
 
 def main() -> None:
+    sources(labels=LABELS, labelled_run=LABELLED, answer_key=CURATED, judge=JUDGE)
     both = scored(run=LABELLED).merge(judged(), on=["doi", "index"])
     unpaired = both.query("situation == @UNMATCHED")
 
