@@ -26,7 +26,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))       # repo root i
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "checks"))
 from _setup import RUNS_DIR, judged, scored
 from core.paths import ARTIFACTS, data_path
-from review_database import FIELDS, LABELS, load_chunks, load_run, paper_title
+from _page import validate
+from review_database import (FIELDS, LABELS, load_chunks, load_run,
+                             paper_title)
 
 
 def collect(extraction: Path, judge: Path, markdown_dir: Path, evaluable_only: bool) -> list:
@@ -115,6 +117,7 @@ shown, so your answer is not anchored to either.</p>
 <script id="data" type="application/json">__PAYLOAD__</script>
 <script>
 const ITEMS = JSON.parse(document.getElementById('data').textContent);
+const LABELS = __LABELS__;
 const KEY = 'adjudication-__SLUG__';
 const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
@@ -199,7 +202,6 @@ document.getElementById('export').onclick = () => {
   if (w) { w.document.title = 'decisions.json'; w.document.body.innerText = text; }
   else alert(text);
 };
-const LABELS = __LABELS__;
 </script></body></html>"""
 
 
@@ -226,6 +228,7 @@ def main() -> None:
                          ("__PAYLOAD__", json.dumps(items, ensure_ascii=False).replace("</", "<\\/"))]:
         page = page.replace(token, value)
 
+    validate(page)
     out = Path(args.out) if args.out else ARTIFACTS / f"adjudicate_{slug}.html"
     out.write_text(page, encoding="utf-8")
     print(f"{len(items)} disagreements to adjudicate")

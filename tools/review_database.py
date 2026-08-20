@@ -23,9 +23,11 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))          # tools/ importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root importable
 from core.paths import ARTIFACTS, RUNS_DIR, data_path
 from core.utils import doi_to_filename
+from _page import validate
 
 FIELDS = ["catalyst", "solvent", "temperature_c", "reaction_time_min", "catalyst_amount_g",
           "PET_amount_g", "solvent_amount_g", "yield_percent", "selectivity_percent",
@@ -433,6 +435,7 @@ def main() -> None:
         parser.error(f"no verdicts/ in {judge}")
 
     page = build(extraction, judge, data_path(args.corpus), args.title)
+    validate(page)
     default = ARTIFACTS / f"review_{args.extraction.replace('/', '_')}.html"
     out = Path(args.out) if args.out else default
     out.write_text(page, encoding="utf-8")
