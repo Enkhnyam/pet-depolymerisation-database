@@ -1,8 +1,8 @@
-.env
-/artifacts/runs/
 /artifacts/data/curated_data_pdfs_by_doi/
-__pycache__/
-.venv/
+/artifacts/runs/
 *.aux
+.env
 *.log
 *.pdf
+__pycache__/
+.venv/
