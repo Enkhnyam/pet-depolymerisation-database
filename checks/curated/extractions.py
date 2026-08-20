@@ -11,8 +11,8 @@ import pandas as pd
 from _setup import CURATED, RUNS_DIR, curated, records, show, sources, totals
 
 
-def main() -> None:
-    sources(answer_key=CURATED, extractions=RUNS_DIR / 'extract_*')
+def compute() -> pd.DataFrame:
+    """Every benchmark extraction scored against the curated answer key."""
     rows = []
     for path in sorted(glob.glob(str(RUNS_DIR / "extract_*/*/run_meta.json"))):
         run_dir = Path(path).parent
@@ -28,9 +28,14 @@ def main() -> None:
             "missed": result["fn"],
         })
 
-    print(f"\nscored against {len(curated())} curated experiments from "
-          f"{curated().doi.nunique()} papers")
-    show("benchmark extractions", pd.DataFrame(rows).set_index("model"))
+    return pd.DataFrame(rows).set_index("model")
+
+
+def main() -> None:
+    sources(answer_key=CURATED, extractions=RUNS_DIR / "extract_*")
+    table = curated()
+    print(f"\nscored against {len(table)} curated experiments from {table.doi.nunique()} papers")
+    show("benchmark extractions", compute())
 
 
 if __name__ == "__main__":

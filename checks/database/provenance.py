@@ -24,8 +24,8 @@ def chunk_ids(markdown_dir: Path, doi: str) -> set:
     return set(CHUNK_PATTERN.findall(path.read_text(encoding="utf-8")))
 
 
-def main() -> None:
-    sources(corpus='corpus_markdown', extraction=DATABASE)
+def compute() -> dict:
+    """Whether each cited chunk resolves to text in the paper it belongs to."""
     corpus = data_path("corpus_markdown")
 
     # ids belonging to the worked examples, to spot the model copying them into its answer
@@ -54,14 +54,19 @@ def main() -> None:
                     invented += 1
                     papers_affected.add(paper["doi"])
 
-    show("chunk citations", {
-        "total": total,
-        "resolve to the paper's own text": valid,
-        "copied from a worked example": from_demos,
-        "match no chunk anywhere": invented,
-        "papers affected": len(papers_affected),
-    }, fmt="{:.0f}")
-    print(f"\n{valid / total:.1%} of citations are traceable")
+    return {"counts": {"total": total,
+                       "resolve to the paper's own text": valid,
+                       "copied from a worked example": from_demos,
+                       "match no chunk anywhere": invented,
+                       "papers affected": len(papers_affected)},
+            "traceable": valid / total if total else 0}
+
+
+def main() -> None:
+    sources(corpus="corpus_markdown", extraction=DATABASE)
+    result = compute()
+    show("chunk citations", result["counts"], fmt="{:.0f}")
+    print(f"\n{result['traceable']:.1%} of citations are traceable")
 
 
 if __name__ == "__main__":

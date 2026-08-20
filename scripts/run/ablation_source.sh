@@ -6,7 +6,7 @@
 #
 #   CONFIRM=1 scripts/ablation_source.sh
 #   LIMIT=3 CONFIRM=1 scripts/ablation_source.sh   cheap wiring test first
-set -u; cd "$(dirname "$0")/.."
+set -u; cd "$(dirname "$0")/../.."
 
 if [ "${CONFIRM:-}" != "1" ]; then
   echo "This bills Azure: 6 runs, about \$3."

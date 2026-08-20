@@ -14,103 +14,38 @@ tools/      things that produce files — figures and the supervisor review page
 artifacts/  everything produced. Nothing here is hand-edited.
 ```
 
-## Running the pipeline
+## Running things
+
+Two kinds of script. The top level derives things from what already exists and is always safe to
+run; `run/` spends money or hours and asks first.
 
 ```bash
-./.venv/bin/python -W ignore -u cli/run.py extract --config configs/extract/mass_luna.yaml
-./.venv/bin/python -W ignore -u cli/judge.py --config configs/judge/mass_oss.yaml
-./.venv/bin/python -W ignore -u cli/apply_fixes.py --judge-run mass_oss/mass_oss
+scripts/checks.sh                     # every number, grouped as the paper uses them
+scripts/checks.sh curated             # one group: curated | database | human
+scripts/figures.sh                    # draw the figures into artifacts/figures/
+scripts/pages.sh                      # the reviewable HTML pages
 ```
-
-Judging is resumable; extraction is not, and re-runs every paper from the start.
-
-## Running the checks
 
 ```bash
-./.venv/bin/python -W ignore checks/run.py                    # all of them
-./.venv/bin/python -W ignore checks/run.py metric/scores.py   # one or several
+CONFIRM=1 scripts/run/extract.sh              # the 447-paper extraction (~$8.50, not resumable)
+CONFIRM=1 scripts/run/judge.sh                # judging it (free, ~3 h, resumable)
+CONFIRM=1 scripts/run/ablation_shots.sh       # n_shots 0..6 x 3 (~$8)
+CONFIRM=1 scripts/run/ablation_source.sh      # citing sources on/off x 3 (~$3)
 ```
 
-Every check prints the bundles it reads before its numbers — which extraction, which judge,
-which model produced each, and the matching thresholds — so any figure can be traced to the files
-behind it:
+## Figures
 
 ```
-reads
-  labels              artifacts/gold/golden_set.json
-  labelled_run        artifacts/gold/source_run   azure/gpt-5.6-sol · 24 papers · config.json
-  shipped_extraction  artifacts/runs/extract_luna/...   azure/gpt-5.6-luna · 24 papers · config.json
-  thresholds          accept 0.30 · catalyst 0.60 · tolerance 0.20
+core/ → checks/ (compute + print) → figures/ (compute + draw)
 ```
 
-Each run directory holds the `config.json` that produced it, with a content hash, and a
-`run_meta.json` with the model, token counts, cost and git commit.
+A figure module imports `compute()` from the check that prints the same numbers, so a panel and
+`scripts/checks.sh` cannot disagree — nothing is recomputed for a plot. `figures/_style.py` holds
+the palette and the panel primitives, so all three canvases share one visual language by
+construction.
 
-Always go through `run.py` — the scripts do `from _setup import *`, and the runner is what puts
-`checks/` on the import path. None of them take arguments: what is being measured is set in
-`checks/_setup.py`, in one place, so no two checks can disagree.
-
-| group | asks |
-|---|---|
-| `curated/` | the 24-paper benchmark — the answer key, the metric on it, grader vs grader |
-| `database/` | the 447-paper mass run — funnel, verdicts, citation provenance |
-| `human/` | the 48 records two chemists adjudicated — and why they cannot name a winner |
-| `cost.py` | the spend ledger, which spans all of them |
-
-## Getting the numbers
-
-Each script prints one group of results, using the checks that produce them.
-
-```bash
-scripts/results_curated.sh    # the 24-paper benchmark: answer key, model scores, agreement matrix
-scripts/results_database.sh   # the 447-paper database: funnel, verdicts, citation provenance
-scripts/results_human.sh      # the 48 adjudicated records: what they establish and what they cannot
-scripts/results_all.sh        # all of it, grouped the way the paper uses it
-```
-
-## Ablations
-
-```bash
-CONFIRM=1 scripts/ablation_shots.sh    # n_shots 0..6, three runs each — 21 runs, ~$8
-CONFIRM=1 scripts/ablation_source.sh   # cite sources on/off, three each — 6 runs, ~$3
-```
-
-Both bill Azure, so both require `CONFIRM=1`. Both resume: a condition that already finished is
-skipped, so an interrupted sweep picks up where it stopped. Results are read by
-`curated/shots.py` and `curated/source_tracking.py`, which say so if the runs are not there yet.
-
-`n_shots` caps at 6 — seven papers are open-licensed enough to redistribute as worked examples,
-minus the held-out target.
-
-Use `LIMIT=3` for a cheap wiring test, but delete the run directory afterwards: a limited run
-leaves an `eval.json` that the sweep would mistake for a finished condition.
-
-## Adjudicating a new comparison
-
-```bash
-scripts/build_adjudication.sh                    # the shipped pair (oss judging luna)
-JUDGE=luna TARGET=terra scripts/build_adjudication.sh
-```
-
-Collects the records the two graders disagree about into a page where a chemist decides each one
-without seeing either grader's verdict. Only disagreements are worth labelling — each becomes an
-informative McNemar pair the moment it is decided, because one grader must be the one that
-matched. `checks/judge/power.py` says how many are needed.
-
-## Publishing a review page
-
-```bash
-./.venv/bin/python -W ignore tools/review_database.py \
-    --extraction mass_luna --judge mass_oss/mass_oss --corpus corpus_markdown
-```
-
-Writes a self-contained HTML page: every record with its fields, the judge's verdict and
-reasoning, the corrections it proposed, and the source text the record cites with the extracted
-values highlighted inside it. A toggle switches between the extracted and the corrected values.
-
-Any extraction and judge run work, whatever models produced them — `--extraction` and `--judge`
-take run directories under `artifacts/runs/`. Omit `--judge` to render an extraction on its own,
-which is how the corrected bundle from `apply_fixes.py` is rendered.
+Three canvases, one per claim: `fig1_database` (what was built), `fig2_chemistry` (does it behave
+like chemistry), `fig3_quality` (how far we can vouch for it).
 
 ## Configs
 

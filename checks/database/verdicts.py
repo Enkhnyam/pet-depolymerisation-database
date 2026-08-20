@@ -14,8 +14,8 @@ import pandas as pd
 from _setup import DATABASE, DATABASE_JUDGE, show, sources
 
 
-def main() -> None:
-    sources(extraction=DATABASE, judge=DATABASE_JUDGE)
+def compute() -> dict:
+    """One verdict per record, and the fields the judge proposed changing."""
     verdicts = []
     for path in (DATABASE_JUDGE / "verdicts").glob("*.json"):
         verdicts += json.loads(path.read_text())["verdicts"]
@@ -24,16 +24,23 @@ def main() -> None:
     rejected = [verdict for verdict in verdicts if verdict["verdict"] != "correct"]
     corrected = sum(1 for verdict in rejected if verdict["bad_fields"])
 
-    show("verdicts", {
-        "records judged": len(verdicts),
-        "accepted": accepted,
-        "rejected, with a correction": corrected,
-        "rejected outright": len(rejected) - corrected,
-    }, fmt="{:.0f}")
-    print(f"\npass rate {accepted / len(verdicts):.1%}")
+    return {
+        "counts": {"records judged": len(verdicts),
+                   "accepted": accepted,
+                   "rejected, with a correction": corrected,
+                   "rejected outright": len(rejected) - corrected},
+        "pass rate": accepted / len(verdicts) if verdicts else 0,
+        "fields": pd.Series(Counter(field for verdict in rejected
+                                    for field in verdict["bad_fields"])).sort_values(ascending=False),
+    }
 
-    fields = Counter(field for verdict in rejected for field in verdict["bad_fields"])
-    show("fields corrected", pd.Series(fields).sort_values(ascending=False), fmt="{:.0f}")
+
+def main() -> None:
+    sources(extraction=DATABASE, judge=DATABASE_JUDGE)
+    result = compute()
+    show("verdicts", result["counts"], fmt="{:.0f}")
+    print(f"\npass rate {result['pass rate']:.1%}")
+    show("fields corrected", result["fields"], fmt="{:.0f}")
 
 
 if __name__ == "__main__":

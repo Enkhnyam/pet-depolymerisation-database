@@ -6,7 +6,7 @@
 #
 #   FREE=1 scripts/matrix_extractions.sh          # gpt-oss-120b, mistral-small
 #   CONFIRM=1 scripts/matrix_extractions.sh       # all seven, including the five Azure models
-set -u; cd "$(dirname "$0")/.."
+set -u; cd "$(dirname "$0")/../.."
 
 FREE_MODELS="oss mistral"
 PAID_MODELS="sol luna terra mini mlarge"

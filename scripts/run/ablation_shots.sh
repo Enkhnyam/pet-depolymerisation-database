@@ -10,7 +10,7 @@
 #
 #   CONFIRM=1 scripts/ablation_shots.sh          the full sweep
 #   LIMIT=3 CONFIRM=1 scripts/ablation_shots.sh  three papers per run, to test the wiring first
-set -u; cd "$(dirname "$0")/.."
+set -u; cd "$(dirname "$0")/../.."
 
 if [ "${CONFIRM:-}" != "1" ]; then
   echo "This bills Azure: 21 runs, about \$8."

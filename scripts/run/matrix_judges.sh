@@ -7,7 +7,7 @@
 #
 #   FREE=1 scripts/matrix_judges.sh        free judges on free extractions (9 cells)
 #   CONFIRM=1 scripts/matrix_judges.sh     all 49 cells, including the paid Azure judges
-set -u; cd "$(dirname "$0")/.."
+set -u; cd "$(dirname "$0")/../.."
 
 FREE_MODELS="oss mistral"
 PAID_MODELS="sol luna terra mini mlarge"

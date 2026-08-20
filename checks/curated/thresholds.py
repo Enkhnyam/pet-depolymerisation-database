@@ -16,14 +16,21 @@ def sweep(setting: str, values: list[float]) -> pd.DataFrame:
     return frame[["f1", "precision", "recall"]]
 
 
+def compute() -> dict:
+    """One frame per threshold, scored across a range of settings."""
+    return {
+        "accept": sweep("accept", [0.2, 0.25, 0.3, 0.35, 0.4, 0.5]),
+        "catalyst": sweep("catalyst", [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]),
+        "tolerance": sweep("tolerance", [0.05, 0.1, 0.2, 0.3, 0.5]),
+    }
+
+
 def main() -> None:
     sources(answer_key=CURATED, extraction=EXTRACTION)
-    show(f"acceptance cutoff (using {ACCEPT:.2f})",
-         sweep("accept", [0.2, 0.25, 0.3, 0.35, 0.4, 0.5]))
-    show(f"catalyst similarity (using {CATALYST:.2f})",
-         sweep("catalyst", [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
-    show(f"numeric tolerance (using {TOLERANCE:.2f})",
-         sweep("tolerance", [0.05, 0.1, 0.2, 0.3, 0.5]))
+    result = compute()
+    show(f"acceptance cutoff (using {ACCEPT:.2f})", result["accept"])
+    show(f"catalyst similarity (using {CATALYST:.2f})", result["catalyst"])
+    show(f"numeric tolerance (using {TOLERANCE:.2f})", result["tolerance"])
 
 
 if __name__ == "__main__":
