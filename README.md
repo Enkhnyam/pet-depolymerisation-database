@@ -43,6 +43,30 @@ Always go through `run.py` — the scripts do `from _setup import *`, and the ru
 | `judge/` | judge against metric, and against the chemists |
 | `database/` | the 447-paper corpus run, its verdicts, and whether its citations resolve |
 
+## Getting the numbers
+
+Each script prints one group of results, using the checks that produce them.
+
+```bash
+scripts/results_reference.sh   # the curated answer key and how the metric behaves on it
+scripts/results_graders.sh     # judge against metric — the agreement matrix
+scripts/results_evidence.sh    # what the human labels establish, and what they cannot
+scripts/results_database.sh    # the corpus, the extraction, the verdicts, citation provenance
+scripts/results_all.sh         # every check, in the order the paper uses them
+```
+
+## Adjudicating a new comparison
+
+```bash
+scripts/build_adjudication.sh                    # the shipped pair (oss judging luna)
+JUDGE=luna TARGET=terra scripts/build_adjudication.sh
+```
+
+Collects the records the two graders disagree about into a page where a chemist decides each one
+without seeing either grader's verdict. Only disagreements are worth labelling — each becomes an
+informative McNemar pair the moment it is decided, because one grader must be the one that
+matched. `checks/judge/power.py` says how many are needed.
+
 ## Publishing a review page
 
 ```bash

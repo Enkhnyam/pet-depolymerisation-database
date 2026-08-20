@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# The database: where the corpus came from, what the extraction produced, what the judge said,
+# and whether the records point at text that exists.
+#
+#   scripts/results_database.sh
+set -u; cd "$(dirname "$0")/.."
+exec ./.venv/bin/python -W ignore checks/run.py \
+  database/corpus.py \
+  database/verdicts.py \
+  database/provenance.py
