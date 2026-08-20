@@ -25,6 +25,7 @@ SCRIPTS = [
     "database/corpus.py",
     "database/verdicts.py",
     "database/provenance.py",
+    "database/chemistry.py",
 
     # the 48 records two chemists adjudicated
     "human/composition.py",

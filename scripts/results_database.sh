@@ -9,4 +9,5 @@ set -u; cd "$(dirname "$0")/.."
 exec ./.venv/bin/python -W ignore checks/run.py \
   database/corpus.py \
   database/verdicts.py \
-  database/provenance.py
+  database/provenance.py \
+  database/chemistry.py
