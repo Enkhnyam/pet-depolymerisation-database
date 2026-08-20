@@ -34,6 +34,7 @@ SCRIPTS = [
 
     "database/corpus.py",
     "database/verdicts.py",
+    "database/provenance.py",
 ]
 
 if __name__ == "__main__":

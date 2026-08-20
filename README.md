@@ -41,7 +41,22 @@ Always go through `run.py` — the scripts do `from _setup import *`, and the ru
 | `metric/` | is the metric grader behaving? thresholds, catalyst matching, cost |
 | `golden_set/` | what the two chemists said about 48 records |
 | `judge/` | judge against metric, and against the chemists |
-| `database/` | the 447-paper corpus run and its verdicts |
+| `database/` | the 447-paper corpus run, its verdicts, and whether its citations resolve |
+
+## Publishing a review page
+
+```bash
+./.venv/bin/python -W ignore tools/review_database.py \
+    --extraction mass_luna --judge mass_oss/mass_oss --corpus corpus_markdown
+```
+
+Writes a self-contained HTML page: every record with its fields, the judge's verdict and
+reasoning, the corrections it proposed, and the source text the record cites with the extracted
+values highlighted inside it. A toggle switches between the extracted and the corrected values.
+
+Any extraction and judge run work, whatever models produced them — `--extraction` and `--judge`
+take run directories under `artifacts/runs/`. Omit `--judge` to render an extraction on its own,
+which is how the corrected bundle from `apply_fixes.py` is rendered.
 
 ## Configs
 
