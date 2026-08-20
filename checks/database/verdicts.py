@@ -1,26 +1,39 @@
-"""The judge on the database. No curated table exists here, which is the point: this is the
-number the agreement study licenses us to read as a quality estimate.
+"""The judge's verdicts on the database.
 
-It measures precision, not recall -- the judge only ever sees records that exist, so a missed
-experiment is invisible to it.
+No curated table exists for this corpus, which is the point: this is the number the agreement
+study licenses us to read as a quality estimate.
+
+It measures precision, not recall. The judge only ever sees records that exist, so an experiment
+the extractor missed is invisible to it.
 """
+import json
 from collections import Counter
-from _setup import *
 
-verdicts = []
-for path in (DATABASE_JUDGE / "verdicts").glob("*.json"):
-    verdicts += json.loads(path.read_text())["verdicts"]
+import pandas as pd
 
-accepted = sum(1 for v in verdicts if v["verdict"] == "correct")
-rejected = [v for v in verdicts if v["verdict"] != "correct"]
-corrected = sum(1 for v in rejected if v["bad_fields"])
+from _setup import DATABASE_JUDGE, show
 
-show("verdicts", {"records judged": len(verdicts),
-                  "accepted": accepted,
-                  "rejected, with a correction": corrected,
-                  "rejected outright": len(rejected) - corrected}, fmt="{:.0f}")
-print(f"\npass rate {accepted / len(verdicts):.1%}")
 
-show("fields corrected",
-     pd.Series(Counter(f for v in rejected for f in v["bad_fields"])).sort_values(ascending=False),
-     fmt="{:.0f}")
+def main() -> None:
+    verdicts = []
+    for path in (DATABASE_JUDGE / "verdicts").glob("*.json"):
+        verdicts += json.loads(path.read_text())["verdicts"]
+
+    accepted = sum(1 for verdict in verdicts if verdict["verdict"] == "correct")
+    rejected = [verdict for verdict in verdicts if verdict["verdict"] != "correct"]
+    corrected = sum(1 for verdict in rejected if verdict["bad_fields"])
+
+    show("verdicts", {
+        "records judged": len(verdicts),
+        "accepted": accepted,
+        "rejected, with a correction": corrected,
+        "rejected outright": len(rejected) - corrected,
+    }, fmt="{:.0f}")
+    print(f"\npass rate {accepted / len(verdicts):.1%}")
+
+    fields = Counter(field for verdict in rejected for field in verdict["bad_fields"])
+    show("fields corrected", pd.Series(fields).sort_values(ascending=False), fmt="{:.0f}")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,32 +1,58 @@
-"""Is the pairing algorithm the bottleneck? Re-pairs greedily (closest first) and compares
-with the optimal Hungarian assignment. If both find the same matches, the metric loses records
-after pairing, when judging a pair acceptable -- not while choosing pairs."""
-import numpy as np
-from _setup import *
+"""Is the pairing algorithm the bottleneck?
+
+The metric pairs curated and extracted records with an optimal (Hungarian) assignment. This
+re-pairs them greedily -- closest pair first -- and compares the number of correct matches. If
+both find the same, the metric loses records *after* pairing, when deciding whether a pair is
+acceptable, not while choosing which pairs to make.
+"""
+from _setup import ACCEPT, CATALYST, CURATED, EXTRACTION, TOLERANCE, experiments, show, totals
+from core.paths import data_path
+from core.schema import load_curated
 from core.evaluation import record_penalty
 
-reference = load_curated(data_path(CURATED))
-extraction = experiments()
-greedy = 0
+UNPAIRABLE = 10.0   # stand-in cost for a pair the catalyst gate refuses outright
 
-for doi, curated_rows in reference.items():
-    extracted_rows = extraction.get(doi, [])
-    if not curated_rows or not extracted_rows:
-        continue
-    cost, accepts = {}, {}
-    for i, left in enumerate(curated_rows):
-        for j, right in enumerate(extracted_rows):
-            penalty, matched, _ = record_penalty(left, right, CATALYST, TOLERANCE)
-            cost[i, j] = penalty if matched else 10.0
-            accepts[i, j] = matched and penalty < ACCEPT
-    taken_left, taken_right = set(), set()
-    for _, i, j in sorted((c, i, j) for (i, j), c in cost.items()):
-        if i in taken_left or j in taken_right:
+
+def greedy_matches(curated_rows: list, extracted_rows: list) -> int:
+    """Pair closest-first, each row used once, and count the pairs that would be accepted."""
+    cost = {}
+    accepts = {}
+    for i, curated_row in enumerate(curated_rows):
+        for j, extracted_row in enumerate(extracted_rows):
+            penalty, catalyst_matched, _ = record_penalty(
+                curated_row, extracted_row, CATALYST, TOLERANCE)
+            cost[i, j] = penalty if catalyst_matched else UNPAIRABLE
+            accepts[i, j] = catalyst_matched and penalty < ACCEPT
+
+    taken_curated = set()
+    taken_extracted = set()
+    matched = 0
+    for _, i, j in sorted((penalty, i, j) for (i, j), penalty in cost.items()):
+        if i in taken_curated or j in taken_extracted:
             continue
-        taken_left.add(i); taken_right.add(j)
-        greedy += accepts[i, j]
+        taken_curated.add(i)
+        taken_extracted.add(j)
+        matched += accepts[i, j]
+    return matched
 
-hungarian = totals()["tp"]
-show("correct matches found", {"optimal (Hungarian)": hungarian,
-                               "closest-first (greedy)": greedy,
-                               "difference": hungarian - greedy}, fmt="{:.0f}")
+
+def main() -> None:
+    reference = load_curated(data_path(CURATED))
+    extraction = experiments(EXTRACTION)
+
+    greedy = 0
+    for doi, curated_rows in reference.items():
+        extracted_rows = extraction.get(doi, [])
+        if curated_rows and extracted_rows:
+            greedy += greedy_matches(curated_rows, extracted_rows)
+
+    hungarian = totals()["tp"]
+    show("correct matches found", {
+        "optimal (Hungarian)": hungarian,
+        "closest-first (greedy)": greedy,
+        "difference": hungarian - greedy,
+    }, fmt="{:.0f}")
+
+
+if __name__ == "__main__":
+    main()
