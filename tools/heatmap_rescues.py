@@ -11,8 +11,11 @@ import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np, pandas as pd
 
-from _setup import (ARTIFACTS, RUNS_DIR, data_path, as_experiments,
-                    accept_threshold, catalyst_threshold, numeric_tolerance)
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "checks"))
+from _setup import (ARTIFACTS, RUNS_DIR, data_path, experiments,
+                    ACCEPT, CATALYST, TOLERANCE)
 from core.evaluation import evaluate
 from core.schema import load_curated
 
@@ -29,8 +32,8 @@ views = {k: pd.DataFrame(index=MODELS, columns=MODELS, dtype=float)
 counts = pd.DataFrame(index=MODELS, columns=MODELS, dtype=float)
 
 for target in MODELS:
-    _, labels = evaluate(reference, as_experiments(f"extract_{target}/extract_{target}_n4_r1"),
-                         accept_threshold, catalyst_threshold, numeric_tolerance)
+    _, labels = evaluate(reference, experiments(RUNS_DIR / f"extract_{target}/extract_{target}_n4_r1"),
+                         ACCEPT, CATALYST, TOLERANCE)
     m = pd.DataFrame(labels); m = m[m.extracted_index.notna()].copy()
     m["index"] = m.extracted_index.astype(int)
     m["metric"] = m.verdict.map({"TP": "correct"}).fillna("incorrect")

@@ -7,14 +7,14 @@ lands at the top of the range, and the truth is somewhere between.
 """
 import glob, json, sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "checks"))
 
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np, pandas as pd
 
-from _setup import (ARTIFACTS, RUNS_DIR, data_path, as_experiments,
-                    accept_threshold, catalyst_threshold, numeric_tolerance)
+from _setup import (ARTIFACTS, RUNS_DIR, data_path, experiments,
+                    ACCEPT, CATALYST, TOLERANCE)
 from core.evaluation import evaluate
 from core.schema import load_curated, Experiment
 
@@ -44,8 +44,8 @@ def verdicts(j, t):
     return pd.DataFrame(rows)
 
 def scored(reference, t):
-    _, lab = evaluate(reference, as_experiments(f"extract_{t}/extract_{t}_n4_r1"),
-                      accept_threshold, catalyst_threshold, numeric_tolerance)
+    _, lab = evaluate(reference, experiments(RUNS_DIR / f"extract_{t}/extract_{t}_n4_r1"),
+                      ACCEPT, CATALYST, TOLERANCE)
     m = pd.DataFrame(lab); m = m[m.extracted_index.notna()].copy()
     m["index"] = m.extracted_index.astype(int)
     m["metric"] = m.verdict.map({"TP": "correct"}).fillna("incorrect")

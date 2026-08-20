@@ -13,9 +13,9 @@ from pathlib import Path
 
 import pandas as pd
 
-sys.path.insert(0, str(Path(__file__).parent))
-from _setup import (ARTIFACTS, RUNS_DIR, data_path, as_experiments,
-                    accept_threshold, catalyst_threshold, numeric_tolerance)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "checks"))
+from _setup import (ARTIFACTS, RUNS_DIR, data_path, experiments,
+                    ACCEPT, CATALYST, TOLERANCE)
 from core.evaluation import evaluate
 from core.schema import load_curated
 
@@ -27,8 +27,8 @@ FIELDS = ["catalyst", "solvent", "product", "temperature_c", "reaction_time_min"
           "yield_percent", "selectivity_percent", "conversion_percent", "pressure_atm"]
 
 reference = load_curated(data_path("curated_table_final.json"))
-_, labels = evaluate(reference, as_experiments(f"extract_{EXTRACTION}/extract_{EXTRACTION}_n4_r1"),
-                     accept_threshold, catalyst_threshold, numeric_tolerance)
+_, labels = evaluate(reference, experiments(RUNS_DIR / f"extract_{EXTRACTION}/extract_{EXTRACTION}_n4_r1"),
+                     ACCEPT, CATALYST, TOLERANCE)
 frame = pd.DataFrame(labels)
 frame = frame[frame.extracted_index.notna()].copy()
 frame["index"] = frame.extracted_index.astype(int)

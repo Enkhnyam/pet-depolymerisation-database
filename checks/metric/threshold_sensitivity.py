@@ -1,19 +1,12 @@
+"""Answers 'did you tune the thresholds until the number looked good?'. If the reported
+settings sit on a plateau rather than a peak, they were not cherry-picked."""
 from _setup import *
 
 def sweep(setting, values):
-    results = {}
-    for value in values:
-        results[value] = totals(curation=curated_table, **{setting: value})
-    table = pd.DataFrame(results).T
-    table = table[["f1", "precision", "recall"]]
-    table.index.name = setting
-    return table.to_string(float_format="{:.3f}".format)
+    frame = pd.DataFrame({v: totals(**{setting: v}) for v in values}).T
+    frame.index.name = setting
+    return frame[["f1", "precision", "recall"]]
 
-print(f"acceptance cutoff (default {accept_threshold:.2f})")
-print(sweep("accept", [0.2, 0.25, 0.3, 0.35, 0.4, 0.5]))
-print()
-print(f"catalyst name similarity required (default {catalyst_threshold:.2f})")
-print(sweep("catalyst", [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
-print()
-print(f"numeric tolerance (default {numeric_tolerance:.2f})")
-print(sweep("tolerance", [0.05, 0.1, 0.2, 0.3, 0.5]))
+show(f"acceptance cutoff (using {ACCEPT:.2f})", sweep("accept", [.2, .25, .3, .35, .4, .5]))
+show(f"catalyst similarity (using {CATALYST:.2f})", sweep("catalyst", [.4, .5, .6, .7, .8, .9, 1.]))
+show(f"numeric tolerance (using {TOLERANCE:.2f})", sweep("tolerance", [.05, .1, .2, .3, .5]))

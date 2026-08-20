@@ -124,10 +124,17 @@ def run(env: dict, run_dir: Path, limit: int | None = None) -> None:
     bundle.write_json(run_dir / "config.json",
                       {"content_hash": bundle.content_hash(config), **config})
 
-    meta = {"seed": env["harness_params"]["seed"], "model": env["llm_params"]["model"],
-            "git_commit": bundle.git_commit(), "started_at": bundle.now_iso(),
-            "n_papers": len(md_files), "prompt_tokens": 0, "completion_tokens": 0,
-            "cost_usd": 0.0, "parse_failed_papers": 0}
+    meta = {
+        "seed":              env["harness_params"]["seed"], 
+        "model":             env["llm_params"]["model"],
+        "git_commit":        bundle.git_commit(), 
+        "started_at":        bundle.now_iso(),
+        "n_papers":          len(md_files), 
+        "prompt_tokens":     0, 
+        "completion_tokens": 0,
+        "cost_usd":          0.0,
+        "parse_failed_papers": 0
+    }
 
     def extract_one(md):
         doi = filename_to_doi(md.name)

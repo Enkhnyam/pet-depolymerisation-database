@@ -11,7 +11,7 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "checks"))
 from _setup import ARTIFACTS, RUNS_DIR, data_path
 
 FIELDS = ["catalyst", "solvent", "product", "temperature_c", "reaction_time_min",
@@ -303,4 +303,4 @@ print(f"wrote {out}  ({out.stat().st_size // 1024} KB)")
 for doi, paper in payload.items():
     empty = sum(1 for r in paper["records"] for f in FIELDS if r["values"].get(f) is None)
     print(f"  {paper['route']:22s} {len(paper['records']):3d} records, "
-          f"{empty} empty fields  {doi}")
+          f"{empty} empty FIELDS  {doi}")

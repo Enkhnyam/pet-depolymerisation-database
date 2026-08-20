@@ -1,3 +1,11 @@
+"""Shared loaders for the checks. One place decides what is being measured.
+
+Every check does `from _setup import *` and takes no arguments, so changing a constant here
+changes all of them at once and no two checks can disagree about what they are scoring.
+
+Nothing is cached: scored() re-runs the matcher against the curated table as it stands now,
+so fixing a yield in the answer key moves every number the next time the suite runs.
+"""
 import glob
 import json
 import sys
@@ -10,106 +18,115 @@ from core.paths import ARTIFACTS, ROOT, RUNS_DIR, data_path
 from core.schema import Experiment, load_curated
 from core.evaluation import evaluate
 
-extraction_run = "extract_oss/extract_oss_n4_r1"
-judge_run = "judge_oss_on_oss/judge_oss_on_oss"
+# --- what we are measuring ------------------------------------------------------------------
+CURATED = "curated_table_final.json"                          # the 253-experiment answer key
+EXTRACTION = RUNS_DIR / "extract_oss/extract_oss_n4_r1"       # scored by the metric checks
+JUDGE = RUNS_DIR / "judge_oss_on_oss/judge_oss_on_oss"        # verdicts read by the judge checks
+DATABASE = RUNS_DIR / "mass_luna"                             # the 447-paper corpus run
+DATABASE_JUDGE = RUNS_DIR / "mass_oss/mass_oss"
 
-curated_table = "curated_table_final.json"
-golden_set_file = ARTIFACTS / "gold/final/golden_set_judge_sol_v3.json"
+# The 48 human labels were made on this run and identify records by position, so they mean
+# nothing against any other. Scoring them against a different extraction silently relabels a
+# quarter of the set -- record 12 of one run is a different experiment from record 12 of another.
+LABELLED = ARTIFACTS / "gold/source_run"
+LABELS = ARTIFACTS / "gold/golden_set.json"
 
-accept_threshold = 0.3
-catalyst_threshold = 0.6
-numeric_tolerance = 0.2
+ACCEPT, CATALYST, TOLERANCE = 0.30, 0.60, 0.20
 
-outcomes = ["yield_percent", "selectivity_percent", "conversion_percent"]
-fields = ["catalyst", "solvent", "temperature_c", "reaction_time_min", "catalyst_amount_g",
-          "PET_amount_g", "solvent_amount_g", "yield_percent", "selectivity_percent",
-          "conversion_percent", "pressure_atm"]
+OUTCOMES = ["yield_percent", "selectivity_percent", "conversion_percent"]
+FIELDS = ["catalyst", "solvent", "temperature_c", "reaction_time_min", "catalyst_amount_g",
+          "PET_amount_g", "solvent_amount_g", *OUTCOMES, "pressure_atm"]
 
-def curated(filename=curated_table):
-    papers = json.loads(data_path(filename).read_text())
-    rows = []
-    for paper in papers:
-        for entry in paper["extracted_experiments"]:
-            rows.append({"doi": paper["doi"], **entry["experiment_data"]})
+
+# --- loaders --------------------------------------------------------------------------------
+def curated(table=CURATED):
+    """The answer key, one row per curated experiment."""
+    rows = [{"doi": paper["doi"], **entry["experiment_data"]}
+            for paper in json.loads(data_path(table).read_text())
+            for entry in paper["extracted_experiments"]]
     return pd.DataFrame(rows)
 
-def extracted(bundle=extraction_run):
+
+def records(run=EXTRACTION):
+    """What a run's model wrote down, one row per record."""
     rows = []
-    for path in glob.glob(str(RUNS_DIR / bundle / "extractions/*.json")):
+    for path in glob.glob(str(run / "extractions/*.json")):
         paper = json.loads(Path(path).read_text())
-        for position, record in enumerate(paper["records"]):
-            rows.append({"doi": paper["doi"], "index": position, **record})
+        rows += [{"doi": paper["doi"], "index": i, **r} for i, r in enumerate(paper["records"])]
     return pd.DataFrame(rows)
 
-def as_experiments(bundle):
-    by_paper = {}
-    for path in glob.glob(str(RUNS_DIR / bundle / "extractions/*.json")):
+
+def experiments(run=EXTRACTION):
+    """A run's records as Experiment objects keyed by doi -- what evaluate() expects."""
+    out = {}
+    for path in glob.glob(str(run / "extractions/*.json")):
         paper = json.loads(Path(path).read_text())
-        by_paper[paper["doi"]] = [Experiment.model_validate(r) for r in paper["records"]]
-    return by_paper
+        out[paper["doi"]] = [Experiment.model_validate(r) for r in paper["records"]]
+    return out
 
-def scored(bundle=extraction_run, curation=curated_table, catalyst=catalyst_threshold):
-    reference = load_curated(data_path(curation))
-    _, labels = evaluate(reference, as_experiments(bundle), accept_threshold, catalyst, numeric_tolerance)
-    return pd.DataFrame(labels)
 
-def totals(bundle=extraction_run, curation=curated_table, accept=accept_threshold,
-           catalyst=catalyst_threshold, tolerance=numeric_tolerance):
-    reference = load_curated(data_path(curation))
-    result, _ = evaluate(reference, as_experiments(bundle), accept, catalyst, tolerance)
+def scored(run=EXTRACTION, table=CURATED, accept=ACCEPT, catalyst=CATALYST, tolerance=TOLERANCE):
+    """The metric's verdict on every record, plus a plain-language `situation`."""
+    reference = load_curated(data_path(table))
+    _, labels = evaluate(reference, experiments(run), accept, catalyst, tolerance)
+    frame = pd.DataFrame(labels)
+    frame = frame[frame.extracted_index.notna()].copy()
+    frame["index"] = frame.extracted_index.astype(int)
+    frame["metric"] = frame.verdict.map({"TP": "correct"}).fillna("incorrect")
+    frame["situation"] = frame.verdict.map({"TP": "accepted",
+                                            "MISMATCH": "matched, names differ",
+                                            "FP": "no curated counterpart"})
+    return frame
+
+
+def totals(run=EXTRACTION, table=CURATED, accept=ACCEPT, catalyst=CATALYST, tolerance=TOLERANCE):
+    """Precision, recall and F1 for a whole run."""
+    reference = load_curated(data_path(table))
+    result, _ = evaluate(reference, experiments(run), accept, catalyst, tolerance)
     return result
 
-def judged(bundle=judge_run):
+
+def judged(run=JUDGE):
+    """The judge's verdict on every record it could parse."""
     rows = []
-    for path in glob.glob(str(RUNS_DIR / bundle / "verdicts/*.json")):
+    for path in glob.glob(str(run / "verdicts/*.json")):
         paper = json.loads(Path(path).read_text())
-        for verdict in paper["verdicts"]:
-            if verdict["parsed_ok"]:
-                rows.append({"doi": paper["doi"],
-                             "index": verdict["extracted_index"],
-                             "judge": verdict["verdict"],
-                             "bad_fields": verdict["bad_fields"]})
+        rows += [{"doi": paper["doi"], "index": v["extracted_index"],
+                  "judge": "correct" if v["verdict"] == "correct" else "incorrect",
+                  "bad_fields": v["bad_fields"]}
+                 for v in paper["verdicts"] if v["parsed_ok"]]
     return pd.DataFrame(rows)
 
-def curated_additions():
-    return json.loads(data_path("curated_additions.json").read_text())
 
 def golden():
-    labelled = pd.DataFrame(json.loads(golden_set_file.read_text()))
-    verdicts = scored()[["doi", "extracted_index", "verdict"]]
-    verdicts["metric"] = verdicts.verdict.map({"TP": "correct"}).fillna("incorrect")
-    return labelled.drop(columns=["metric"]).merge(
-        verdicts[["doi", "extracted_index", "metric"]], on=["doi", "extracted_index"])
+    """The 48 human-labelled records with both graders' verdicts on the same rows.
+
+    Scored against LABELLED, never EXTRACTION -- see the note on LABELLED above.
+    """
+    labelled = pd.DataFrame(json.loads(LABELS.read_text()))
+    # `judge` in the file is an older rubric; judge_v4 is the one reported everywhere.
+    labelled = labelled.drop(columns=["judge"]).rename(columns={"judge_v4": "judge",
+                                                               "extracted_index": "index"})
+    verdicts = scored(run=LABELLED)[["doi", "index", "metric", "situation"]]
+    return labelled.drop(columns=["metric", "judge_critique", "judge_bad_fields"],
+                         errors="ignore").merge(verdicts, on=["doi", "index"])
 
 
 def runs():
-    # Run dirs are named after their config. Configs moved from a flat ablation_configs/
-    # into configs/extract and configs/judge, so look in both.
+    """The cost and token ledger for every run that still has a config."""
     configured = {p.stem for p in (ROOT / "configs").glob("*/*.yaml")}
     rows = []
-    # Matrix runs nest one level deeper (extract_luna/extract_luna_n4_r1) than the mass runs
-    # (mass_luna), so match a run dir by its own name or its parent's.
     for path in sorted(glob.glob(str(RUNS_DIR / "*/run_meta.json"))
                        + glob.glob(str(RUNS_DIR / "*/*/run_meta.json"))):
         run_dir = Path(path).parent
-        if run_dir.name not in configured and run_dir.parent.name not in configured:
-            continue
-        meta = json.loads(Path(path).read_text())
-        meta["run"] = str(run_dir.relative_to(RUNS_DIR))
-        rows.append(meta)
+        if run_dir.name in configured or run_dir.parent.name in configured:
+            rows.append({**json.loads(Path(path).read_text()),
+                         "run": str(run_dir.relative_to(RUNS_DIR))})
     return pd.DataFrame(rows)
 
-def scores_by_run(folder):
-    # Scores are recomputed from the saved extractions against the current curated table, not read
-    # from the eval.json each run wrote, so every reported number tracks the table as it stands now.
-    rows = []
-    for path in sorted(glob.glob(str(RUNS_DIR / folder / "*/config.json"))):
-        run_dir = Path(path).parent
-        config = json.loads(Path(path).read_text())
-        scores = totals(bundle=f"{folder}/{run_dir.name}")
-        rows.append({"run": run_dir.name,
-                     "n_shots": config["harness_params"]["n_shots"],
-                     "f1": scores["f1"],
-                     "precision": scores["precision"],
-                     "recall": scores["recall"]})
-    return pd.DataFrame(rows)
+
+def show(title, data, fmt="{:.3f}"):
+    """Print one titled block. The only output helper the checks use."""
+    if isinstance(data, dict):
+        data = pd.Series(data)
+    print(f"\n{title}\n{data.to_string(float_format=fmt.format)}")

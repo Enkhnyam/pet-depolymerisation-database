@@ -1,43 +1,31 @@
+"""Separates 'our matcher is broken' from 'this subfield is unlookuppable'.
+
+Where both names in a rejected pair are ordinary chemical names, the metric paired the wrong
+experiments -- a real defect. Elsewhere at least one name is a mixture, a supported material or
+a code the paper coined, none of which any string comparison could resolve.
+"""
 from _setup import *
 
 def kind_of(name):
-    text = str(name)
-    lowered = text.lower()
+    text, lowered = str(name), str(name).lower()
     if "/" in text or "+" in text or " and " in lowered:
-        return "mixture of two catalysts"
+        return "mixture of two"
     if "@" in text:
         return "supported on a carrier"
-    if any(lowered.startswith(prefix) for prefix in ("pil", "cat-", "il-", "des")):
-        return "code the paper defines itself"
+    if lowered.startswith(("pil", "cat-", "il-", "des")):
+        return "code the paper coined"
     return "plain chemical name"
 
-all_names = sorted(set(curated().catalyst.dropna()) | set(extracted().catalyst.dropna()))
-population = pd.Series([kind_of(name) for name in all_names]).value_counts()
+names = sorted(set(curated().catalyst.dropna()) | set(records().catalyst.dropna()))
+show(f"all {len(names)} distinct catalyst names",
+     pd.Series([kind_of(n) for n in names]).value_counts(), fmt="{:.0f}")
 
-labels = scored()
-rejected = labels[labels.verdict == "MISMATCH"]
-rejected = rejected[rejected.catalyst_match == False]
+rejected = scored().query("verdict == 'MISMATCH' and catalyst_match == False")
+pairs = pd.DataFrame({"curated": [f["catalyst"]["curated"] for f in rejected.fields],
+                      "extracted": [f["catalyst"]["extracted"] for f in rejected.fields]})
+pairs["kinds"] = [f"{kind_of(a)} / {kind_of(b)}" for a, b in zip(pairs.curated, pairs.extracted)]
 
-pairs = pd.DataFrame({
-    "curated": [row["catalyst"]["curated"] for row in rejected.fields],
-    "extracted": [row["catalyst"]["extracted"] for row in rejected.fields]})
-pairs["curated kind"] = [kind_of(name) for name in pairs.curated]
-pairs["extracted kind"] = [kind_of(name) for name in pairs.extracted]
-
-both_plain = pairs[(pairs["curated kind"] == "plain chemical name") &
-                   (pairs["extracted kind"] == "plain chemical name")]
-
-print("all", len(all_names), "distinct catalyst names in the dataset:")
-print(population.to_string())
-print()
-print()
-print("most names are resolvable, but the ones that matter are the", len(pairs), "in the failures:")
-print()
-print(pairs.groupby(["curated kind", "extracted kind"]).size().to_string())
-print()
-print("pairs where both names are ordinary chemical names:", len(both_plain))
-print(both_plain[["curated", "extracted"]].to_string(index=False))
-print()
-print(f"These {len(both_plain)} are the metric pairing a record with the wrong experiment, not a")
-print(f"naming failure. In the other {len(pairs) - len(both_plain)} at least one name is a mixture,")
-print("a supported material, or a code coined by the paper. None of those have a database entry.")
+show(f"the {len(pairs)} pairs rejected on the name", pairs.kinds.value_counts(), fmt="{:.0f}")
+both_plain = pairs[pairs.kinds == "plain chemical name / plain chemical name"]
+show(f"both names ordinary -- mispaired, not misnamed ({len(both_plain)})",
+     both_plain[["curated", "extracted"]].reset_index(drop=True))

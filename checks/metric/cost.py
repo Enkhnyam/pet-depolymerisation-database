@@ -1,11 +1,7 @@
+"""The spend ledger across every run that still has a config."""
 from _setup import *
 
-completed = runs().set_index("run")
-columns = ["model", "n_papers", "prompt_tokens", "completion_tokens", "cost_usd",
-           "parse_failed_papers"]
-table = completed[columns].to_string(float_format="{:.2f}".format)
-total = completed.cost_usd.sum()
-
-print(table)
-print()
-print("total spent", f"${total:.2f}")
+ledger = runs().set_index("run")[
+    ["model", "n_papers", "prompt_tokens", "completion_tokens", "cost_usd", "parse_failed_papers"]]
+show("runs", ledger, fmt="{:.2f}")
+print(f"\ntotal spent ${ledger.cost_usd.sum():.2f}")
