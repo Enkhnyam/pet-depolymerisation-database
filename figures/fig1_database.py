@@ -13,21 +13,28 @@ from database import verdicts as verdicts_check
 
 REACHABLE = "#0E7C6B"
 
-CAPTION = r"""\textbf{What the database contains, and what the judge made of it.}
-(a) Most papers report a handful of experiments and a few report dozens: the median is __MEDIAN__
-and the largest single paper gives __LARGEST__. (b) Glycolysis dominates, which is why the grader
-study was built on it; the other two routes together are under a third of the records.
-(c) Conditions are almost always reported and outcomes often are not --- catalyst and solvent
-appear in essentially every record, selectivity in __SELECTIVITY__\%. A blank is the literature
-not reporting, not a failed extraction, and it bounds what any downstream model can learn.
-(d) __CATALYSTS__ distinct catalyst names, the commonest being no catalyst at all; the long tail is
-why a grader that compares catalyst names by spelling struggles here. (e) Judge against metric on
-every record of the curated papers, no human involved: the pair the database uses sits off the
-diagonal, so the judge never grades its own output. (f) On the database itself the judge accepts
-__ACCEPTED__\% of records outright. (g) What it corrects is dominated by the three masses, which
-are typically stated once in a methods paragraph and then varied implicitly down a table --- the
-hardest thing in this schema to read correctly, and the same fields the metric grader finds
-hardest."""
+CAPTION = r"""\textbf{What the database contains, and where it is thin.}
+The corpus is shaped like the literature it came from: most papers report a handful of
+experiments and a few report dozens (\textbf{a}, median __MEDIAN__, largest __LARGEST__), and
+glycolysis outnumbers the other two routes together by two to one (\textbf{b}) --- which is why
+the grader study was built on glycolysis, and why the transfer to methanolysis and hydrolysis is
+assumed rather than measured.
+
+What the records contain is uneven in a way that matters downstream. Reaction conditions are
+almost always present, but outcomes frequently are not (\textbf{c}): selectivity appears in
+__SELECTIVITY__\% of records. A blank here is the paper not reporting, not the extraction
+failing, so it is a ceiling on what any model trained on this database could learn rather than a
+defect we could fix by extracting harder. The catalyst field is the opposite problem --- not
+missing but unbounded, with __CATALYSTS__ distinct names in a long tail (\textbf{d}), which is
+precisely what defeats a grader that compares catalysts by spelling.
+
+The two graders agree on roughly seven of every ten records of the curated papers (\textbf{e}),
+with no human involved; the pair the database uses sits off the diagonal, so the judge never
+grades its own output. Where the judge does intervene it is overwhelmingly on the three masses
+(\textbf{f}), which papers state once in a methods paragraph and then vary implicitly down a
+table. Those are the hardest fields in the schema to read correctly, and the same ones the metric
+grader finds hardest --- the two graders fail in the same place, which is mild evidence they are
+measuring the same thing."""
 
 
 def main() -> None:
@@ -36,7 +43,7 @@ def main() -> None:
     judged = verdicts_check.compute()
     agreement = matrix_check.compute()
 
-    figure, panel = canvas(2, 4, width=9.4, height=4.8)
+    figure, panel = canvas(2, 3, width=8.4, height=5.0)
 
     per_paper = corpus["per paper"]
     panel[0].hist(per_paper, bins=range(1, 42), color=REACHABLE)
@@ -57,25 +64,16 @@ def main() -> None:
     heatmap(panel[4], agreement.pivot(index="judge", columns="extraction", values="agreement"),
             xlabel="extraction", ylabel="judge")
 
-    counts = {k: v for k, v in judged["counts"].items() if k != "records judged"}
-    series = pd.Series(counts)
-    series.index = ["accepted", "corrected", "dropped"]
-    bars(panel[5], series, colour=[VERDICT[name] for name in series.index], ylabel="records")
-
     fields = judged["fields"].head(9)
     fields.index = [str(name).replace("_", " ") for name in fields.index]
-    bars(panel[6], fields, colour=VERDICT["corrected"], horizontal=True,
+    bars(panel[5], fields, colour=VERDICT["corrected"], horizontal=True,
          xlabel="records the judge would change")
-
-    panel[7].set_title("")          # no letter over an empty cell
-    panel[7].axis("off")
 
     save(figure, "fig1_database")
     print("\n" + caption(
         CAPTION,
         median=int(per_paper.median()), largest=int(per_paper.max()),
-        selectivity=f"{completeness.min():.0f}", catalysts=chemistry["distinct catalysts"],
-        accepted=f"{100 * series['accepted'] / series.sum():.0f}"))
+        selectivity=f"{completeness.min():.0f}", catalysts=chemistry["distinct catalysts"]))
 
 
 if __name__ == "__main__":
