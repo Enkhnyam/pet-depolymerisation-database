@@ -1,14 +1,20 @@
 """Does showing the model more worked examples help?
 
 Each n_shots value is run several times, because run-to-run variance on this task is large enough
-to swamp a small effect. The t-test compares the best setting against each other one; a gap that
-does not clear the noise is reported as such rather than as a winner.
+to swamp a small effect.
+
+Reported as two questions rather than a ranking. Does having any example beat having none? And do
+the settings that have examples differ from each other? Naming whichever mean came out highest
+and testing it against the rest would be the winner's curse: with six noisy means, one is highest
+by luck, and testing the winner it produced against the others is circular.
 """
 import glob
 from pathlib import Path
 
 import pandas as pd
-from scipy.stats import ttest_ind
+from itertools import combinations
+
+from scipy.stats import f_oneway, ttest_ind
 
 from _setup import ACCEPT, CATALYST, CURATED, RUNS_DIR, TOLERANCE, show, sources, totals
 
@@ -39,17 +45,22 @@ def main() -> None:
     summary = frame.groupby("n_shots").f1.agg(["mean", "std", "count"])
     show("F1 by number of worked examples", summary)
 
-    best = summary["mean"].idxmax()
-    best_runs = frame.query("n_shots == @best").f1
-    comparisons = {}
-    for shots in sorted(summary.index):
-        if shots != best:
-            comparisons[shots] = ttest_ind(best_runs, frame.query("n_shots == @shots").f1).pvalue
+    none = frame.query("n_shots == 0").f1
+    some = frame.query("n_shots > 0").f1
+    if len(none) and len(some):
+        print(f"\nany example against none: {some.mean() - none.mean():+.3f}, "
+              f"p = {ttest_ind(some, none).pvalue:.4f}")
 
-    print(f"\nbest setting: {best} example(s), F1 {summary['mean'][best]:.3f}")
-    show("best against every other setting (p)", pd.Series(comparisons), fmt="{:.4f}")
-    if comparisons:
-        print(f"\nlargest p among the others: {max(comparisons.values()):.4f}")
+    groups = [g.f1.values for n, g in frame.groupby("n_shots") if n > 0]
+    if len(groups) > 1:
+        print(f"do the settings with examples differ from each other? "
+              f"one-way ANOVA p = {f_oneway(*groups).pvalue:.3f}")
+
+    show("every pair (p)", pd.DataFrame(
+        [{"a": a, "b": b, "p": ttest_ind(frame.query("n_shots == @a").f1,
+                                         frame.query("n_shots == @b").f1).pvalue}
+         for a, b in combinations(sorted(summary.index), 2)]).set_index(["a", "b"]),
+        fmt="{:.3f}")
 
 
 if __name__ == "__main__":
