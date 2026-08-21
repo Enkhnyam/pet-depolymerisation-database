@@ -21,14 +21,19 @@ def main() -> None:
     route = dict(colour_by="route", palette=ROUTE, order=ROUTES)
 
     points(panel[0], frame, "temperature_c", "yield_percent", **route, trend=True,
-           xlabel="temperature (°C)", ylabel="yield (%)", ylim=YIELD, legend=True)
+           xlabel="temperature (°C)", ylabel="yield (%)", ylim=YIELD, legend=True,
+           title="most runs sit near 200 °C")
+    note(panel[0], f"{int((frame.yield_percent > 100).sum())} yields above 100%, off scale",
+         x=0.97, y=0.06, ha="right")
     points(panel[1], frame, "reaction_time_min", "yield_percent", **route, trend=True, logx=True,
-           xlabel="reaction time (min)", ylabel="yield (%)", ylim=YIELD)
+           xlabel="reaction time (min)", ylabel="yield (%)", ylim=YIELD,
+           title="yield is flat in time")
     points(panel[2], frame, "temperature_c", "reaction_time_min", **route, logy=True,
            xlabel="temperature (°C)", ylabel="reaction time (min)",
            title="hotter runs finish sooner")
     points(panel[3], frame, "catalyst_amount_g", "yield_percent", **route, logx=True,
-           xlabel="catalyst (g)", ylabel="yield (%)", ylim=YIELD)
+           xlabel="catalyst (g)", ylabel="yield (%)", ylim=YIELD,
+           title="loading spans six decades")
 
     # the identity panel: yield cannot exceed conversion, so nothing may sit above the diagonal
     points(panel[4], frame, "conversion_percent", "yield_percent", **route,
@@ -38,10 +43,11 @@ def main() -> None:
                    f"{result['identity']['pairs with both']} above the line", y=0.92)
 
     box(panel[5], plausible, "route", "yield_percent", order=ROUTES,
-        xlabel="route", ylabel="yield (%)")
+        xlabel="route", ylabel="yield (%)", title="hydrolysis reports highest")
     box(panel[6], plausible, "catalyst class", "yield_percent",
         order=result["by catalyst class"].index[:5].tolist(),
-        xlabel="catalyst class", ylabel="yield (%)", rotate=30)
+        xlabel="catalyst class", ylabel="yield (%)", rotate=30,
+        title="class barely separates yield")
     points(panel[7], frame, "catalyst per g PET", "yield_percent", **route, trend=True, logx=True,
            xlabel="catalyst per g PET", ylabel="yield (%)", ylim=YIELD)
 

@@ -16,11 +16,12 @@ UNREACHABLE = "#C9D6D3"
 def funnel(axis, stages: dict) -> None:
     """The four surviving counts, with the drops annotated between them."""
     short = {"candidates found": "searched", "passed the filter": "relevant",
-             "of those, Elsevier": "reachable", "converted to chunked text": "in corpus"}
+             "of those, Elsevier": "reachable", "converted to chunked text": "converted",
+             "extracted so far": "extracted"}
     keep = {short.get(k, k): v for k, v in stages.items() if not k.startswith("dropped")}
     bars(axis, pd.Series(keep), colour=REACHABLE, xlabel="", ylabel="papers",
          title="search to corpus")
-    axis.tick_params(axis="x", labelrotation=35)
+    axis.tick_params(axis="x", labelrotation=30)
     for position, value in enumerate(keep.values()):
         axis.text(position, value, f"{value:,}", ha="center", va="bottom", fontsize=5.8, color=DIM)
 
@@ -48,8 +49,8 @@ def main() -> None:
     panel[2].hist(per_paper, bins=range(1, 42), color=REACHABLE)
     panel[2].set_xlabel("records per paper")
     panel[2].set_ylabel("papers")
-    note(panel[2], f"median {per_paper.median():.0f}, longest {per_paper.max():.0f}",
-         colour=DIM, y=0.9)
+    note(panel[2], f"median {per_paper.median():.0f} · longest {per_paper.max():.0f}",
+         colour=DIM, x=0.97, y=0.9, ha="right")
 
     empty = corpus["empty papers"]
     bars(panel[3], empty, colour=UNREACHABLE, horizontal=True, xlabel="papers",
@@ -58,7 +59,9 @@ def main() -> None:
     routes = chemistry["by route"]["records"].sort_values(ascending=False)
     panel[4].bar(range(len(routes)), routes.values, width=0.72,
                  color=[ROUTE.get(name, DIM) for name in routes.index])
-    panel[4].set_xticks(range(len(routes)), [str(i)[:8] for i in routes.index])
+    panel[4].set_xticks(range(len(routes)), [str(i).replace("other/unclear", "unclear")
+                                             for i in routes.index])
+    panel[4].tick_params(axis="x", labelrotation=30)
     panel[4].tick_params(axis="x", labelrotation=35)
     panel[4].set_ylabel("records")
 

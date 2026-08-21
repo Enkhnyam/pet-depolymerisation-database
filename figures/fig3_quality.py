@@ -10,6 +10,7 @@ import pandas as pd
 from _style import DIM, GRADER, VERDICT, bars, canvas, heatmap, note, save
 from curated import extractions as extractions_check
 from curated import matrix as matrix_check
+from curated import shots as shots_check
 from curated import thresholds as thresholds_check
 from database import verdicts as verdicts_check
 
@@ -65,7 +66,9 @@ def main() -> None:
     panel[4].set_title(f"{panel[4].get_title(loc='left')}   "
                        f"{judged['pass rate']:.1%} accepted", loc="left", fontsize=7.5)
 
-    bars(panel[5], judged["fields"].head(9), colour="#9A6510", horizontal=True,
+    fields = judged["fields"].head(9)
+    fields.index = [str(name).replace("_", " ") for name in fields.index]
+    bars(panel[5], fields, colour="#9A6510", horizontal=True,
          xlabel="records the judge would change", title="masses dominate")
 
     agreement = matrix.set_index(["judge", "extraction"])
@@ -76,11 +79,28 @@ def main() -> None:
                      s=44, color="#C4527A", linewidths=0, label="oss judging luna")
     panel[6].set_xlabel("agreement, every record")
     panel[6].set_ylabel("agreement, evaluable")
+    panel[6].set_title(f"{panel[6].get_title(loc='left')}   every judge x extraction pair",
+                       loc="left", fontweight="bold")
     panel[6].legend(fontsize=5.8, markerscale=0.8)
-    note(panel[6], "the reference running out, not disagreement", colour=DIM, y=0.06)
+    note(panel[6], "the gap is the reference running out", colour=DIM,
+         x=0.97, y=0.08, ha="right")
 
-    panel[7].axis("off")
-    note(panel[7], "reserved for the shots ablation", colour=DIM, y=0.5)
+    # how many worked examples the prompt needs, from the shots sweep
+    raw = shots_check.compute()
+    if raw is not None:
+        shots = raw.groupby("n_shots").f1.agg(["mean", "std"])
+        panel[7].errorbar(shots.index, shots["mean"], yerr=shots["std"], marker="o",
+                          ms=3.5, lw=1.2, capsize=2.5, color=GRADER["metric"])
+        panel[7].set_xlabel("worked examples in the prompt")
+        panel[7].set_ylabel("F1")
+        best = shots["mean"].idxmax()
+        panel[7].set_title(f"{panel[7].get_title(loc='left')}   one example is enough",
+                           loc="left", fontweight="bold")
+        note(panel[7], f"best {best}; only 0 differs (p<0.01)",
+             colour=DIM, x=0.97, y=0.08, ha="right")
+    else:
+        panel[7].axis("off")
+        note(panel[7], "shots ablation not run", colour=DIM, y=0.5)
 
     save(figure, "fig3_quality")
 

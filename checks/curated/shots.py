@@ -15,22 +15,27 @@ from _setup import ACCEPT, CATALYST, CURATED, RUNS_DIR, TOLERANCE, show, sources
 FOLDER = "shots_luna"
 
 
-def main() -> None:
-    sources(answer_key=CURATED, runs=RUNS_DIR / FOLDER)
-
+def compute() -> pd.DataFrame | None:
+    """F1 per number of worked examples, or None if the sweep has not run."""
     rows = []
     for path in sorted(glob.glob(str(RUNS_DIR / FOLDER / "*/run_meta.json"))):
         run_dir = Path(path).parent
-        name = run_dir.name                       # shots_luna_n{N}_r{R}
-        shots = int(name.split("_n")[1].split("_r")[0])
-        rows.append({"n_shots": shots, "run": name, "f1": totals(run=run_dir)["f1"]})
-
+        shots = int(run_dir.name.split("_n")[1].split("_r")[0])   # shots_luna_n{N}_r{R}
+        rows.append({"n_shots": shots, "run": run_dir.name, "f1": totals(run=run_dir)["f1"]})
     if not rows:
+        return None
+    return pd.DataFrame(rows)
+
+
+def main() -> None:
+    sources(answer_key=CURATED, runs=RUNS_DIR / FOLDER)
+
+    frame = compute()
+    if frame is None:
         print(f"\nno runs yet under artifacts/runs/{FOLDER}")
-        print("  scripts/ablation_shots.sh")
+        print("  scripts/run/ablation_shots.sh")
         return
 
-    frame = pd.DataFrame(rows)
     summary = frame.groupby("n_shots").f1.agg(["mean", "std", "count"])
     show("F1 by number of worked examples", summary)
 

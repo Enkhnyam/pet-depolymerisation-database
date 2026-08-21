@@ -43,6 +43,9 @@ def compute() -> dict:
     funnel["passed the filter"] = len(kept)
     funnel["of those, Elsevier"] = sum(1 for row in kept if row["doi"].startswith(ELSEVIER))
     funnel["converted to chunked text"] = len(list(data_path("corpus_markdown").glob("*.md")))
+    # the corpus can be ahead of the extraction while new papers are still being processed;
+    # reporting only the corpus size would overstate what the database is actually built from
+    funnel["extracted so far"] = len(list((DATABASE / "extractions").glob("*.json")))
 
     publishers = Counter(PUBLISHERS.get(row["doi"].split("/")[0], "other") for row in kept)
 

@@ -102,7 +102,8 @@ def box(axis, frame, group, value, *, order=None, xlabel="", ylabel="", title=No
     """Distribution of `value` per category, outliers hidden so the boxes stay readable."""
     order = order or list(frame[group].value_counts().index)
     axis.boxplot([frame[frame[group] == name][value].dropna() for name in order],
-                 tick_labels=[str(name).split()[0][:6] for name in order],
+                 # full names: a label cut to six characters turns "methanolysis" into "methan"
+                 tick_labels=[str(name) for name in order],
                  showfliers=False, widths=0.6, medianprops=dict(color=INK))
     if rotate:
         axis.tick_params(axis="x", labelrotation=rotate)
@@ -154,9 +155,10 @@ def heatmap(axis, grid, *, vmin=None, vmax=None, xlabel="", ylabel="", title=Non
     return image
 
 
-def note(axis, text, *, colour=WARN, y=0.04):
+def note(axis, text, *, colour=WARN, x=0.03, y=0.04, ha="left"):
     """A short annotation inside a panel, for a caveat the reader needs at the point of looking."""
-    axis.text(0.03, y, text, transform=axis.transAxes, fontsize=5.6, color=colour)
+    axis.text(x, y, text, transform=axis.transAxes, fontsize=5.6, color=colour,
+              ha=ha, va="center")
 
 
 def legend_above(figure, axis, labels_from=None):
