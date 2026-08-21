@@ -27,6 +27,9 @@ def _cost(resp) -> float:
         return float((getattr(resp, "_hidden_params", {}) or {}).get("response_cost") or 0.0)
 
 @weave.op(postprocess_output=lambda out: {"records": out[0] if out else []})
+REQUEST_TIMEOUT = 600     # seconds; slower than this is stuck, not working
+
+
 def run_llm(llm_params: dict, messages, response_model=ExtractionResponse, **kwargs):
     """Call the model and parse its JSON into records"""
     # The RWTH endpoint caps *concurrent* requests (429 too_many_concurrent_requests) rather than
@@ -39,6 +42,10 @@ def run_llm(llm_params: dict, messages, response_model=ExtractionResponse, **kwa
                 messages=messages,
                 response_format=response_model,
                 num_retries=5,
+                # Without this a stalled connection hangs forever: an ablation sweep sat for
+                # fifteen hours on one call, asleep on an open socket, and the study stopped
+                # without ever failing.
+                timeout=REQUEST_TIMEOUT,
                 **llm_params, **kwargs,
             )
             break

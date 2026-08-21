@@ -77,10 +77,15 @@ def cost(resp) -> float:
         return float((getattr(resp, "_hidden_params", {}) or {}).get("response_cost") or 0.0)
 
 
+REQUEST_TIMEOUT = 600     # seconds; slower than this is stuck, not working
+
+
 def run_llm(llm_params: dict, messages, **kwargs):
     try:
+        # timeout: without it a stalled connection hangs the run forever rather than failing
         resp = litellm.completion(messages=messages, response_format=BatchVerdict,
-                                  num_retries=5, **llm_params, **kwargs)
+                                  num_retries=5, timeout=REQUEST_TIMEOUT,
+                                  **llm_params, **kwargs)
     except litellm.AuthenticationError as e:
         raise RuntimeError(f"Authentication error: {e}. Check your API key.")
     except litellm.RateLimitError as e:
