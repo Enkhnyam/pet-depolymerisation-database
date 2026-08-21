@@ -1,60 +1,63 @@
-"""Figure 2 -- does the extracted database behave like chemistry?
+"""Figure 2 -- what the extracted conditions look like.
 
-Each panel is a relationship a chemist can check without any ground truth. Route is the colour
-throughout, so the eye carries one meaning across the whole canvas.
-
-Numbers come from checks/database/chemistry.py, which prints the same correlations.
+Distributions rather than scatters: with two thousand records the scatters were mostly ink, and
+the question these panels answer is what the corpus contains, not how two variables trade off.
+The one exception is the identity panel, where the relationship is the point.
 """
-from _style import ROUTE, WARN, box, canvas, legend_above, note, points, save
+from _style import (ROUTE, ROUTES, WARN, canvas, caption, histogram, legend_above,
+                    note, points, save)
 from database import chemistry as chem
 
-ROUTES = ["glycolysis", "hydrolysis", "methanolysis"]
-YIELD = (-4, 105)          # a yield above 100% is an extraction error, not a measurement
+CAPTION = r"""\textbf{The conditions the corpus reports.} Stacked by route.
+(a) Temperature is sharply peaked near 190--200\,\textdegree C, the range where ethylene glycol
+refluxes; the tail past 400\,\textdegree C is mostly hydrolysis under pressure.
+(b) Reaction time spans four orders of magnitude, clustering at the round numbers experimenters
+choose --- 30, 60, 120 minutes --- which is a signature of real protocols rather than of
+extraction noise. (c) Yields pile up against 100\%, as one expects from a literature that reports optimised
+runs; __OVER__ records exceed 100\% and are impossible, a small but real error rate. (d) Conversion behaves the same way and is reported for __CONVERSION__\% of
+records. (e) Catalyst loading covers six orders of magnitude, from milligrams to bulk solvent
+quantities; a schema field that spans this range is one where a 20\% numeric tolerance means very
+different things at either end. (f, g) PET and solvent charges, again heavily rounded.
+(h) The one relationship worth a scatter, because it is an identity rather than a correlation:
+yield cannot exceed conversion, so nothing may sit above the diagonal.
+\textbf{Only __IMPOSSIBLE__ of __PAIRS__ records do} --- an internal consistency check the data
+passes without having been told to."""
 
 
 def main() -> None:
     result = chem.compute()
     frame = result["records"]
-    plausible = frame[frame.yield_percent.isna() | (frame.yield_percent <= 100)]
+    stack = dict(split="route", palette=ROUTE, order=ROUTES)
 
-    figure, panel = canvas(2, 4, width=9.2, height=4.6)
-    route = dict(colour_by="route", palette=ROUTE, order=ROUTES)
+    figure, panel = canvas(2, 4, width=9.4, height=4.8)
 
-    points(panel[0], frame, "temperature_c", "yield_percent", **route, trend=True,
-           xlabel="temperature (°C)", ylabel="yield (%)", ylim=YIELD, legend=True,
-           title="most runs sit near 200 °C")
-    note(panel[0], f"{int((frame.yield_percent > 100).sum())} yields above 100%, off scale",
-         x=0.97, y=0.06, ha="right")
-    points(panel[1], frame, "reaction_time_min", "yield_percent", **route, trend=True, logx=True,
-           xlabel="reaction time (min)", ylabel="yield (%)", ylim=YIELD,
-           title="yield is flat in time")
-    points(panel[2], frame, "temperature_c", "reaction_time_min", **route, logy=True,
-           xlabel="temperature (°C)", ylabel="reaction time (min)",
-           title="hotter runs finish sooner")
-    points(panel[3], frame, "catalyst_amount_g", "yield_percent", **route, logx=True,
-           xlabel="catalyst (g)", ylabel="yield (%)", ylim=YIELD,
-           title="loading spans six decades")
-
-    # the identity panel: yield cannot exceed conversion, so nothing may sit above the diagonal
-    points(panel[4], frame, "conversion_percent", "yield_percent", **route,
-           xlabel="conversion (%)", ylabel="yield (%)", title="yield cannot exceed conversion")
-    panel[4].plot([0, 100], [0, 100], color=WARN, lw=1, ls="--", zorder=3)
-    note(panel[4], f"{result['identity']['yield above conversion']} of "
-                   f"{result['identity']['pairs with both']} above the line", y=0.92)
-
-    box(panel[5], plausible, "route", "yield_percent", order=ROUTES,
-        xlabel="route", ylabel="yield (%)", title="hydrolysis reports highest")
-    box(panel[6], plausible, "catalyst class", "yield_percent",
-        order=result["by catalyst class"].index[:5].tolist(),
-        xlabel="catalyst class", ylabel="yield (%)", rotate=30,
-        title="class barely separates yield")
-    points(panel[7], frame, "catalyst per g PET", "yield_percent", **route, trend=True, logx=True,
-           xlabel="catalyst per g PET", ylabel="yield (%)", ylim=YIELD)
-
+    histogram(panel[0], frame, "temperature_c", xlabel="temperature (°C)", **stack)
+    histogram(panel[1], frame, "reaction_time_min", logx=True, xlabel="reaction time (min)",
+              **stack)
+    # a handful of yields exceed 100%; letting them set the axis wastes the panel
+    histogram(panel[2], frame[frame.yield_percent <= 100], "yield_percent",
+              xlabel="yield (%)", **stack)
     over = int((frame.yield_percent > 100).sum())
-    note(panel[0], f"{over} yields > 100%, off scale")
+    note(panel[2], f"{over} above 100%, off scale", x=0.97, y=0.9, ha="right")
+    histogram(panel[3], frame, "conversion_percent", xlabel="conversion (%)", **stack)
+    histogram(panel[4], frame, "catalyst_amount_g", logx=True, xlabel="catalyst (g)", **stack)
+    histogram(panel[5], frame, "PET_amount_g", logx=True, xlabel="PET (g)", **stack)
+    histogram(panel[6], frame, "solvent_amount_g", logx=True, xlabel="solvent (g)", **stack)
+
+    points(panel[7], frame, "conversion_percent", "yield_percent",
+           colour_by="route", palette=ROUTE, order=ROUTES,
+           xlabel="conversion (%)", ylabel="yield (%)")
+    panel[7].plot([0, 100], [0, 100], color=WARN, lw=1, ls="--", zorder=3)
+
     legend_above(figure, panel[0])
-    save(figure, "fig2_chemistry", legend_room=True)
+    save(figure, "fig2_chemistry")
+
+    identity = result["identity"]
+    print("\n" + caption(
+        CAPTION,
+        conversion=f"{100 * frame.conversion_percent.notna().mean():.0f}",
+        over=int((frame.yield_percent > 100).sum()),
+        impossible=identity["yield above conversion"], pairs=identity["pairs with both"]))
 
 
 if __name__ == "__main__":

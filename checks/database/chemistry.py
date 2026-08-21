@@ -11,7 +11,7 @@ import re
 
 import pandas as pd
 
-from _setup import DATABASE, records, show, sources
+from _setup import DATABASE, FIELDS, records, show, sources
 
 ROUTE_FROM_SOLVENT = [
     ("glycolysis", r"ethylene glycol|\beg\b|glycol(?!ic)|diethylene|propylene glycol"),
@@ -72,8 +72,19 @@ def compute() -> dict:
         out_of_range[column] = {"reported": len(values), "above 100%": len(over),
                                 "papers": over.doi.nunique(), "highest": values.max()}
 
+    labels = {"catalyst_amount_g": "catalyst g", "PET_amount_g": "PET g",
+              "solvent_amount_g": "solvent g", "temperature_c": "temperature",
+              "reaction_time_min": "reaction time", "yield_percent": "yield %",
+              "selectivity_percent": "selectivity %", "conversion_percent": "conversion %",
+              "pressure_atm": "pressure"}
+    completeness = frame[FIELDS].notna().mean().sort_values(ascending=False)
+    completeness.index = [labels.get(name, name) for name in completeness.index]
+
     return {
         "records": frame,
+        "completeness": completeness,
+        "catalysts": frame.catalyst.value_counts(),
+        "distinct catalysts": int(frame.catalyst.nunique()),
         "by route": frame.groupby("route").agg(
             records=("doi", "size"),
             papers=("doi", "nunique"),
@@ -96,6 +107,8 @@ def main() -> None:
 
     show("records by route (assigned from the solvent)", result["by route"])
     show("records by catalyst class", result["by catalyst class"])
+    show("share of records reporting each field", result["completeness"], fmt="{:.0%}")
+    print(f"\ndistinct catalyst names: {result['distinct catalysts']}")
     show("relationships, Spearman rank correlation", result["correlations"])
     show("percentages that cannot be right", result["out of range"], fmt="{:.0f}")
     show("yield vs conversion, which is an identity not a correlation", result["identity"])

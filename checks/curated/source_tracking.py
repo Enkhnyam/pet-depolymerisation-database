@@ -22,6 +22,22 @@ def scores(folder: str) -> list:
             for path in sorted(glob.glob(str(RUNS_DIR / folder / "*/run_meta.json")))]
 
 
+def compute() -> pd.DataFrame:
+    """Mean F1 for each arm, with the t-test attached as frame metadata."""
+    arms = {}
+    for label, folder in ARMS.items():
+        scores = [totals(run=Path(path).parent)["f1"]
+                  for path in glob.glob(str(RUNS_DIR / folder / "*/run_meta.json"))]
+        if scores:
+            arms[label] = scores
+
+    frame = pd.DataFrame({label: pd.Series(scores).agg(["mean", "std", "count"])
+                          for label, scores in arms.items()}).T
+    if len(arms) == 2:
+        frame.attrs["p"] = ttest_ind(*arms.values()).pvalue
+    return frame
+
+
 def main() -> None:
     sources(answer_key=CURATED, on=RUNS_DIR / ARMS["citing sources"],
             off=RUNS_DIR / ARMS["not citing"])

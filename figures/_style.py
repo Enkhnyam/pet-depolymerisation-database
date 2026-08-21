@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import matplotlib
+import numpy as np
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -19,7 +20,11 @@ from core.paths import ARTIFACTS
 # Two categorical roles, never mixed: route in the chemistry canvas, grader in the quality one.
 ROUTE = {"glycolysis": "#0E7C6B", "hydrolysis": "#C4527A",
          "methanolysis": "#9A6510", "other/unclear": "#4A6B8A"}
+ROUTES = ["glycolysis", "hydrolysis", "methanolysis"]
+
 GRADER = {"metric": "#0E7C6B", "judge": "#C4527A"}
+CYCLE = ["#0E7C6B", "#C4527A", "#9A6510", "#4A6B8A"]
+
 VERDICT = {"accepted": "#0E7C6B", "corrected": "#9A6510", "dropped": "#A33A2E"}
 SEQUENTIAL = "BuGn"          # single hue, so heatmaps never compete with the categoricals
 
@@ -47,11 +52,10 @@ def canvas(rows: int, cols: int, width: float = 9.2, height: float = None):
 
 
 def _finish(axis, xlabel, ylabel, title=None, logx=False, logy=False, ylim=None):
-    """Labels, scales and the sub-title that sits after the panel letter."""
+    """Labels and scales. `title` is accepted and ignored: panels carry only their letter, and
+    what a panel is arguing belongs in the caption where it can be said properly."""
     axis.set_xlabel(xlabel)
     axis.set_ylabel(ylabel)
-    if title:
-        axis.set_title(f"{axis.get_title(loc='left')}   {title}", loc="left", fontsize=7.5)
     if logx:
         axis.set_xscale("log")
     if logy:
@@ -115,10 +119,10 @@ def bars(axis, series, *, colour="#0E7C6B", horizontal=False, xlabel="", ylabel=
     """A bar chart from a Series, indexed by category."""
     if horizontal:
         axis.barh(range(len(series))[::-1], series.values, color=colour, height=0.72)
-        axis.set_yticks(range(len(series))[::-1], [str(i)[:24] for i in series.index])
+        axis.set_yticks(range(len(series))[::-1], [str(i) for i in series.index])
     else:
         axis.bar(range(len(series)), series.values, color=colour, width=0.72)
-        axis.set_xticks(range(len(series)), [str(i)[:14] for i in series.index])
+        axis.set_xticks(range(len(series)), [str(i) for i in series.index])
     if annotate:
         for position, value in enumerate(series.values):
             axis.text(value, len(series) - 1 - position, f" {value:,.0f}", va="center", fontsize=5.5,
@@ -178,3 +182,60 @@ def save(figure, name: str, *, legend_room=False):
     plt.close(figure)
     print(f"wrote {out.relative_to(ROOT)}")
     return out
+
+
+def histogram(axis, frame, column, *, bins=30, logx=False, xlabel="", ylabel="records",
+              colour=None, split=None, palette=None, order=None):
+    """Distribution of one column, optionally stacked by a categorical.
+
+    Stacking rather than overlaying: with three routes an overlay hides whichever is drawn first,
+    and the question here is usually what the corpus as a whole looks like.
+    """
+    values = frame[column].dropna()
+    if logx:
+        values = values[values > 0]
+        edges = np.logspace(np.log10(values.min()), np.log10(values.max()), bins)
+    else:
+        edges = np.linspace(values.min(), values.max(), bins)
+
+    if split:
+        groups = order or list(frame[split].value_counts().index)
+        data = [frame.loc[frame[split] == name, column].dropna() for name in groups]
+        if logx:
+            data = [d[d > 0] for d in data]
+        axis.hist(data, bins=edges, stacked=True,
+                  color=[(palette or {}).get(name, DIM) for name in groups], label=groups)
+    else:
+        axis.hist(values, bins=edges, color=colour or REACHABLE)
+
+    _finish(axis, xlabel or column, ylabel, logx=logx)
+    return axis
+
+
+def caption(template: str, **values) -> str:
+    """Fill a LaTeX caption by token, never by str.format.
+
+    Captions are full of braces -- \\textbf{...}, \\% -- and format() reads every one of them as a
+    placeholder. Tokens are written __LIKE_THIS__ and substituted literally.
+    """
+    text = template
+    for name, value in values.items():
+        text = text.replace(f"__{name.upper()}__", str(value))
+    return text
+
+
+def grouped_bars(axis, frame, *, xlabel="", ylabel="", palette=None, rotate=0):
+    """One cluster per row of `frame`, one bar per column -- for comparing a few measures across
+    a few models, where a heatmap would be overkill and a line would imply an ordering."""
+    names, measures = list(frame.index), list(frame.columns)
+    width = 0.8 / len(measures)
+    for offset, measure in enumerate(measures):
+        positions = [i + offset * width - 0.4 + width / 2 for i in range(len(names))]
+        axis.bar(positions, frame[measure].values, width=width, label=str(measure),
+                 color=(palette or {}).get(measure, CYCLE[offset % len(CYCLE)]))
+    axis.set_xticks(range(len(names)), [str(n) for n in names])
+    if rotate:
+        axis.tick_params(axis="x", labelrotation=rotate)
+    axis.legend(frameon=False, fontsize=6)
+    _finish(axis, xlabel, ylabel)
+    return axis

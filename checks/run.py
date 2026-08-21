@@ -9,31 +9,28 @@ import sys
 from pathlib import Path
 
 SCRIPTS = [
-    # the 24-paper benchmark: the answer key, the metric on it, grader against grader
+    # the 24-paper benchmark: the answer key, the graders on it, and the settings we chose
     "curated/answer_key.py",
     "curated/extractions.py",
-    "curated/thresholds.py",
-    "curated/matching.py",
-    "curated/catalysts.py",
-    "curated/errors.py",
+    "curated/metric.py",
     "curated/matrix.py",
+    "curated/judged_runs.py",
     "curated/field_types.py",
+    "curated/thresholds.py",
     "curated/shots.py",
     "curated/source_tracking.py",
 
-    # the 447-paper database
+    # the database
     "database/corpus.py",
+    "database/chemistry.py",
     "database/verdicts.py",
     "database/provenance.py",
-    "database/chemistry.py",
 
-    # the 48 records two chemists adjudicated
-    "human/composition.py",
-    "human/scorecard.py",
+    # the 48 records two chemists adjudicated, and what a second round would need
+    "human/labelled.py",
     "human/significance.py",
-    "human/disagreements.py",
-    "human/catalyst_gate.py",
     "human/growth.py",
+    "human/worklist.py",
 
     "cost.py",
 ]

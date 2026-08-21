@@ -1,95 +1,81 @@
-"""Figure 1 -- what was built: corpus to database.
+"""Figure 1 -- the database, and the judge's view of it.
 
-Numbers come from checks/database/{corpus,chemistry,provenance}.py, which print the same values.
+Panels carry only their letter; what each is for belongs in the caption, which this prints so it
+can be pasted into the paper. Numbers come from the checks, which print the same values.
 """
 import pandas as pd
 
-from _style import DIM, ROUTE, WARN, bars, canvas, heatmap, note, save
+from _style import ROUTE, ROUTES, VERDICT, bars, canvas, caption, heatmap, save
+from curated import matrix as matrix_check
 from database import chemistry as chem
 from database import corpus as corpus_check
-from database import provenance as prov_check
+from database import verdicts as verdicts_check
 
 REACHABLE = "#0E7C6B"
-UNREACHABLE = "#C9D6D3"
 
-
-def funnel(axis, stages: dict) -> None:
-    """The four surviving counts, with the drops annotated between them."""
-    short = {"candidates found": "searched", "passed the filter": "relevant",
-             "of those, Elsevier": "reachable", "converted to chunked text": "converted",
-             "extracted so far": "extracted"}
-    keep = {short.get(k, k): v for k, v in stages.items() if not k.startswith("dropped")}
-    bars(axis, pd.Series(keep), colour=REACHABLE, xlabel="", ylabel="papers",
-         title="search to corpus")
-    axis.tick_params(axis="x", labelrotation=30)
-    for position, value in enumerate(keep.values()):
-        axis.text(position, value, f"{value:,}", ha="center", va="bottom", fontsize=5.8, color=DIM)
+CAPTION = r"""\textbf{What the database contains, and what the judge made of it.}
+(a) Most papers report a handful of experiments and a few report dozens: the median is __MEDIAN__
+and the largest single paper gives __LARGEST__. (b) Glycolysis dominates, which is why the grader
+study was built on it; the other two routes together are under a third of the records.
+(c) Conditions are almost always reported and outcomes often are not --- catalyst and solvent
+appear in essentially every record, selectivity in __SELECTIVITY__\%. A blank is the literature
+not reporting, not a failed extraction, and it bounds what any downstream model can learn.
+(d) __CATALYSTS__ distinct catalyst names, the commonest being no catalyst at all; the long tail is
+why a grader that compares catalyst names by spelling struggles here. (e) Judge against metric on
+every record of the curated papers, no human involved: the pair the database uses sits off the
+diagonal, so the judge never grades its own output. (f) On the database itself the judge accepts
+__ACCEPTED__\% of records outright. (g) What it corrects is dominated by the three masses, which
+are typically stated once in a methods paragraph and then varied implicitly down a table --- the
+hardest thing in this schema to read correctly, and the same fields the metric grader finds
+hardest."""
 
 
 def main() -> None:
     corpus = corpus_check.compute()
     chemistry = chem.compute()
-    provenance = prov_check.compute()
-    frame = chemistry["records"]
+    judged = verdicts_check.compute()
+    agreement = matrix_check.compute()
 
-    figure, panel = canvas(2, 4, width=9.2, height=4.8)
-
-    funnel(panel[0], corpus["funnel"])
-
-    publishers = corpus["publishers"]
-    colours = [REACHABLE if name == "Elsevier" else UNREACHABLE for name in publishers.index]
-    panel[1].bar(range(len(publishers)), publishers.values, color=colours, width=0.72)
-    panel[1].set_xticks(range(len(publishers)), publishers.index)
-    panel[1].tick_params(axis="x", labelrotation=35)
-    panel[1].set_ylabel("relevant papers")
-    panel[1].set_title(f"{panel[1].get_title(loc='left')}   only Elsevier is reachable",
-                       loc="left", fontsize=7.5)
+    figure, panel = canvas(2, 4, width=9.4, height=4.8)
 
     per_paper = corpus["per paper"]
-    panel[2].hist(per_paper, bins=range(1, 42), color=REACHABLE)
-    panel[2].set_xlabel("records per paper")
-    panel[2].set_ylabel("papers")
-    note(panel[2], f"median {per_paper.median():.0f} · longest {per_paper.max():.0f}",
-         colour=DIM, x=0.97, y=0.9, ha="right")
+    panel[0].hist(per_paper, bins=range(1, 42), color=REACHABLE)
+    panel[0].set_xlabel("records per paper")
+    panel[0].set_ylabel("papers")
 
-    empty = corpus["empty papers"]
-    bars(panel[3], empty, colour=UNREACHABLE, horizontal=True, xlabel="papers",
-         title=f"{int(empty.sum())} papers yielded nothing")
+    routes = chemistry["by route"]["records"].reindex(ROUTES).dropna()
+    bars(panel[1], routes, colour=[ROUTE[name] for name in routes.index], ylabel="records")
+    panel[1].tick_params(axis="x", labelrotation=30)
 
-    routes = chemistry["by route"]["records"].sort_values(ascending=False)
-    panel[4].bar(range(len(routes)), routes.values, width=0.72,
-                 color=[ROUTE.get(name, DIM) for name in routes.index])
-    panel[4].set_xticks(range(len(routes)), [str(i).replace("other/unclear", "unclear")
-                                             for i in routes.index])
-    panel[4].tick_params(axis="x", labelrotation=30)
-    panel[4].tick_params(axis="x", labelrotation=35)
-    panel[4].set_ylabel("records")
+    completeness = chemistry["completeness"] * 100
+    bars(panel[2], completeness, colour=REACHABLE, horizontal=True,
+         xlabel="% of records reporting it")
 
-    fields = ["catalyst", "solvent", "reaction_time_min", "temperature_c", "PET_amount_g",
-              "catalyst_amount_g", "yield_percent", "conversion_percent", "solvent_amount_g",
-              "pressure_atm", "selectivity_percent"]
-    coverage = pd.Series({f.replace("_percent", " %").replace("_", " "): frame[f].notna().mean()
-                          for f in fields})
-    bars(panel[5], coverage * 100, colour=REACHABLE, horizontal=True,
-         xlabel="% of records reporting it", title="field completeness")
+    bars(panel[3], chemistry["catalysts"].head(10), colour=REACHABLE, horizontal=True,
+         xlabel="records")
 
-    top = frame.catalyst.value_counts().head(12)
-    bars(panel[6], top, colour=REACHABLE, horizontal=True, xlabel="records",
-         title=f"{frame.catalyst.nunique()} distinct names")
+    heatmap(panel[4], agreement.pivot(index="judge", columns="extraction", values="agreement"),
+            xlabel="extraction", ylabel="judge")
 
-    citations = provenance["counts"]
-    resolved = pd.Series({"resolve": citations["resolve to the paper's own text"],
-                          "from a demo": citations["copied from a worked example"],
-                          "match nothing": citations["match no chunk anywhere"]})
-    panel[7].bar(range(len(resolved)), resolved.values, width=0.72,
-                 color=[REACHABLE, "#9A6510", WARN])
-    panel[7].set_xticks(range(len(resolved)), resolved.index)
-    panel[7].tick_params(axis="x", labelrotation=35)
-    panel[7].set_ylabel("chunk citations")
-    panel[7].set_title(f"{panel[7].get_title(loc='left')}   "
-                       f"{provenance['traceable']:.1%} traceable", loc="left", fontsize=7.5)
+    counts = {k: v for k, v in judged["counts"].items() if k != "records judged"}
+    series = pd.Series(counts)
+    series.index = ["accepted", "corrected", "dropped"]
+    bars(panel[5], series, colour=[VERDICT[name] for name in series.index], ylabel="records")
+
+    fields = judged["fields"].head(9)
+    fields.index = [str(name).replace("_", " ") for name in fields.index]
+    bars(panel[6], fields, colour=VERDICT["corrected"], horizontal=True,
+         xlabel="records the judge would change")
+
+    panel[7].set_title("")          # no letter over an empty cell
+    panel[7].axis("off")
 
     save(figure, "fig1_database")
+    print("\n" + caption(
+        CAPTION,
+        median=int(per_paper.median()), largest=int(per_paper.max()),
+        selectivity=f"{completeness.min():.0f}", catalysts=chemistry["distinct catalysts"],
+        accepted=f"{100 * series['accepted'] / series.sum():.0f}"))
 
 
 if __name__ == "__main__":

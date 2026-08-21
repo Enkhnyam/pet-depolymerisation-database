@@ -5,6 +5,11 @@ COLUMNS = ["model", "n_papers", "prompt_tokens", "completion_tokens", "cost_usd"
            "parse_failed_papers"]
 
 
+def compute():
+    """The spend ledger, one row per run that still has a config."""
+    return runs()
+
+
 def main() -> None:
     sources(runs=RUNS_DIR, configs=ROOT / 'configs')
     ledger = runs().set_index("run")[COLUMNS]

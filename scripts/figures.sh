@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Draw the paper's figures into artifacts/figures/.
+# Draw every figure, and print each one's caption so it can be pasted into the paper.
 #
-# Each module imports its numbers from the check that prints them, so a panel and
-# scripts/checks.sh cannot disagree. Nothing is recomputed for a plot.
+# Panels carry only their letter: what a panel argues belongs in the caption, where it can be
+# said properly. The captions are generated from the same checks as the panels, so a number in
+# a caption cannot drift from the number in the figure.
 #
-#   scripts/figures.sh                    all of them
-#   scripts/figures.sh fig2_chemistry.py  just one
+#   scripts/figures.sh
 set -u; cd "$(dirname "$0")/.."
 
-MODULES="${*:-$(ls figures/fig*.py | xargs -n1 basename)}"
-for module in $MODULES; do
-  ./.venv/bin/python -W ignore "figures/$module" || echo "!!! $module FAILED"
+for figure in fig1_database fig2_chemistry fig3_graders fig4_choices; do
+  echo "=============================================================================="
+  ./.venv/bin/python -W ignore "figures/${figure}.py" || echo "!!! ${figure} failed"
 done
