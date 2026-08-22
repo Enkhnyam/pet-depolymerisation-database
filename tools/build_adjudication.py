@@ -1,20 +1,19 @@
-"""Collect the records the two graders disagree about, for a human to adjudicate.
+"""Build the adjudication worklist: records for a chemist to judge, one by one.
 
-Only records where exactly one grader matched the human carry information about which grader is
-better. A record the graders already disagree on is guaranteed to become one of those once it is
-labelled, because one of them must be the one that matched -- so this is the cheapest possible
-labelling set. Adjudicating a random sample is what made the existing 48-record set yield only
-four informative pairs.
+The sample comes from checks/human/worklist.py, which draws it stratified from the database --
+half from records the judge flagged, half from records it accepted -- so that precision and
+recall can both be estimated and weighted back to the whole database. Sampling at random would
+have spent most of the budget on records the judge already accepts.
 
-This needs a curated answer key, because the metric grader has no verdict without one. It
-therefore runs on a benchmark extraction over the curated papers, not on the mass corpus.
+The page shows each record with its source text and the extracted values highlighted, and asks
+one question. It does not show what the judge said: a labeller who can see the verdict is
+checking it rather than forming a view.
 
-    build_adjudication.py --extraction extract_luna/extract_luna_n4_r1 \\
-                          --judge judge_oss_on_luna/judge_oss_on_luna
+    build_adjudication.py                    the current worklist
+    build_adjudication.py --out /tmp/x.html
 
-Writes an HTML page where a chemist marks each record correct or incorrect without being shown
-either grader's verdict, and exports the decisions as JSON. Feed that JSON back as a golden set
-and checks/judge/significance.py will test it.
+Decisions export as JSON. Feed that back through checks/human/labelled.py to get precision,
+recall and F1 for the judge, reweighted by the stratum sizes.
 """
 import argparse
 import html
@@ -22,43 +21,40 @@ import json
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))           # tools/ importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))       # repo root importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "checks"))
-from _setup import RUNS_DIR, judged, scored
+from _setup import DATABASE, data_path as _data_path
 from core.paths import ARTIFACTS, data_path
 from _page import validate
-from review_database import (FIELDS, LABELS, load_chunks, load_run,
-                             paper_title)
+from human import worklist as worklist_check
+from review_database import FIELDS, LABELS, load_chunks, load_run, paper_title
 
 
-def collect(extraction: Path, judge: Path, markdown_dir: Path, evaluable_only: bool) -> list:
-    """Every record whose two graders disagree, with the text needed to judge it."""
-    metric = scored(run=extraction)
-    verdicts = judged(run=judge)
-    both = metric.merge(verdicts, on=["doi", "index"])
-    if evaluable_only:
-        both = both[both.situation != "no curated counterpart"]
-
-    disputed = both[both.metric != both.judge]
-    extractions = load_run(extraction, "extractions")
+def collect(markdown_dir: Path) -> list:
+    """The stratified worklist, with the text needed to judge each record."""
+    sample = worklist_check.compute()
+    extractions = load_run(DATABASE, "extractions")
 
     items = []
-    for row in disputed.itertuples():
-        records = extractions[row.doi]["records"]
-        if row.index >= len(records):
+    for row in sample.itertuples():
+        paper = extractions.get(row.doi)
+        if paper is None or row.index >= len(paper["records"]):
             continue
         chunks = load_chunks(markdown_dir, row.doi)
-        record = records[row.index]
+        record = paper["records"][row.index]
         cited = [c for c in (record.get("source_chunk_ids") or []) if c in chunks]
 
         items.append({
             "doi": row.doi,
             "index": int(row.index),
             "title": paper_title(chunks),
-            "situation": row.situation,
+            # the stratum and its weight travel with the record so the labels can be reweighted;
+            # what the judge actually said does not, so the labeller is not anchored to it
+            "stratum": row.stratum,
+            "weight": float(row.weight),
             "values": {f: record.get(f) for f in FIELDS},
             "chunks": [{"id": c, "text": chunks[c]} for c in cited],
-            # deliberately not exported: what either grader said, so the labeller is not anchored
         })
     return items
 
@@ -207,20 +203,13 @@ document.getElementById('export').onclick = () => {
 
 def main() -> None:
     parser = argparse.ArgumentParser(prog="build_adjudication")
-    parser.add_argument("--extraction", required=True, help="benchmark extraction run")
-    parser.add_argument("--judge", required=True, help="judge run against that extraction")
-    parser.add_argument("--corpus", default="curated_data_markdown_by_doi")
-    parser.add_argument("--all", action="store_true",
-                        help="include records the metric had no counterpart for")
+    parser.add_argument("--corpus", default="corpus_markdown")
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
-    extraction = RUNS_DIR / args.extraction
-    judge = RUNS_DIR / args.judge
-    items = collect(extraction, judge, data_path(args.corpus), evaluable_only=not args.all)
-
-    slug = f"{Path(args.judge).name}-on-{Path(args.extraction).name}"
-    title = f"Adjudication — {slug}"
+    items = collect(data_path(args.corpus))
+    slug = "database"
+    title = "Adjudication worklist"
     page = TEMPLATE
     for token, value in [("__TITLE__", html.escape(title)),
                          ("__SLUG__", slug),
@@ -231,7 +220,9 @@ def main() -> None:
     validate(page)
     out = Path(args.out) if args.out else ARTIFACTS / f"adjudicate_{slug}.html"
     out.write_text(page, encoding="utf-8")
-    print(f"{len(items)} disagreements to adjudicate")
+    flagged = sum(1 for item in items if item["stratum"] == "judge flagged")
+    print(f"{len(items)} records to adjudicate "
+          f"({flagged} the judge flagged, {len(items) - flagged} it accepted)")
     print(f"wrote {out}  ({out.stat().st_size / 1e6:.1f} MB)")
 
 
