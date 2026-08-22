@@ -7,12 +7,18 @@ Reported as two questions rather than a ranking. Does having any example beat ha
 the settings that have examples differ from each other? Naming whichever mean came out highest
 and testing it against the rest would be the winner's curse: with six noisy means, one is highest
 by luck, and testing the winner it produced against the others is circular.
+
+The power table at the end is the honest part. With three runs an arm and the variance this task
+actually shows, only large differences are detectable, so "no difference between one example and
+four" means "we could not have seen one", not "there is none".
 """
 import glob
 from pathlib import Path
 
 import pandas as pd
 from itertools import combinations
+
+import numpy as np
 
 from scipy.stats import f_oneway, ttest_ind
 
@@ -31,6 +37,27 @@ def compute() -> pd.DataFrame | None:
     if not rows:
         return None
     return pd.DataFrame(rows)
+
+
+def detectable(frame: pd.DataFrame) -> None:
+    """What this design could have found, given the variance it actually shows."""
+    groups = [g.f1.values for _, g in frame.groupby("n_shots")]
+    pooled = np.sqrt(np.mean([np.var(v, ddof=1) for v in groups]))
+    per_arm = int(np.median([len(v) for v in groups]))
+    print(f"\npooled SD {pooled:.4f} across settings, {per_arm} runs an arm")
+
+    generator = np.random.default_rng(0)
+    rows = {}
+    for effect in (0.01, 0.02, 0.03, 0.05, 0.08):
+        row = {}
+        for n in (per_arm, 5, 10, 20):
+            a = generator.normal(0, pooled, (20000, n))
+            b = generator.normal(effect, pooled, (20000, n))
+            row[f"n={n}"] = (ttest_ind(a, b, axis=1).pvalue < 0.05).mean()
+        rows[effect] = row
+    table = pd.DataFrame(rows).T
+    table.index.name = "true difference in F1"
+    show("power to detect it, two arms, alpha 0.05", table, fmt="{:.2f}")
 
 
 def main() -> None:
@@ -55,6 +82,8 @@ def main() -> None:
     if len(groups) > 1:
         print(f"do the settings with examples differ from each other? "
               f"one-way ANOVA p = {f_oneway(*groups).pvalue:.3f}")
+
+    detectable(frame)
 
     show("every pair (p)", pd.DataFrame(
         [{"a": a, "b": b, "p": ttest_ind(frame.query("n_shots == @a").f1,
