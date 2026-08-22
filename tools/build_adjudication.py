@@ -1,9 +1,9 @@
 """Build the adjudication worklist: records for a chemist to judge, one by one.
 
-The sample comes from checks/human/worklist.py, which draws it stratified from the database --
-half from records the judge flagged, half from records it accepted -- so that precision and
-recall can both be estimated and weighted back to the whole database. Sampling at random would
-have spent most of the budget on records the judge already accepts.
+The sample comes from checks/human/worklist.py: the 24 curated papers, stratified over the four
+grader cells, so that precision and recall can be estimated for the judge and the metric alike
+and weighted back to the benchmark. It runs there rather than on the database because the metric
+grader has no verdict without a curated answer key.
 
 The page shows each record with its source text and the extracted values highlighted, and asks
 one question. It does not show what the judge said: a labeller who can see the verdict is
@@ -24,7 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))           # tools/ importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))       # repo root importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "checks"))
-from _setup import DATABASE, data_path as _data_path
+from human.worklist import EXTRACTION
 from core.paths import ARTIFACTS, data_path
 from _page import validate
 from human import worklist as worklist_check
@@ -34,7 +34,7 @@ from review_database import FIELDS, LABELS, load_chunks, load_run, paper_title
 def collect(markdown_dir: Path) -> list:
     """The stratified worklist, with the text needed to judge each record."""
     sample = worklist_check.compute()
-    extractions = load_run(DATABASE, "extractions")
+    extractions = load_run(EXTRACTION, "extractions")
 
     items = []
     for row in sample.itertuples():
@@ -51,7 +51,7 @@ def collect(markdown_dir: Path) -> list:
             "title": paper_title(chunks),
             # the stratum and its weight travel with the record so the labels can be reweighted;
             # what the judge actually said does not, so the labeller is not anchored to it
-            "stratum": row.stratum,
+            "stratum": row.cell,
             "weight": float(row.weight),
             "values": {f: record.get(f) for f in FIELDS},
             "chunks": [{"id": c, "text": chunks[c]} for c in cited],
@@ -203,12 +203,12 @@ document.getElementById('export').onclick = () => {
 
 def main() -> None:
     parser = argparse.ArgumentParser(prog="build_adjudication")
-    parser.add_argument("--corpus", default="corpus_markdown")
+    parser.add_argument("--corpus", default="curated_data_markdown_by_doi")
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
     items = collect(data_path(args.corpus))
-    slug = "database"
+    slug = "benchmark"
     title = "Adjudication worklist"
     page = TEMPLATE
     for token, value in [("__TITLE__", html.escape(title)),
@@ -220,9 +220,11 @@ def main() -> None:
     validate(page)
     out = Path(args.out) if args.out else ARTIFACTS / f"adjudicate_{slug}.html"
     out.write_text(page, encoding="utf-8")
-    flagged = sum(1 for item in items if item["stratum"] == "judge flagged")
-    print(f"{len(items)} records to adjudicate "
-          f"({flagged} the judge flagged, {len(items) - flagged} it accepted)")
+    from collections import Counter
+    spread = Counter(item["stratum"] for item in items)
+    print(f"{len(items)} records to adjudicate")
+    for cell, count in spread.most_common():
+        print(f"  {count:4d}  {cell}")
     print(f"wrote {out}  ({out.stat().st_size / 1e6:.1f} MB)")
 
 

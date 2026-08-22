@@ -1,73 +1,94 @@
 """Which records the next adjudication round should use, and how many.
 
-The question changed, so the sampling has to. McNemar needed disagreements; precision and recall
-need a sample you can weight back to the population, and a disagreements-only sample cannot be.
+The round runs on the 24 curated papers, not on the database. That is forced: the metric grader
+has no verdict without a curated answer key, and comparing the two graders is the whole argument.
+Adjudicating database records would measure the judge alone and leave the metric unevaluated,
+which would mean curating a second answer key to get it back.
 
-It also changed which bundle makes sense. On the 24 curated papers the shipped judge flags only
-15 records out of 296 -- labelling every one of them would still leave its precision uncertain to
-about a fifth. On the database it flags 590 of 2128, which is enough to measure. The cost is that
-the database has no curated answer key, so this round measures the judge alone, not the judge
-against the metric. That is the right trade: the judge is what vouches for the database, and the
-database is what the paper makes claims about.
+The question changed from McNemar to precision and recall, so the sampling has to. McNemar needed
+disagreements; precision and recall need a sample that can be weighted back to the population, and
+a disagreements-only sample cannot be.
 
-Stratified, not random: sampling 120 records at random would catch about 33 flagged ones. Drawing
-the two strata separately and reweighting gives the same budget far more information about the
-half that matters.
+Stratified over the four grader cells. The two cells where the judge flags a record are small
+enough to take whole -- the shipped judge flags very little -- so its precision is estimated from
+every such record that exists, and the interval around it is as tight as this bundle allows. The
+two large cells are sampled and reweighted.
 """
 import numpy as np
 import pandas as pd
 
-from _setup import DATABASE, DATABASE_JUDGE, judged, records, show, sources
+from _setup import RUNS_DIR, judged, records, scored, show, sources
 
-PER_STRATUM = 60          # flagged and accepted alike; 120 decisions in total
+JUDGE, TARGET = "oss", "luna"        # the pair the database ships
+BUDGET = 120
 SEED = 20260821
+
+EXTRACTION = RUNS_DIR / f"extract_{TARGET}/extract_{TARGET}_n4_r1"
+VERDICTS = RUNS_DIR / f"judge_{JUDGE}_on_{TARGET}/judge_{JUDGE}_on_{TARGET}"
+
+
+def cells() -> pd.DataFrame:
+    """Every record of the benchmark, labelled with which graders flagged it."""
+    both = scored(run=EXTRACTION).merge(judged(run=VERDICTS), on=["doi", "index"])
+    both["cell"] = np.select(
+        [(both.metric == "incorrect") & (both.judge == "incorrect"),
+         (both.metric == "correct") & (both.judge == "incorrect"),
+         (both.metric == "incorrect") & (both.judge == "correct")],
+        ["both flag", "judge only", "metric only"], default="neither flags")
+    return both
 
 
 def compute() -> pd.DataFrame:
-    """The sample to adjudicate, with the stratum weight each record carries."""
-    verdicts = judged(run=DATABASE_JUDGE)
-    extracted = records(DATABASE)[["doi", "index", "catalyst", "temperature_c",
-                                   "reaction_time_min", "yield_percent"]]
-    frame = verdicts.merge(extracted, on=["doi", "index"])
-    frame["stratum"] = np.where(frame.judge == "incorrect", "judge flagged", "judge accepted")
+    """The sample to adjudicate, with the weight each labelled record carries."""
+    frame = cells()
+    sizes = frame.cell.value_counts()
+
+    # take the judge-flagged cells whole; they are small and they are the only place the judge's
+    # precision can be estimated at all
+    whole = [name for name in ("both flag", "judge only") if name in sizes]
+    taken = int(sizes[whole].sum())
+    remaining = max(BUDGET - taken, 0)
+
+    large = [name for name in ("metric only", "neither flags") if name in sizes]
+    share = {name: int(round(remaining * sizes[name] / sizes[large].sum())) for name in large}
 
     generator = np.random.default_rng(SEED)
     chosen = []
-    for name, group in frame.groupby("stratum"):
-        take = min(PER_STRATUM, len(group))
+    for name, group in frame.groupby("cell"):
+        take = len(group) if name in whole else min(share.get(name, 0), len(group))
+        if not take:
+            continue
         picked = group.iloc[generator.choice(len(group), take, replace=False)].copy()
-        # what one labelled record stands for, so the strata can be weighted back together
-        picked["weight"] = len(group) / take
+        picked["weight"] = len(group) / take      # what one labelled record stands for
         chosen.append(picked)
 
-    return pd.concat(chosen).sort_values(["doi", "index"]).reset_index(drop=True)
+    columns = ["doi", "index", "cell", "weight"]
+    return pd.concat(chosen).sort_values(["doi", "index"])[columns].reset_index(drop=True)
 
 
 def main() -> None:
-    sources(extraction=DATABASE, judge=DATABASE_JUDGE)
+    sources(extraction=EXTRACTION, judge=VERDICTS)
 
-    verdicts = judged(run=DATABASE_JUDGE)
-    flagged = int((verdicts.judge == "incorrect").sum())
-    show("the population this round samples", {
-        "records in the database": len(verdicts),
-        "the judge flagged": flagged,
-        "the judge accepted": len(verdicts) - flagged,
-    }, fmt="{:.0f}")
+    frame = cells()
+    show(f"the population, {JUDGE} judging {TARGET} on the curated papers",
+         pd.crosstab(frame.metric, frame.judge), fmt="{:.0f}")
 
     sample = compute()
-    show("the sample", sample.groupby("stratum").agg(
-        records=("doi", "size"), papers=("doi", "nunique"),
-        stands_for=("weight", "first")), fmt="{:.1f}")
+    summary = sample.groupby("cell").agg(sampled=("doi", "size"), stands_for=("weight", "first"))
+    summary["in population"] = frame.cell.value_counts()
+    show("the sample", summary[["in population", "sampled", "stands_for"]], fmt="{:.1f}")
+    print(f"\n{len(sample)} decisions across {sample.doi.nunique()} papers")
 
-    print(f"\n{len(sample)} decisions, spread over {sample.doi.nunique()} papers")
-
-    # what that budget buys, on the stratum each quantity is estimated from
     half = lambda n, p=0.7: 1.96 * np.sqrt(p * (1 - p) / n)
+    flagged_judge = int(frame.cell.isin(["both flag", "judge only"]).sum())
+    flagged_metric = int(sample.cell.isin(["both flag", "metric only"]).sum())
     show("half-width of a 95% interval, for a rate near 0.7", {
-        "judge precision (from the flagged stratum)": half(PER_STRATUM),
-        "human rejection rate among accepted": half(PER_STRATUM),
+        "judge precision": half(flagged_judge),
+        "metric precision": half(flagged_metric),
     }, fmt="{:.2f}")
-    print("\n  recall and F1 follow from those two, reweighted by the stratum sizes above.")
+    print(f"\n  the judge flags only {flagged_judge} records in the whole benchmark, so its")
+    print("  precision cannot be pinned down more tightly than that on this bundle -- which is")
+    print("  itself worth reporting: a grader that rarely objects is hard to characterise.")
 
 
 if __name__ == "__main__":
