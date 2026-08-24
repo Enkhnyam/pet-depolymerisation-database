@@ -6,6 +6,7 @@ full run costs one call per paper, not one per record. Writes a judge bundle:
 config.json (content-hashed), verdicts/<doi>.json, judge_meta.json. The judge never sees
 the curated data or the metric's verdicts."""
 import json
+import re
 from pathlib import Path
 from typing import Literal
 
@@ -80,6 +81,30 @@ def cost(resp) -> float:
 REQUEST_TIMEOUT = 600     # seconds; slower than this is stuck, not working
 
 
+def strip_json_comments(text: str) -> str:
+    """Drop // line comments that sit outside string literals, and any comma they orphan.
+
+    Quote-aware on purpose: a naive strip would cut every "https://..." in the evidence fields
+    in half and turn a recoverable response into an unrecoverable one.
+    """
+    lines = []
+    for line in (text or "").splitlines():
+        in_string = escaped = False
+        cut = None
+        for i, char in enumerate(line):
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = not in_string
+            elif char == "/" and not in_string and line[i + 1:i + 2] == "/":
+                cut = i
+                break
+        lines.append(line[:cut].rstrip() if cut is not None else line)
+    return re.sub(r",(\s*[}\]])", r"\1", "\n".join(lines))
+
+
 def run_llm(llm_params: dict, messages, **kwargs):
     try:
         # timeout: without it a stalled connection hangs the run forever rather than failing
@@ -93,8 +118,14 @@ def run_llm(llm_params: dict, messages, **kwargs):
     except litellm.APIError as e:
         raise RuntimeError(f"API error: {e}. LLM service issue.")
     content = resp.choices[0].message.content
-    # Some models ignore response_format (prose/fenced JSON): salvage the outermost {...}.
-    for candidate in (content, content[content.find("{"): content.rfind("}") + 1]):
+    # Some models ignore response_format (prose/fenced JSON): salvage the outermost {...}, and
+    # salvage again with JSON-invalid comments removed. gpt-oss-120b annotates its own output --
+    # "// reaction_time_min cannot be fixed because ..." -- which is valid JavaScript and invalid
+    # JSON, so the braces balance and the parse still fails. That alone cost 62 graded records in
+    # the first 1,026-paper run.
+    outermost = content[content.find("{"): content.rfind("}") + 1]
+    for candidate in (content, outermost,
+                      strip_json_comments(content), strip_json_comments(outermost)):
         try:
             return BatchVerdict.model_validate_json(candidate), resp, True
         except (ValidationError, ValueError):
@@ -123,8 +154,10 @@ def run(env: dict, run_dir: Path, limit: int | None = None,
     meta = {"model": env["llm_params"]["model"], "extraction_run": hp["extraction_run"],
             "git_commit": bundle.git_commit(), "started_at": bundle.now_iso(),
             "n_papers": len(ext_files), "n_records": 0, "parse_failed_records": 0,
+            "skipped_papers": 0,
             "prompt_tokens": 0, "completion_tokens": 0, "cost_usd": 0.0}
 
+    failures: list[tuple[str, str]] = []
     for f in tqdm(ext_files, desc="judge"):
         if (run_dir / "verdicts" / f.name).exists():         # resume: never re-spend a call
             continue
@@ -137,8 +170,17 @@ def run(env: dict, run_dir: Path, limit: int | None = None,
             continue
         full_text = (md_dir / doi_to_filename(doi, "md")).read_text(encoding="utf-8")
 
-        batch, resp, parsed_ok = run_llm(env["llm_params"],
-                                         construct_messages(rubric, full_text, records))
+        # A paper that raises -- a rate limit that outlasts litellm's retries, a context overflow
+        # on a very long document -- is skipped rather than allowed to abort the run. Verdicts are
+        # written per paper, so an aborted run kept its earlier work anyway; what it did not do was
+        # reach the papers after the failure. Skipping means an unattended run still finishes, and
+        # because no verdict file is written for a skipped paper, resume retries exactly those.
+        try:
+            batch, resp, parsed_ok = run_llm(env["llm_params"],
+                                             construct_messages(rubric, full_text, records))
+        except Exception as exc:
+            failures.append((doi, f"{type(exc).__name__}: {str(exc)[:120]}"))
+            continue
         by_index = {v.extracted_index: v for v in batch.verdicts} if batch else {}
         if not parsed_ok:                                    # whole-paper failure: keep the raw text
             bundle.write_json(run_dir / "raw" / f.name,
@@ -158,8 +200,13 @@ def run(env: dict, run_dir: Path, limit: int | None = None,
         meta["cost_usd"] += cost(resp)
         bundle.write_json(run_dir / "verdicts" / f.name, {"doi": doi, "verdicts": verdicts})
 
+    meta["skipped_papers"] = len(failures)
     meta["finished_at"] = bundle.now_iso()
     bundle.write_json(run_dir / "judge_meta.json", meta)
     print(f"judge bundle -> {run_dir}  ({meta['n_papers']} papers, {meta['n_records']} records, "
           f"{meta['parse_failed_records']} unparseable, ${meta['cost_usd']:.4f})")
+    if failures:
+        print(f"  {len(failures)} paper(s) failed and were skipped; rerun to retry just those:")
+        for doi, why in failures[:10]:
+            print(f"    {doi}: {why}")
     tracking.log_bundle(run_dir, stage="judge")

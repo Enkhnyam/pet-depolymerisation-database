@@ -1,0 +1,39 @@
+run_name: mass_luna_1shot
+
+# The database run, with one worked example instead of four.
+#
+# The shots ablation (checks/curated/shots.py) is the reason this is a defensible saving rather
+# than a corner cut: having an example beats having none by +0.043 F1 (p = 0.0048), but the
+# settings that have examples do not differ from each other (one-way ANOVA p = 0.554; 1 vs 4
+# specifically p = 0.172). One example buys the whole effect. n_shots=1 also had the highest
+# mean F1 of any arm, 0.740 +/- 0.003 against 0.713 +/- 0.028 for four -- not a real difference
+# at three runs an arm, which is the point: the number of examples is not what matters.
+#
+# What it saves is the prompt. Four examples cost roughly 39k tokens of context on every paper;
+# one costs about 10k. Over the corpus that is ~26M prompt tokens rather than ~56M.
+#
+# Everything else is held identical to mass_luna, so the number of examples is the only thing
+# that differs between the two database runs.
+llm_params:
+  model: azure/gpt-5.6-luna
+  api_key: ${azure_key}
+  api_base: https://karim-api-resource.openai.azure.com
+  api_version: "2024-12-01-preview"
+  max_tokens: 16000
+
+harness_params:
+  prompt_file: extraction_prompt.txt
+  output_dir: mass_luna_1shot
+  curated_data_path: curated_data_json_by_doi.json
+  curated_data_markdown_dir: corpus_markdown
+  max_workers: 2
+  # seed 123 draws 10.1002/app.38706 -- the same example n_shots=4 draws first, so the two runs
+  # share their one common exemplar rather than differing in which paper as well as how many.
+  n_shots: 1
+  shot_selection: random
+  seed: 123
+  evaluation:
+    curated_data_path: curated_table_final.json
+    tp_threshold: 0.3
+    catalyst_threshold: 0.6
+    numeric_tolerance: 0.2

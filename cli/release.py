@@ -24,6 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from core.paths import ARTIFACTS, RUNS_DIR, data_path
+from core.schema import canonical_field
 from core.utils import doi_to_filename
 
 FIELDS = ["catalyst", "solvent", "temperature_c", "reaction_time_min", "catalyst_amount_g",
@@ -69,8 +70,10 @@ def collect(extraction: Path, judge: Path, markdown_dir: Path) -> tuple[list, li
 
             fixed = dict(row)
             for fix in verdict.get("fixes") or []:
-                field = fix["field"]
-                if field not in FIELDS:
+                # through canonical_field, because the judge names PET_amount_g both ways and a
+                # literal lookup dropped every correction that used the lowercase spelling
+                field = canonical_field(fix.get("field"))
+                if field is None or field not in FIELDS:
                     continue
                 changelog.append({"record_id": row["record_id"], "action": "corrected",
                                   "field": field, "from": row[field], "to": fix["value"],

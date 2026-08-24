@@ -6,7 +6,9 @@
 #
 #   CONFIRM=1 scripts/run/judge.sh                            the database
 #   CONFIG=judge_oss_on_luna CONFIRM=1 scripts/run/judge.sh   a matrix cell
-set -u; cd "$(dirname "$0")/../.."
+# pipefail: the run is piped into tee, and without it the pipeline reports tee's exit
+# status, so a crashed run looks like a successful one to any caller.
+set -u; set -o pipefail; cd "$(dirname "$0")/../.."
 
 CONFIG="${CONFIG:-mass_oss}"
 

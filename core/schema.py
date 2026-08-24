@@ -48,6 +48,22 @@ class ExtractionResponseNoSource(BaseModel):
     experiments: list[ExperimentNoSource] = Field(default_factory=list)
 
 
+# doi -> the schema's own spelling of a field. The judge names PET_amount_g both ways -- 255
+# corrections under the alias and 23 under "pet_amount_g" -- and a case-sensitive lookup silently
+# discarded the latter, so a correction the judge made was dropped without being counted anywhere.
+_BY_LOWER = {}
+
+
+def canonical_field(name: str) -> str | None:
+    """The schema field a judge's field name refers to, or None if it names nothing we store."""
+    if not _BY_LOWER:
+        for field, info in Experiment.model_fields.items():
+            spelling = info.alias or field
+            _BY_LOWER[field.lower()] = spelling
+            _BY_LOWER[spelling.lower()] = spelling
+    return _BY_LOWER.get(str(name).strip().lower())
+
+
 def load_curated(path: str | Path) -> dict[str, list[Experiment]]:
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     curated: dict[str, list[Experiment]] = {}

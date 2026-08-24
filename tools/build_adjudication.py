@@ -52,6 +52,7 @@ def collect(markdown_dir: Path) -> list:
             # the stratum and its weight travel with the record so the labels can be reweighted;
             # what the judge actually said does not, so the labeller is not anchored to it
             "stratum": row.cell,
+            "dispute": row.dispute,
             "weight": float(row.weight),
             "values": {f: record.get(f) for f in FIELDS},
             "chunks": [{"id": c, "text": chunks[c]} for c in cited],

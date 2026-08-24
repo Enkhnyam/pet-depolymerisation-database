@@ -24,6 +24,8 @@ SCRIPTS = [
     "database/corpus.py",
     "database/chemistry.py",
     "database/verdicts.py",
+    "database/withinpaper.py",
+    "database/formats.py",
     "database/provenance.py",
 
     # the 48 records two chemists adjudicated, and what a second round would need

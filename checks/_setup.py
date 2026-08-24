@@ -24,8 +24,8 @@ from core.evaluation import evaluate
 CURATED = "curated_table_final.json"                       # the 253-experiment answer key
 EXTRACTION = RUNS_DIR / "extract_oss/extract_oss_n4_r1"    # scored by the metric checks
 JUDGE = RUNS_DIR / "judge_oss_on_oss/judge_oss_on_oss"     # read by the judge checks
-DATABASE = RUNS_DIR / "mass_luna"                          # the 447-paper corpus run
-DATABASE_JUDGE = RUNS_DIR / "mass_oss/mass_oss"
+DATABASE = RUNS_DIR / "mass_luna_1shot"                    # the 1,026-paper corpus run
+DATABASE_JUDGE = RUNS_DIR / "mass_oss_1shot/mass_oss_1shot"
 
 # The 48 human labels identify records by position within the run they were drawn from, so they
 # mean nothing against any other extraction: record 12 of one run is a different experiment from

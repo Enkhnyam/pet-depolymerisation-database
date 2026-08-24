@@ -35,6 +35,17 @@ def cells() -> pd.DataFrame:
          (both.metric == "correct") & (both.judge == "incorrect"),
          (both.metric == "incorrect") & (both.judge == "correct")],
         ["both flag", "judge only", "metric only"], default="neither flags")
+    # Why the metric objected. `situation` already separates the three cases; naming them here
+    # keeps the taxonomy in one place, and avoids the evaluator's own `reason` column, which
+    # carries penalty arithmetic rather than a category.
+    both["dispute"] = np.select(
+        [both.metric == "correct",
+         both.situation == "no curated counterpart",
+         both.situation == "matched, names differ"],
+        ["the metric accepted it",
+         "the answer key has no such row",
+         "matched, but the catalyst names differ"],
+        default="matched, but the fields disagree")
     return both
 
 
@@ -62,7 +73,7 @@ def compute() -> pd.DataFrame:
         picked["weight"] = len(group) / take      # what one labelled record stands for
         chosen.append(picked)
 
-    columns = ["doi", "index", "cell", "weight"]
+    columns = ["doi", "index", "cell", "dispute", "weight"]
     return pd.concat(chosen).sort_values(["doi", "index"])[columns].reset_index(drop=True)
 
 
@@ -77,6 +88,15 @@ def main() -> None:
     summary = sample.groupby("cell").agg(sampled=("doi", "size"), stands_for=("weight", "first"))
     summary["in population"] = frame.cell.value_counts()
     show("the sample", summary[["in population", "sampled", "stands_for"]], fmt="{:.1f}")
+
+    disputed = frame[frame.metric != frame.judge]
+    show(f"what the {len(disputed)} disagreements are about",
+         disputed.dispute.value_counts(), fmt="{:.0f}")
+    show("and which way each falls",
+         pd.crosstab(disputed.dispute, disputed.judge,
+                     rownames=["why the metric objected"], colnames=["judge says"]),
+         fmt="{:.0f}")
+    show("what the sample draws from each", sample.dispute.value_counts(), fmt="{:.0f}")
     print(f"\n{len(sample)} decisions across {sample.doi.nunique()} papers")
 
     half = lambda n, p=0.7: 1.96 * np.sqrt(p * (1 - p) / n)

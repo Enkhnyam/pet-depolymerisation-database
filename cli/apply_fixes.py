@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from core.paths import RUNS_DIR
 from core import bundle
-from core.schema import Experiment
+from core.schema import Experiment, canonical_field
 
 NUMERIC = {f for f, info in Experiment.model_fields.items()
            if "float" in str(info.annotation)}
@@ -76,9 +76,11 @@ def main():
             corrected = dict(record)
             applied = []
             for fix in verdict.get("fixes") or []:
-                field = fix.get("field")
-                if field not in Experiment.model_fields:
-                    continue                     # ignore fixes naming a field we do not store
+                # canonical_field, not a literal lookup: the judge spells PET_amount_g both ways,
+                # and matching on the field name alone discarded the lowercase corrections
+                field = canonical_field(fix.get("field"))
+                if field is None:
+                    continue                     # a fix naming something we do not store
                 before = corrected.get(field)
                 after = coerce(field, fix.get("value"))
                 if before == after:

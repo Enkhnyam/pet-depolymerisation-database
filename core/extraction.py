@@ -26,10 +26,10 @@ def _cost(resp) -> float:
     except Exception:
         return float((getattr(resp, "_hidden_params", {}) or {}).get("response_cost") or 0.0)
 
-@weave.op(postprocess_output=lambda out: {"records": out[0] if out else []})
 REQUEST_TIMEOUT = 600     # seconds; slower than this is stuck, not working
 
 
+@weave.op(postprocess_output=lambda out: {"records": out[0] if out else []})
 def run_llm(llm_params: dict, messages, response_model=ExtractionResponse, **kwargs):
     """Call the model and parse its JSON into records"""
     # The RWTH endpoint caps *concurrent* requests (429 too_many_concurrent_requests) rather than
@@ -154,7 +154,7 @@ def run(env: dict, run_dir: Path, limit: int | None = None) -> None:
         "model":             env["llm_params"]["model"],
         "git_commit":        bundle.git_commit(),
         "started_at":        bundle.now_iso(),
-        "n_papers":          before.get("n_papers", 0) + len(md_files),
+        "n_papers":          before.get("n_papers", 0),   # += the papers that land, below
         "prompt_tokens":     before.get("prompt_tokens", 0),
         "completion_tokens": before.get("completion_tokens", 0),
         "cost_usd":          before.get("cost_usd", 0.0),
@@ -167,35 +167,67 @@ def run(env: dict, run_dir: Path, limit: int | None = None) -> None:
         records, resp, parsed_ok = run_llm(env["llm_params"], messages, response_model=response_model)
         return md.name, doi, messages, records, resp, parsed_ok
 
-    # Papers are independent I/O-bound calls, so fan them out. max_workers defaults to 1, which
-    # keeps the original sequential path byte-for-byte; the ablation configs raise it. Results are
-    # re-sorted before writing so the bundle and the token/cost totals never depend on finish order.
-    workers = int(env["harness_params"].get("max_workers", 1) or 1)
-    if workers > 1:
-        with ThreadPoolExecutor(max_workers=workers) as pool:
-            futures = [pool.submit(extract_one, md) for md in md_files]
-            results = [f.result() for f in
-                       tqdm(as_completed(futures), total=len(futures), desc=f"extract x{workers}")]
-    else:
-        results = [extract_one(md) for md in tqdm(md_files, desc="extract")]
+    def save(result) -> None:
+        """Write one paper the moment it lands.
 
-    for _, doi, messages, records, resp, parsed_ok in sorted(results, key=lambda r: r[0]):
-        if not parsed_ok:
-            meta["parse_failed_papers"] += 1
+        A three-hour run that keeps everything in memory and writes at the end loses all of it to
+        one failure in the last minute -- which is exactly what happened to mass_luna_1shot at
+        1026/1027. Writing per paper also makes `resume` mean what it says: an interrupted run
+        keeps what it finished, so restarting bills only the remainder.
+        """
+        _, doi, messages, records, resp, _ = result
         fn = doi_to_filename(doi, filetype="json")
         bundle.write_json(run_dir / "extractions" / fn,
                           {"doi": doi, "records": [r.model_dump(by_alias=True) for r in records]})
         bundle.write_json(run_dir / "raw" / fn,
                           {"doi": doi, "messages": messages,
                            "response_content": resp.choices[0].message.content})
+
+    # Papers are independent I/O-bound calls, so fan them out. max_workers defaults to 1, which
+    # keeps the original sequential path byte-for-byte; the ablation configs raise it.
+    #
+    # A paper that raises -- a rate limit that outlasts its retries, a malformed response -- is
+    # recorded and stepped over rather than allowed to abort the run, because the alternative is
+    # throwing away every paper that already succeeded. The totals are still accumulated from the
+    # sorted results, so they do not depend on finish order.
+    workers = int(env["harness_params"].get("max_workers", 1) or 1)
+    results, failures = [], []
+
+    def collect(name, produce):
+        try:
+            result = produce()
+        except Exception as exc:
+            failures.append((name, f"{type(exc).__name__}: {str(exc)[:120]}"))
+            return
+        save(result)
+        results.append(result)
+
+    if workers > 1:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = {pool.submit(extract_one, md): md for md in md_files}
+            for future in tqdm(as_completed(futures), total=len(futures),
+                               desc=f"extract x{workers}"):
+                collect(futures[future].name, future.result)
+    else:
+        for md in tqdm(md_files, desc="extract"):
+            collect(md.name, lambda md=md: extract_one(md))
+
+    for _, doi, messages, records, resp, parsed_ok in sorted(results, key=lambda r: r[0]):
+        if not parsed_ok:
+            meta["parse_failed_papers"] += 1
         usage = resp.usage
         meta["prompt_tokens"] += getattr(usage, "prompt_tokens", 0) or 0
         meta["completion_tokens"] += getattr(usage, "completion_tokens", 0) or 0
         meta["cost_usd"] += _cost(resp)
 
+    meta["n_papers"] += len(results)
     meta["finished_at"] = bundle.now_iso()
     bundle.write_json(run_dir / "run_meta.json", meta)
     print(f"extraction bundle -> {run_dir}  (${meta['cost_usd']:.4f})")
+    if failures:
+        print(f"  {len(failures)} paper(s) failed and were skipped; rerun to retry just those:")
+        for name, why in failures[:10]:
+            print(f"    {name}: {why}")
     if meta["parse_failed_papers"]:
         print(f"  note: {meta['parse_failed_papers']}/{meta['n_papers']} papers returned "
               f"unparseable output (0 records); see raw/*.json 'response_content'.")

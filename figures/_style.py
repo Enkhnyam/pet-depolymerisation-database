@@ -30,8 +30,18 @@ SEQUENTIAL = "BuGn"          # single hue, so heatmaps never compete with the ca
 
 INK, DIM, RULE, WARN = "#12201F", "#5D716E", "#D2DEDB", "#A33A2E"
 
+# For bars and histograms that encode no category. The categorical hues above are reused across
+# canvases on purpose -- teal is glycolysis in one figure and the metric grader in another -- which
+# is safe only while a canvas carries at most one meaning for a colour. A canvas that shows a route
+# key must therefore draw its uncategorised panels in something that is not a route.
+NEUTRAL = "#54696E"
+
 plt.rcParams.update({
     "figure.dpi": 200, "savefig.dpi": 300, "savefig.bbox": "tight",
+    # Figures are written as PDF, so they scale with the page instead of being resampled to it.
+    # fonttype 42 embeds TrueType outlines rather than Type 3, which is what most publishers
+    # require and what keeps the text selectable and searchable in the submitted PDF.
+    "pdf.fonttype": 42, "ps.fonttype": 42,
     "font.size": 7, "axes.titlesize": 8, "axes.labelsize": 7,
     "axes.titleweight": "bold", "axes.titlelocation": "left",
     "axes.edgecolor": RULE, "axes.labelcolor": INK, "text.color": INK,
@@ -176,7 +186,7 @@ def legend_above(figure, axis, labels_from=None):
 
 def save(figure, name: str, *, legend_room=False):
     figure.tight_layout(rect=(0, 0, 1, 0.955) if legend_room else None)
-    out = ARTIFACTS / "figures" / f"{name}.png"
+    out = ARTIFACTS / "figures" / f"{name}.pdf"
     out.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(out)
     plt.close(figure)
@@ -239,3 +249,38 @@ def grouped_bars(axis, frame, *, xlabel="", ylabel="", palette=None, rotate=0):
     axis.legend(frameon=False, fontsize=6)
     _finish(axis, xlabel, ylabel)
     return axis
+
+
+def paired_rho(axis, table, curves, *, xlabel="Spearman rho", labels=None):
+    """Per-paper correlations as a strip, against the single pooled value for the same pair.
+
+    The point of the panel is the gap between the two, so both live on one axis: a cloud of
+    per-paper rhos sitting off zero while the pooled marker sits on it is the whole argument,
+    and separating them into two panels would make the reader do the comparison from memory.
+    """
+    rows = list(table.index)[::-1]          # first relationship at the top
+    axis.axvline(0, color=RULE, lw=1, zorder=0)
+    for position, name in enumerate(rows):
+        rhos = curves[name].values
+        jitter = np.random.default_rng(0).uniform(-0.13, 0.13, len(rhos))
+        axis.scatter(rhos, position + jitter, s=5, alpha=0.45, linewidths=0,
+                     color=ROUTE["glycolysis"], zorder=2)
+        axis.scatter([np.median(rhos)], [position], marker="D", s=22, zorder=4,
+                     color=ROUTE["glycolysis"], edgecolors="white", linewidths=0.7)
+        axis.scatter([table.loc[name, "pooled"]], [position], marker="|", s=90, zorder=5,
+                     color=WARN, linewidths=1.6)
+    axis.set_yticks(range(len(rows)))
+    axis.set_yticklabels(labels or rows, fontsize=6)
+    axis.set_xlim(-1.05, 1.05)
+    axis.set_ylim(-0.6, len(rows) - 0.4)
+    _finish(axis, xlabel, "")
+
+
+def sci(value: float, digits: int = 0) -> str:
+    """A small number as LaTeX maths: 6.8e-07 -> 7\\times10^{-7}.
+
+    Captions are pasted into the paper verbatim, so a p-value has to arrive already typeset;
+    "7e-07" in a caption is a leaked repr, not a number.
+    """
+    mantissa, exponent = f"{value:.{digits}e}".split("e")
+    return f"{mantissa}\\times10^{{{int(exponent)}}}"
