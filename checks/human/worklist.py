@@ -14,12 +14,15 @@ enough to take whole -- the shipped judge flags very little -- so its precision 
 every such record that exists, and the interval around it is as tight as this bundle allows. The
 two large cells are sampled and reweighted.
 """
+import json
+
 import numpy as np
 import pandas as pd
 
-from _setup import RUNS_DIR, judged, records, scored, show, sources
+from _setup import ARTIFACTS, RUNS_DIR, judged, records, scored, show, sources
 
 JUDGE, TARGET = "oss", "luna"        # the pair the database ships
+DECIDED = ARTIFACTS / "gold/decisions/rescue_decisions_full.json"
 BUDGET = 120
 SEED = 20260821
 
@@ -49,9 +52,24 @@ def cells() -> pd.DataFrame:
     return both
 
 
+def already_decided() -> set:
+    """Records the chemists have already ruled on, which must not be asked again.
+
+    The rescue review settled 34 of the current disagreements. Sampling them a second time would
+    spend a quarter of the budget re-deciding answers we hold, and would bias the estimate: those
+    records were selected for being unmatched, so they are not a random slice of anything.
+    """
+    if not DECIDED.exists():
+        return set()
+    payload = json.loads(DECIDED.read_text(encoding="utf-8"))
+    return {(d["doi"], d["index"]) for d in payload["decisions"]}
+
+
 def compute() -> pd.DataFrame:
     """The sample to adjudicate, with the weight each labelled record carries."""
     frame = cells()
+    settled = already_decided()
+    frame = frame[~frame.apply(lambda r: (r.doi, r["index"]) in settled, axis=1)]
     sizes = frame.cell.value_counts()
 
     # take the judge-flagged cells whole; they are small and they are the only place the judge's
@@ -89,7 +107,17 @@ def main() -> None:
     summary["in population"] = frame.cell.value_counts()
     show("the sample", summary[["in population", "sampled", "stands_for"]], fmt="{:.1f}")
 
-    disputed = frame[frame.metric != frame.judge]
+    settled = already_decided()
+    all_disputed = frame[frame.metric != frame.judge]
+    open_disputed = all_disputed[~all_disputed.apply(
+        lambda r: (r.doi, r["index"]) in settled, axis=1)]
+    show("disagreements, and how many a human has already ruled on", {
+        "total": len(all_disputed),
+        "already decided in the rescue review": len(all_disputed) - len(open_disputed),
+        "never seen by a chemist": len(open_disputed),
+    }, fmt="{:.0f}")
+
+    disputed = all_disputed
     show(f"what the {len(disputed)} disagreements are about",
          disputed.dispute.value_counts(), fmt="{:.0f}")
     show("and which way each falls",
