@@ -1,244 +1,352 @@
-"""Build the adjudication worklist: records for a chemist to judge, one by one.
+"""Build the adjudication worklist as a two-pane reading tool.
 
-The sample comes from checks/human/worklist.py: the 24 curated papers, stratified over the four
-grader cells, so that precision and recall can be estimated for the judge and the metric alike
-and weighted back to the benchmark. It runs there rather than on the database because the metric
-grader has no verdict without a curated answer key.
+The paper on the left, rendered as markdown so its tables survive -- reaction conditions live in
+tables, and a pane that flattened them would be useless for exactly the records that are hardest
+to judge. The records on the right.
 
-The page shows each record with its source text and the extracted values highlighted, and asks
-one question. It does not show what the judge said: a labeller who can see the verdict is
-checking it rather than forming a view.
+Selecting a record marks the chunks it was read from and highlights, inside those chunks, the
+values it claims. So "did the model read this correctly" is answered by looking at one screen
+rather than by hunting through a PDF.
 
-    build_adjudication.py                    the current worklist
-    build_adjudication.py --out /tmp/x.html
+What either grader said is shown nowhere: a labeller who can see a verdict is checking it rather
+than forming a view. Records already ruled on in the rescue review arrive with that answer filled
+in, marked as carried over and changeable.
 
-Decisions export as JSON. Feed that back through checks/human/labelled.py to get precision,
-recall and F1 for the judge, reweighted by the stratum sizes.
+    build_adjudication.py                     every disagreement plus 50 agreed records
+    build_adjudication.py --agreements 20     a smaller agreement sample
 """
 import argparse
 import html
 import json
+import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))           # tools/ importable
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))       # repo root importable
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "checks"))
-from human.worklist import EXTRACTION
-from core.paths import ARTIFACTS, data_path
+from _markdown import render
 from _page import validate
+from core.paths import ARTIFACTS, data_path
+from core.utils import doi_to_filename
 from human import worklist as worklist_check
-from review_database import FIELDS, LABELS, load_chunks, load_run, paper_title
+from review_database import FIELDS, LABELS, load_run, paper_title
+
+CHUNK_PATTERN = re.compile(r"^ID: ([0-9a-f-]{36})$", re.M)
 
 
-def collect(markdown_dir: Path) -> list:
-    """The stratified worklist, with the text needed to judge each record."""
+def chunks_of(markdown_dir: Path, doi: str) -> list:
+    """The paper's chunks in order, each rendered to html."""
+    path = markdown_dir / doi_to_filename(doi.lower(), "md")
+    if not path.exists():
+        return []
+    pieces = CHUNK_PATTERN.split(path.read_text(encoding="utf-8"))
+    return [{"id": pieces[i], "html": render(pieces[i + 1])}
+            for i in range(1, len(pieces) - 1, 2)]
+
+
+def build(markdown_dir: Path, agreements: int) -> tuple[str, dict]:
+    worklist_check.AGREEMENTS = agreements
     sample = worklist_check.compute()
-    extractions = load_run(EXTRACTION, "extractions")
+    extractions = load_run(worklist_check.EXTRACTION, "extractions")
 
-    items = []
+    papers = {}
     for row in sample.itertuples():
         paper = extractions.get(row.doi)
         if paper is None or row.index >= len(paper["records"]):
             continue
-        chunks = load_chunks(markdown_dir, row.doi)
+        entry = papers.setdefault(row.doi, {"doi": row.doi, "chunks": [], "records": []})
         record = paper["records"][row.index]
-        cited = [c for c in (record.get("source_chunk_ids") or []) if c in chunks]
-
-        items.append({
-            "doi": row.doi,
+        entry["records"].append({
             "index": int(row.index),
-            "title": paper_title(chunks),
-            # the stratum and its weight travel with the record so the labels can be reweighted;
-            # what the judge actually said does not, so the labeller is not anchored to it
             "stratum": row.stratum,
             "dispute": row.dispute,
-            # carried over from the rescue review so the chemists only decide what is new;
-            # shown as an existing answer they can change, not as a fact
-            "prefilled": row.prefilled,
             "weight": float(row.weight),
-            "values": {f: record.get(f) for f in FIELDS},
-            "chunks": [{"id": c, "text": chunks[c]} for c in cited],
+            "prefilled": row.prefilled,
+            "values": {field: record.get(field) for field in FIELDS},
+            "cites": record.get("source_chunk_ids") or [],
         })
-    return items
+
+    for doi, entry in papers.items():
+        entry["chunks"] = chunks_of(markdown_dir, doi)
+        entry["title"] = paper_title(
+            {c["id"]: re.sub(r"<[^>]+>", " ", c["html"]) for c in entry["chunks"]})
+        entry["records"].sort(key=lambda r: r["index"])
+
+    ordered = sorted(papers.values(), key=lambda p: -len(p["records"]))
+    counts = {
+        "papers": len(ordered),
+        "records": sum(len(p["records"]) for p in ordered),
+        "prefilled": sum(1 for p in ordered for r in p["records"] if r["prefilled"]),
+    }
+    counts["to decide"] = counts["records"] - counts["prefilled"]
+
+    page = TEMPLATE
+    for token, value in [
+        ("__AGREEMENTS__", str(agreements)),
+        ("__COUNTS__", json.dumps(counts)),
+        ("__LABELS__", json.dumps(LABELS)),
+        ("__DATA__", json.dumps(ordered, ensure_ascii=False).replace("</", "<\\/")),
+    ]:
+        page = page.replace(token, value)
+    return page, counts
 
 
 TEMPLATE = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>__TITLE__</title>
+<title>Adjudication worklist</title>
 <style>
 :root{--bg:#eef2f1;--panel:#fff;--ink:#16211f;--dim:#61756f;--line:#d8e2df;--soft:#f5f8f7;
- --ok:#3f6e46;--no:#a33a2e;--accent:#0e7c6b;--mark:#ffe9a8;--markink:#4a3800}
+ --ok:#3f6e46;--no:#a33a2e;--accent:#0e7c6b;--mark:#ffe08a;--markink:#4a3400;
+ --cite:#fff8e6;--citeline:#e0b93c}
 @media(prefers-color-scheme:dark){:root{--bg:#0b1312;--panel:#131e1d;--ink:#dde7e4;--dim:#8ea29e;
- --line:#243432;--soft:#0f1918;--ok:#7fb187;--no:#d98374;--accent:#4fc4ae;--mark:#5d4c19;--markink:#ffeab5}}
+ --line:#243432;--soft:#0f1918;--ok:#7fb187;--no:#d98374;--accent:#4fc4ae;--mark:#6b5410;
+ --markink:#ffeab5;--cite:#1d2417;--citeline:#7a6420}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 ui-sans-serif,system-ui,sans-serif}
-.wrap{max-width:860px;margin:0 auto;padding:26px 20px 90px}
-h1{font-size:1.3rem;margin:0 0 5px}
-.sub{color:var(--dim);font-size:.9rem;margin:0 0 20px}
-.bar{position:sticky;top:0;background:var(--bg);padding:12px 0;border-bottom:1px solid var(--line);
- z-index:5;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.prog{font-variant-numeric:tabular-nums;font-size:.9rem}
-button{font:inherit;font-size:.85rem;padding:6px 13px;border:1px solid var(--line);
- border-radius:7px;background:var(--panel);color:var(--ink);cursor:pointer}
-button.export{background:var(--accent);border-color:var(--accent);color:#fff}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px;margin:14px 0}
-.doi{font-family:ui-monospace,monospace;font-size:.78rem;color:var(--accent)}
-.ttl{color:var(--dim);font-size:.85rem;margin:3px 0 12px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:6px;margin-bottom:13px}
-.cell{background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:5px 8px}
-.cell k{display:block;font-size:.63rem;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}
-.cell v{font-size:.86rem;font-variant-numeric:tabular-nums}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font:14.5px/1.6 ui-sans-serif,system-ui,-apple-system,sans-serif}
+.app{display:grid;grid-template-rows:auto 1fr;height:100vh}
+header{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:10px 16px;
+ background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{font-size:.95rem;margin:0;font-weight:600}
+select,button,input{font:inherit;font-size:.85rem;padding:6px 10px;border:1px solid var(--line);
+ border-radius:7px;background:var(--panel);color:var(--ink)}
+select{max-width:44ch}
+button{cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.grow{flex:1}
+.muted{color:var(--dim);font-size:.82rem}
+main{display:grid;grid-template-columns:1fr 1fr;min-height:0}
+@media(max-width:1000px){main{grid-template-columns:1fr}}
+#text,#recs{overflow-y:auto;padding:16px 20px;min-height:0}
+#text{border-right:1px solid var(--line);background:var(--panel)}
+.chunk{padding:2px 10px;border-left:3px solid transparent;border-radius:4px;margin-bottom:2px}
+.chunk.cited{background:var(--cite);border-left-color:var(--citeline)}
+.chunk h3,.chunk h4,.chunk h5,.chunk h6{font-size:.92rem;margin:14px 0 6px}
+.chunk p{margin:0 0 8px}
+.chunk ul{margin:0 0 8px;padding-left:20px}
+.chunk table{border-collapse:collapse;width:100%;margin:8px 0;font-size:.82rem;display:block;
+ overflow-x:auto}
+.chunk th,.chunk td{border:1px solid var(--line);padding:4px 7px;text-align:left;
+ white-space:nowrap}
+.chunk th{background:var(--soft);font-weight:600}
+mark{background:var(--mark);color:var(--markink);border-radius:2px;padding:0 2px;font-weight:600}
+.rec{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--line);
+ border-radius:8px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+.rec.on{border-left-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.rec.done{opacity:.62}
+.rechead{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.ix{font-family:ui-monospace,monospace;font-size:.76rem;color:var(--dim)}
+.tag{font-size:.64rem;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;
+ border-radius:4px;background:var(--soft);color:var(--dim)}
+.tag.disagree{background:#f7ecd8;color:#8a6318}
+.tag.carried{background:#e3efe4;color:#2f6b41}
+@media(prefers-color-scheme:dark){.tag.disagree{background:#2c2413;color:#d6a054}
+ .tag.carried{background:#16281a;color:#7fb187}}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));gap:5px;
+ margin-bottom:10px}
+.cell{background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:4px 7px}
+.cell k{display:block;font-size:.61rem;color:var(--dim);text-transform:uppercase;
+ letter-spacing:.05em}
+.cell v{font-size:.83rem;font-variant-numeric:tabular-nums}
 .null{color:var(--dim);font-style:italic;font-size:.9em}
-.src{border-left:2px solid var(--line);padding-left:11px;margin-top:9px}
-.src .cid{font-family:ui-monospace,monospace;font-size:.67rem;color:var(--dim)}
-.src .txt{white-space:pre-wrap;font-size:.83rem;color:var(--dim);max-height:240px;overflow:auto;margin-top:3px}
-mark{background:var(--mark);color:var(--markink);border-radius:2px;padding:0 2px}
-.ask{margin-top:14px;padding-top:13px;border-top:1px solid var(--line);display:flex;gap:9px;align-items:center;flex-wrap:wrap}
-.ask span{font-size:.87rem;color:var(--dim);margin-right:4px}
+.ask{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-top:9px;
+ border-top:1px solid var(--line)}
+.ask span{font-size:.83rem;color:var(--dim)}
 .vote.yes.on{background:var(--ok);border-color:var(--ok);color:#fff}
 .vote.no.on{background:var(--no);border-color:var(--no);color:#fff}
-.note{flex:1;min-width:160px;padding:6px 9px;border:1px solid var(--line);border-radius:6px;
- background:var(--soft);color:var(--ink);font:inherit;font-size:.83rem}
-.done{opacity:.55}
-</style></head><body><div class="wrap">
-<h1>__TITLE__</h1>
-<p class="sub">Decide one thing about each record: is it a faithful description of an experiment
-the paper reports? Neither grader's verdict is shown, so your answer is not anchored to either.
-Records you ruled on in the rescue review arrive with that answer already filled in &mdash; change
-it if you disagree with your earlier self. The rest are new.</p>
-<div class="bar">
-  <span class="prog" id="prog"></span>
-  <button id="next">jump to next undecided</button>
-  <button class="export" id="export">export decisions</button>
+.note{flex:1;min-width:130px;font-size:.8rem}
+</style></head><body>
+<div class="app">
+<header>
+  <h1>Adjudication</h1>
+  <select id="pick"></select>
+  <span class="muted" id="stat"></span>
+  <span class="grow"></span>
+  <span class="muted" id="progress"></span>
+  <button class="primary" id="export">Download decisions</button>
+</header>
+<main><div id="text"></div><div id="recs"></div></main>
 </div>
-<div id="cards"></div>
-</div>
-<script id="data" type="application/json">__PAYLOAD__</script>
+<script id="data" type="application/json">__DATA__</script>
 <script>
-const ITEMS = JSON.parse(document.getElementById('data').textContent);
+const PAPERS = JSON.parse(document.getElementById('data').textContent);
 const LABELS = __LABELS__;
-const KEY = 'adjudication-__SLUG__';
+const COUNTS = __COUNTS__;
+const KEY = 'adjudication-benchmark-__AGREEMENTS__';
 const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
-// answers carried over from the rescue review, unless this browser already holds a decision
 const CARRY = {real: 'correct', notreal: 'incorrect'};
-for (const it of ITEMS) {
-  const k = it.doi + '#' + it.index;
-  if (!saved[k] && CARRY[it.prefilled]) {
-    saved[k] = {doi: it.doi, extracted_index: it.index, human: CARRY[it.prefilled],
-                note: null, carried_over: true};
+const RX_SPECIAL = /[.*+?^${}()|[\]\\]/g;
+
+for (const p of PAPERS) for (const r of p.records) {
+  const k = p.doi + '#' + r.index;
+  if (!saved[k] && CARRY[r.prefilled]) {
+    saved[k] = {doi: p.doi, extracted_index: r.index, human: CARRY[r.prefilled],
+                stratum: r.stratum, weight: r.weight, note: null, carried_over: true};
   }
 }
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
-const fmt = v => v === null || v === undefined ? '<span class="null">not reported</span>' : esc(v);
-const RX = /[.*+?^${}()|[\]\\]/g;
 
-function forms(v){
+let current = 0;
+const esc = s => String(s).replace(/[&<>"]/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const fmt = v => v === null || v === undefined
+  ? '<span class="null">not reported</span>' : esc(v);
+
+function forms(v) {
   if (v === null || v === undefined) return [];
   if (typeof v === 'string') return v.length > 2 ? [v] : [];
   const out = new Set([String(v)]);
-  if (Number.isInteger(v)) out.add(String(v)); else out.add(v.toFixed(1).replace(/\.0$/, ''));
+  if (Number.isInteger(v)) out.add(String(v));
+  else out.add(v.toFixed(1).replace(/\.0$/, ''));
   return [...out].filter(s => s.length > 1);
 }
-function mark(text, values){
+
+// highlight inside text nodes only, so a value never lands inside a tag or a table border
+function highlight(root, values) {
   const wanted = [];
-  for (const k in values) for (const s of forms(values[k])) wanted.push(s);
-  wanted.sort((a,b) => b.length - a.length);
-  let out = esc(text);
-  for (const s of wanted){
-    const re = new RegExp('(^|[^\\w.])(' + esc(s).replace(RX,'\\$&') + ')(?![\\w.])','g');
-    let n = 0;
-    out = out.replace(re, (w,b,h) => n++ < 3 ? b + '<mark>' + h + '</mark>' : w);
+  for (const f in values) for (const s of forms(values[f])) wanted.push(s);
+  wanted.sort((a, b) => b.length - a.length);
+  if (!wanted.length) return;
+  const source = '(^|[^\\w.])(' +
+    wanted.map(s => s.replace(RX_SPECIAL, '\\$&')).join('|') + ')(?![\\w.])';
+
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const node of nodes) {
+    const pattern = new RegExp(source, 'g');
+    if (!pattern.test(node.nodeValue)) continue;
+    const span = document.createElement('span');
+    span.innerHTML = esc(node.nodeValue).replace(new RegExp(source, 'g'), '$1<mark>$2</mark>');
+    node.parentNode.replaceChild(span, node);
   }
-  return out;
-}
-function key(it){ return it.doi + '#' + it.index; }
-
-function progress(){
-  const done = ITEMS.filter(it => saved[key(it)]?.human).length;
-  document.getElementById('prog').textContent = done + ' of ' + ITEMS.length + ' decided';
 }
 
-const cards = document.getElementById('cards');
-ITEMS.forEach((it, n) => {
-  const k = key(it);
-  const cells = Object.keys(it.values).map(f =>
-    `<div class="cell"><k>${esc(LABELS[f] || f)}</k><v>${fmt(it.values[f])}</v></div>`).join('');
-  const srcs = it.chunks.map(c =>
-    `<div class="src"><div class="cid">${esc(c.id.slice(0,8))}</div>
-     <div class="txt">${mark(c.text, it.values)}</div></div>`).join('')
-    || '<p class="null">this record cites no source chunk</p>';
+function paperText(p) {
+  return p.chunks.map(c => `<div class="chunk" data-id="${c.id}">${c.html}</div>`).join('')
+    || '<p class="null">no text for this paper</p>';
+}
 
-  const el = document.createElement('div');
-  el.className = 'card'; el.id = 'c' + n;
-  el.innerHTML = `<div class="doi">${esc(it.doi)} &middot; record #${it.index}</div>
-    <div class="ttl">${esc(it.title)}</div>
-    <div class="grid">${cells}</div>${srcs}
-    <div class="ask"><span>Faithful to the paper?</span>
-      <button class="vote yes">yes</button><button class="vote no">no</button>
-      <input class="note" placeholder="note (optional)"></div>`;
+function drawPaper() {
+  const p = PAPERS[current];
+  document.getElementById('stat').textContent =
+    p.records.length + ' record' + (p.records.length === 1 ? '' : 's');
+  document.getElementById('text').innerHTML = paperText(p);
 
-  const yes = el.querySelector('.yes'), no = el.querySelector('.no'), note = el.querySelector('.note');
-  const paint = () => {
-    const rec = saved[k] || {};
-    yes.classList.toggle('on', rec.human === 'correct');
-    no.classList.toggle('on', rec.human === 'incorrect');
-    el.classList.toggle('done', !!rec.human);
-    if (rec.note) note.value = rec.note;
-  };
-  const set = v => {
-    saved[k] = {doi: it.doi, extracted_index: it.index, human: v, note: note.value || null};
-    localStorage.setItem(KEY, JSON.stringify(saved));
-    paint(); progress();
-  };
-  yes.onclick = () => set('correct');
-  no.onclick = () => set('incorrect');
-  note.onchange = () => { if (saved[k]) set(saved[k].human); };
-  paint();
-  cards.appendChild(el);
+  document.getElementById('recs').innerHTML = p.records.map(r => {
+    const rec = saved[p.doi + '#' + r.index] || {};
+    const cells = Object.keys(r.values).map(f =>
+      `<div class="cell"><k>${esc(LABELS[f] || f)}</k><v>${fmt(r.values[f])}</v></div>`).join('');
+    const tags = `<span class="tag ${r.stratum === 'graders disagree' ? 'disagree' : ''}">`
+      + esc(r.dispute) + '</span>'
+      + (rec.carried_over ? '<span class="tag carried">carried over</span>' : '');
+    return `<div class="rec${rec.human ? ' done' : ''}" data-i="${r.index}">
+      <div class="rechead"><span class="ix">#${r.index}</span>${tags}</div>
+      <div class="grid">${cells}</div>
+      <div class="ask"><span>Faithful to the paper?</span>
+        <button class="vote yes${rec.human === 'correct' ? ' on' : ''}">yes</button>
+        <button class="vote no${rec.human === 'incorrect' ? ' on' : ''}">no</button>
+        <input class="note" placeholder="note (optional)" value="${esc(rec.note || '')}">
+      </div></div>`;
+  }).join('');
+
+  document.querySelectorAll('#recs .rec').forEach(el => {
+    const index = Number(el.dataset.i);
+    const record = p.records.find(r => r.index === index);
+    const k = p.doi + '#' + index;
+    el.addEventListener('click', event => {
+      if (event.target.tagName === 'BUTTON' || event.target.tagName === 'INPUT') return;
+      select(record, el);
+    });
+    el.querySelector('.yes').onclick = () => decide(k, record, 'correct', el);
+    el.querySelector('.no').onclick = () => decide(k, record, 'incorrect', el);
+    el.querySelector('.note').onchange = e => {
+      if (saved[k]) { saved[k].note = e.target.value || null; store(); }
+    };
+  });
+
+  if (p.records.length) select(p.records[0], document.querySelector('#recs .rec'));
+  progress();
+}
+
+function select(record, element) {
+  document.querySelectorAll('#recs .rec').forEach(el => el.classList.remove('on'));
+  if (element) element.classList.add('on');
+
+  const p = PAPERS[current];
+  document.getElementById('text').innerHTML = paperText(p);
+  const cited = new Set(record.cites);
+  let first = null;
+  document.querySelectorAll('#text .chunk').forEach(el => {
+    if (!cited.has(el.dataset.id)) return;
+    el.classList.add('cited');
+    highlight(el, record.values);
+    if (!first) first = el;
+  });
+  if (first) first.scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+
+function decide(key, record, answer, element) {
+  const p = PAPERS[current];
+  saved[key] = {doi: p.doi, extracted_index: record.index, human: answer,
+                stratum: record.stratum, weight: record.weight,
+                note: element.querySelector('.note').value || null, carried_over: false};
+  store();
+  element.querySelector('.yes').classList.toggle('on', answer === 'correct');
+  element.querySelector('.no').classList.toggle('on', answer === 'incorrect');
+  element.classList.add('done');
+  progress();
+}
+
+function store() { localStorage.setItem(KEY, JSON.stringify(saved)); }
+
+function progress() {
+  document.getElementById('progress').textContent =
+    `${Object.keys(saved).length} of ${COUNTS.records} decided `
+    + `(${COUNTS.prefilled} carried over)`;
+}
+
+const pick = document.getElementById('pick');
+PAPERS.forEach((p, i) => {
+  const option = document.createElement('option');
+  option.value = i;
+  option.textContent = `${p.doi} — ${(p.title || '').slice(0, 60)}`;
+  pick.appendChild(option);
 });
-progress();
+pick.onchange = e => { current = Number(e.target.value); drawPaper(); };
 
-document.getElementById('next').onclick = () => {
-  const i = ITEMS.findIndex(it => !saved[key(it)]?.human);
-  if (i >= 0) document.getElementById('c' + i).scrollIntoView({behavior:'smooth', block:'center'});
-};
 document.getElementById('export').onclick = () => {
-  const out = ITEMS.filter(it => saved[key(it)]?.human).map(it => saved[key(it)]);
-  const text = JSON.stringify(out, null, 2);
+  const text = JSON.stringify({generated: new Date().toISOString(),
+                               sample: COUNTS, decisions: Object.values(saved)}, null, 2);
   navigator.clipboard?.writeText(text);
   const w = window.open('', '_blank');
   if (w) { w.document.title = 'decisions.json'; w.document.body.innerText = text; }
   else alert(text);
 };
-</script></body></html>"""
+
+drawPaper();
+</script>
+</body></html>"""
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(prog="build_adjudication")
     parser.add_argument("--corpus", default="curated_data_markdown_by_doi")
+    parser.add_argument("--agreements", type=int, default=50,
+                        help="how many agreed records to sample alongside every disagreement")
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
-    items = collect(data_path(args.corpus))
-    slug = "benchmark"
-    title = "Adjudication worklist"
-    page = TEMPLATE
-    for token, value in [("__TITLE__", html.escape(title)),
-                         ("__SLUG__", slug),
-                         ("__LABELS__", json.dumps(LABELS)),
-                         ("__PAYLOAD__", json.dumps(items, ensure_ascii=False).replace("</", "<\\/"))]:
-        page = page.replace(token, value)
-
+    page, counts = build(data_path(args.corpus), args.agreements)
     validate(page)
-    out = Path(args.out) if args.out else ARTIFACTS / f"adjudicate_{slug}.html"
+    out = Path(args.out) if args.out else ARTIFACTS / f"adjudicate_{args.agreements}agree.html"
     out.write_text(page, encoding="utf-8")
-    from collections import Counter
-    spread = Counter(item["stratum"] for item in items)
-    print(f"{len(items)} records to adjudicate")
-    for cell, count in spread.most_common():
-        print(f"  {count:4d}  {cell}")
+
+    print(f"{counts['records']} records across {counts['papers']} papers")
+    print(f"  carried over from the rescue review  {counts['prefilled']}")
+    print(f"  needing a decision                   {counts['to decide']}")
     print(f"wrote {out}  ({out.stat().st_size / 1e6:.1f} MB)")
 
 
