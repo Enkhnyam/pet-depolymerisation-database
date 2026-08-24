@@ -51,8 +51,11 @@ def collect(markdown_dir: Path) -> list:
             "title": paper_title(chunks),
             # the stratum and its weight travel with the record so the labels can be reweighted;
             # what the judge actually said does not, so the labeller is not anchored to it
-            "stratum": row.cell,
+            "stratum": row.stratum,
             "dispute": row.dispute,
+            # carried over from the rescue review so the chemists only decide what is new;
+            # shown as an existing answer they can change, not as a fact
+            "prefilled": row.prefilled,
             "weight": float(row.weight),
             "values": {f: record.get(f) for f in FIELDS},
             "chunks": [{"id": c, "text": chunks[c]} for c in cited],
@@ -101,9 +104,10 @@ mark{background:var(--mark);color:var(--markink);border-radius:2px;padding:0 2px
 .done{opacity:.55}
 </style></head><body><div class="wrap">
 <h1>__TITLE__</h1>
-<p class="sub">Each record below is one the two graders disagreed about. Decide only this: is the
-record a faithful description of an experiment the paper reports? Neither grader's verdict is
-shown, so your answer is not anchored to either.</p>
+<p class="sub">Decide one thing about each record: is it a faithful description of an experiment
+the paper reports? Neither grader's verdict is shown, so your answer is not anchored to either.
+Records you ruled on in the rescue review arrive with that answer already filled in &mdash; change
+it if you disagree with your earlier self. The rest are new.</p>
 <div class="bar">
   <span class="prog" id="prog"></span>
   <button id="next">jump to next undecided</button>
@@ -117,6 +121,15 @@ const ITEMS = JSON.parse(document.getElementById('data').textContent);
 const LABELS = __LABELS__;
 const KEY = 'adjudication-__SLUG__';
 const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+// answers carried over from the rescue review, unless this browser already holds a decision
+const CARRY = {real: 'correct', notreal: 'incorrect'};
+for (const it of ITEMS) {
+  const k = it.doi + '#' + it.index;
+  if (!saved[k] && CARRY[it.prefilled]) {
+    saved[k] = {doi: it.doi, extracted_index: it.index, human: CARRY[it.prefilled],
+                note: null, carried_over: true};
+  }
+}
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const fmt = v => v === null || v === undefined ? '<span class="null">not reported</span>' : esc(v);
 const RX = /[.*+?^${}()|[\]\\]/g;
