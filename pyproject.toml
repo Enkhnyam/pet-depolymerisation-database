@@ -5,8 +5,8 @@ description = "A database of homogeneous catalytic PET depolymerisation experime
 readme = "README.md"
 requires-python = ">=3.14"
 
-# What the code actually imports. The previous list declared ipython, markdown-it-py, tenacity,
-# scikit-learn and openai, none of which anything imports, and omitted openpyxl -- which was the
+# What the code actually imports. The previous list declared ipython, tenacity, scikit-learn and
+# openai, none of which anything imports, and omitted openpyxl -- which was the
 # second most-imported third-party package in the repo after pandas -- along with rdkit, scipy,
 # pydantic, py2opsin and datasets. A fresh `uv sync` produced a clone that could not run its
 # own checks.
@@ -16,6 +16,7 @@ dependencies = [
     "envyaml>=1.10.211231",
     "litellm>=1.91.0",
     "lxml>=6.0.0",           # Elsevier full-text XML
+    "markdown-it-py>=4.2.0",  # renders the corpus markdown into the review panes
     "matplotlib>=3.11.0",
     "numpy>=2.5.1",
     "openpyxl>=3.1.5",       # every .xlsx read and written

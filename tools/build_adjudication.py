@@ -28,7 +28,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "checks"))
-from _markdown import render
+from markdown_it import MarkdownIt
+
+# html=False on purpose: the left-hand pane renders the paper's own text, which is untrusted
+# input, and the 92-line renderer this replaces escaped everything it did not understand. The
+# "commonmark" preset allows raw HTML through by default; `table` is what the pane is for, since
+# reaction conditions live in tables.
+_MARKDOWN = MarkdownIt("commonmark", {"html": False}).enable("table")
+render = _MARKDOWN.render
 from _page import validate
 from core.paths import ARTIFACTS, data_path
 from core.utils import doi_to_filename
