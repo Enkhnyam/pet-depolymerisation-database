@@ -12,12 +12,7 @@ import re
 import pandas as pd
 
 from _setup import DATABASE, FIELDS, records, show, sources
-
-ROUTE_FROM_SOLVENT = [
-    ("glycolysis", r"ethylene glycol|\beg\b|glycol(?!ic)|diethylene|propylene glycol"),
-    ("methanolysis", r"methanol|\bmeoh\b"),
-    ("hydrolysis", r"water|aqueous|\bnaoh\b|\bkoh\b|h2so4|h3po4|acid solution|steam"),
-]
+from core.schema import route_of
 
 CATALYST_CLASSES = [
     ("none", r"^(none|no catalyst|-|nan|without catalyst)$"),
@@ -50,7 +45,7 @@ def classify(value: object, rules: list, default: str) -> str:
 def compute() -> dict:
     """The database with route and catalyst class attached, plus the relationships to plot."""
     frame = records(DATABASE)
-    frame["route"] = [classify(s, ROUTE_FROM_SOLVENT, "other/unclear") for s in frame.solvent]
+    frame["route"] = [route_of(s) for s in frame.solvent]
     frame["catalyst class"] = [classify(c, CATALYST_CLASSES, "other") for c in frame.catalyst]
     frame["catalyst per g PET"] = frame.catalyst_amount_g / frame.PET_amount_g
 

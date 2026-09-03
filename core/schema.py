@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
@@ -96,6 +97,36 @@ def canonical_solvent(name) -> str:
     """A solvent name reduced to one spelling, so a comparison tests the substance."""
     text = " ".join(str(name or "").split()).lower()
     return _SOLVENT_ALIASES.get(text, text)
+
+
+# The route is not extracted; it is read off the solvent, because the solvent is what decides it.
+# These three patterns were written out twice, byte-identical, in checks/database/chemistry.py
+# and checks/release/release_numbers.py -- two files that report route counts for two different
+# populations and would have silently disagreed the moment either was edited.
+ROUTE_FROM_SOLVENT = [
+    ("glycolysis", r"ethylene glycol|\beg\b|glycol(?!ic)|diethylene|propylene glycol"),
+    ("methanolysis", r"methanol|\bmeoh\b"),
+    ("hydrolysis", r"water|aqueous|\bnaoh\b|\bkoh\b|h2so4|h3po4|acid solution|steam"),
+]
+OTHER_ROUTE = "other/unclear"
+
+
+def route_of(solvent) -> str:
+    """Which depolymerisation route a solvent name implies.
+
+    Matched in order, so a mixed solvent takes the first rule that fires; release quality
+    reports how many rows that affects rather than hiding it.
+
+    ponytail: matches the raw string, not canonical_solvent(). Routing the canonical name
+    instead would recover about 150 rows now filed as other/unclear purely because the paper
+    wrote DEG, MEG, TEG or CH3OH -- but it moves published route counts, so it is a decision for
+    whoever owns the numbers, not a refactor.
+    """
+    text = str(solvent or "").lower()
+    for route, pattern in ROUTE_FROM_SOLVENT:
+        if re.search(pattern, text):
+            return route
+    return OTHER_ROUTE
 
 
 def load_curated(path: str | Path) -> dict[str, list[Experiment]]:
