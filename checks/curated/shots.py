@@ -27,6 +27,29 @@ from _setup import ACCEPT, CATALYST, CURATED, RUNS_DIR, TOLERANCE, show, sources
 FOLDER = "shots_luna"
 
 
+def summary(frame: pd.DataFrame) -> pd.DataFrame:
+    """Mean and spread per arm -- what main() prints and what Figure 4 draws, computed once."""
+    return frame.groupby("n_shots").f1.agg(["mean", "std", "count"])
+
+
+def contrast(frame: pd.DataFrame) -> dict:
+    """The two comparisons the paper quotes, so the caption cannot hold a different number.
+
+    They were printed only inside main(), which meant Figure 4 carried a hand-copied "+0.043,
+    p=0.005" long after the answer key grew and moved them to +0.025, p=0.065.
+    """
+    none = frame.query("n_shots == 0").f1
+    some = frame.query("n_shots > 0").f1
+    groups = [group.f1.values for shots, group in frame.groupby("n_shots") if shots > 0]
+    means = frame.groupby("n_shots").f1.mean()
+    return {
+        "delta": float(some.mean() - none.mean()) if len(none) and len(some) else float("nan"),
+        "p": float(ttest_ind(some, none).pvalue) if len(none) and len(some) else float("nan"),
+        "anova_p": float(f_oneway(*groups).pvalue) if len(groups) > 1 else float("nan"),
+        "best": int(means.idxmax()) if len(means) else 0,
+    }
+
+
 def compute() -> pd.DataFrame | None:
     """F1 per number of worked examples, or None if the sweep has not run."""
     rows = []
@@ -69,26 +92,20 @@ def main() -> None:
         print("  scripts/run/ablation_shots.sh")
         return
 
-    summary = frame.groupby("n_shots").f1.agg(["mean", "std", "count"])
-    show("F1 by number of worked examples", summary)
+    arms = summary(frame)
+    show("F1 by number of worked examples", arms)
 
-    none = frame.query("n_shots == 0").f1
-    some = frame.query("n_shots > 0").f1
-    if len(none) and len(some):
-        print(f"\nany example against none: {some.mean() - none.mean():+.3f}, "
-              f"p = {ttest_ind(some, none).pvalue:.4f}")
-
-    groups = [g.f1.values for n, g in frame.groupby("n_shots") if n > 0]
-    if len(groups) > 1:
-        print(f"do the settings with examples differ from each other? "
-              f"one-way ANOVA p = {f_oneway(*groups).pvalue:.3f}")
+    found = contrast(frame)
+    print(f"\nany example against none: {found['delta']:+.3f}, p = {found['p']:.4f}")
+    print(f"do the settings with examples differ from each other? "
+          f"one-way ANOVA p = {found['anova_p']:.3f}")
 
     detectable(frame)
 
     show("every pair (p)", pd.DataFrame(
         [{"a": a, "b": b, "p": ttest_ind(frame.query("n_shots == @a").f1,
                                          frame.query("n_shots == @b").f1).pvalue}
-         for a, b in combinations(sorted(summary.index), 2)]).set_index(["a", "b"]),
+         for a, b in combinations(sorted(arms.index), 2)]).set_index(["a", "b"]),
         fmt="{:.3f}")
 
 

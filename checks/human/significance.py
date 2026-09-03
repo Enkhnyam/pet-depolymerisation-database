@@ -26,6 +26,14 @@ def power_at(n: int, rate: float) -> float:
                for k in range(n + 1) if binomtest(k, n).pvalue < ALPHA)
 
 
+def prior_pairs() -> int:
+    """Discordant pairs from the earlier randomly sampled round -- the number that made the case
+    for censusing disagreements instead."""
+    labelled = golden()
+    return int(((labelled.judge == labelled.human) & (labelled.metric != labelled.human)).sum()
+               + ((labelled.metric == labelled.human) & (labelled.judge != labelled.human)).sum())
+
+
 def main() -> None:
     sources(labels=LABELS, labelled_run=LABELLED, shipped_extraction=RUNS_DIR / 'extract_luna/extract_luna_n4_r1', shipped_judge=RUNS_DIR / 'judge_oss_on_luna/judge_oss_on_luna')
     labelled = golden()

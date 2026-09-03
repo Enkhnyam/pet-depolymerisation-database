@@ -64,6 +64,40 @@ def canonical_field(name: str) -> str | None:
     return _BY_LOWER.get(str(name).strip().lower())
 
 
+# Papers name one solvent two ways -- "ethylene glycol" in the prose, "EG" in the table header --
+# and the model copies whichever it read. Every solvent disagreement in the whole benchmark, all
+# 54 of them, is that one substance under two spellings; not one is a genuinely different
+# solvent. Comparing the raw strings therefore measured spelling, and spent a tenth of the accept
+# budget on it. Only unambiguous single-substance aliases belong here: mixtures like "KF:EG 1:6"
+# or "methanol/GVL" are left exactly as written, because deciding what those are is chemistry.
+_SOLVENT_ALIASES = {
+    "eg": "ethylene glycol",
+    "deg": "diethylene glycol",
+    "peg": "polyethylene glycol",
+    "bdo": "1,4-butanediol",
+    "dpg": "dipropylene glycol",
+    "npg": "neopentyl glycol",
+    "h2o": "water",
+    "distilled water": "water",
+    "deionized water": "water",
+    "deionised water": "water",
+    "di water": "water",
+    "meoh": "methanol",
+    "etoh": "ethanol",
+    "iproh": "isopropanol",
+    "2-propanol": "isopropanol",
+    "thf": "tetrahydrofuran",
+    "dmso": "dimethyl sulfoxide",
+    "dmf": "dimethylformamide",
+}
+
+
+def canonical_solvent(name) -> str:
+    """A solvent name reduced to one spelling, so a comparison tests the substance."""
+    text = " ".join(str(name or "").split()).lower()
+    return _SOLVENT_ALIASES.get(text, text)
+
+
 def load_curated(path: str | Path) -> dict[str, list[Experiment]]:
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     curated: dict[str, list[Experiment]] = {}

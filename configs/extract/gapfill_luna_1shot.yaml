@@ -1,0 +1,33 @@
+run_name: gapfill_luna_1shot
+
+# The twelve benchmark papers that never entered the mass corpus.
+#
+# They were fetched separately for hand curation and were never added to corpus_markdown, so the
+# released database contains none of their records -- including seven that Gao et al. also use.
+# Seven passed the corpus screening as "ok" and simply were never retrieved (four ACS, two RSC,
+# one MDPI: no text-and-data-mining agreement covers them). Three were dropped as "no polymer
+# named", one as "no depolymerisation route named", and one never reached the candidate list.
+#
+# Everything below is copied from mass_luna_1shot except the input directory and the output name,
+# so any difference in what comes out is a difference in the papers, not in the settings.
+llm_params:
+  model: azure/gpt-5.6-luna
+  api_key: ${azure_key}
+  api_base: https://karim-api-resource.openai.azure.com
+  api_version: "2024-12-01-preview"
+  max_tokens: 16000
+
+harness_params:
+  prompt_file: extraction_prompt.txt
+  output_dir: gapfill_luna_1shot
+  curated_data_path: curated_data_json_by_doi.json
+  curated_data_markdown_dir: corpus_gapfill
+  max_workers: 2
+  n_shots: 1
+  shot_selection: random
+  seed: 123
+  evaluation:
+    curated_data_path: curated_table_final.json
+    tp_threshold: 0.3
+    catalyst_threshold: 0.6
+    numeric_tolerance: 0.2

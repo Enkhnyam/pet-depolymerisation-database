@@ -1,0 +1,34 @@
+run_name: gapfill2_luna_1shot
+
+# Round two of the gap fill: the last two Gao papers that were still absent.
+#
+#   10.1039/c8nj06090h        Sce et al., New J. Chem. 2019 -- full article
+#   10.1021/acs.iecr.0c06073  Yao et al., IECR 2021 -- SUPPORTING INFORMATION ONLY.
+#
+# The Yao main article could not be obtained; every copy on hand is the SI, which carries the
+# Box-Behnken design tables but not the catalyst screen Gao's 8 records come from. Expect a low
+# yield from that paper and do not read it as an extraction failure.
+#
+# Copied from gapfill_luna_1shot except the input directory and the output name, so any
+# difference in what comes out is a difference in the papers, not in the settings.
+llm_params:
+  model: azure/gpt-5.6-luna
+  api_key: ${azure_key}
+  api_base: https://karim-api-resource.openai.azure.com
+  api_version: "2024-12-01-preview"
+  max_tokens: 16000
+
+harness_params:
+  prompt_file: extraction_prompt.txt
+  output_dir: gapfill2_luna_1shot
+  curated_data_path: curated_data_json_by_doi.json
+  curated_data_markdown_dir: corpus_gapfill2
+  max_workers: 2
+  n_shots: 1
+  shot_selection: random
+  seed: 123
+  evaluation:
+    curated_data_path: curated_table_final.json
+    tp_threshold: 0.3
+    catalyst_threshold: 0.6
+    numeric_tolerance: 0.2

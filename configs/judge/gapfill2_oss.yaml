@@ -1,0 +1,16 @@
+run_name: gapfill2_oss
+
+# The same judge that graded the database, on the gap-fill extraction. Identical to
+# mass_oss_1shot except which extraction it reads, so its verdicts are comparable with the rest
+# of the released database.
+llm_params:
+  model: openai/gpt-oss-120b
+  api_key: ${openai_key}
+  api_base: https://chat.kiconnect.nrw/api/v1/
+  max_tokens: 16384
+
+harness_params:
+  rubric_file: judge_rubric.txt
+  extraction_run: gapfill2_luna_1shot
+  curated_data_markdown_dir: corpus_gapfill2
+  output_dir: gapfill2_oss

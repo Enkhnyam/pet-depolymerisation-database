@@ -6,7 +6,7 @@ from difflib import SequenceMatcher
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
-from .schema import Experiment, load_curated
+from .schema import Experiment, canonical_solvent, load_curated
 from .paths import data_path
 from . import bundle
 
@@ -30,6 +30,8 @@ understanding of chemistry — it is purely arithmetic:
    - catalyst: string similarity (SequenceMatcher) >= 0.60 -> 0, else 1. This is TEXTUAL, not
      chemical, so a synonym or a per-paper code can score as WRONG even when it is the same
      substance. This is the metric's main blind spot.
+   - solvent: exact match after aliasing, so "EG" and "ethylene glycol" count as one substance
+     (schema.py holds the alias table). Mixtures are compared as written.
    - numeric fields: 0 if within 1% (or 0.01 absolute); otherwise relative-difference / 0.20,
      capped at 1 (so ~20% off = fully wrong). One side missing = 1.
 3. Catalyst gate. If the catalyst strings are not similar enough, the pair cannot be a true match
@@ -64,7 +66,10 @@ def _penalty_catalyst(curated, extracted, threshold: float) -> tuple[float, bool
 
 
 def _penalty_solvent(curated, extracted) -> float:
-    return 0.0 if normalize_value(curated) == normalize_value(extracted) else 1.0
+    """Through canonical_solvent, so "EG" and "ethylene glycol" are one substance -- see the
+    alias table in schema.py for why this is a correction and not a loosening."""
+    c, e = canonical_solvent(curated), canonical_solvent(extracted)
+    return 0.0 if normalize_value(c) == normalize_value(e) else 1.0
 
 
 def _penalty_numeric(curated, extracted, tolerance: float) -> float:

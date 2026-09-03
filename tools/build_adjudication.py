@@ -12,8 +12,12 @@ What either grader said is shown nowhere: a labeller who can see a verdict is ch
 than forming a view. Records already ruled on in the rescue review arrive with that answer filled
 in, marked as carried over and changeable.
 
-    build_adjudication.py                     every disagreement plus 50 agreed records
-    build_adjudication.py --agreements 20     a smaller agreement sample
+Three strata: every disagreement, every record both graders flagged, and a sample of the records
+both accepted. The first two are censuses because precision is measured on flagged records and
+there are few of them; the sample is what recall needs. See checks/human/worklist.py.
+
+    build_adjudication.py                     every flagged record plus 50 accepted ones
+    build_adjudication.py --agreements 20     a smaller sample of the accepted records
 """
 import argparse
 import html
@@ -335,7 +339,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(prog="build_adjudication")
     parser.add_argument("--corpus", default="curated_data_markdown_by_doi")
     parser.add_argument("--agreements", type=int, default=50,
-                        help="how many agreed records to sample alongside every disagreement")
+                        help="how many accepted records to sample alongside every flagged one")
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 

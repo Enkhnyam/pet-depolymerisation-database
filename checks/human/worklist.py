@@ -3,18 +3,21 @@
 The round runs on the 24 curated papers, not on the database: the metric grader has no verdict
 without a curated answer key, and comparing the two graders is the point.
 
-Two strata, because two different questions have to be answered at once.
+Three strata, because three different questions have to be answered at once.
 
 Every disagreement is included -- a census, not a sample, so that stratum carries no sampling
 error at all and the picture of where the graders differ is complete. Most already have an answer
 from the rescue review; those are carried in pre-filled so the chemists only decide what is new.
 
-A sample of the records they agree on is included as well, and this is the part that is easy to
-leave out. It is drawn only from records the rescue review never touched: the forty-two it added
-agree solely because their curated row was created from the chemists' own decision about them,
-and asking again would be asking whether they agree with themselves. A chemist rejecting something *both* graders accepted is a miss neither of them
-caught, and no amount of labelling disagreements would ever reveal one. That rate is what recall
-depends on, so it has to be estimated rather than assumed.
+Records both graders flagged are a census as well. There are only a dozen, and together with the
+handful the judge alone flags they are the whole basis for the judge's precision; sampling them
+would leave that number meaningless.
+
+What remains -- the records both graders accepted -- is sampled, and this is the part that is
+easy to leave out. A chemist rejecting one of those is a miss neither grader caught, which is
+what recall depends on. The sample is drawn only from records the rescue review never touched:
+the forty-two it added agree solely because their curated row was created from the chemists' own
+decision about them, and asking again would be asking whether they agree with themselves.
 """
 import json
 
@@ -51,11 +54,11 @@ def cells() -> pd.DataFrame:
     both["dispute"] = np.select(
         [both.agree,
          both.situation == "no curated counterpart",
-         both.situation == "matched, names differ"],
+         both.situation == "the catalyst names differ"],
         ["the graders agree",
          "the answer key has no such row",
          "matched, but the catalyst names differ"],
-        default="matched, but the fields disagree")
+        default="matched, but the numbers differ")
     return both
 
 
@@ -69,18 +72,26 @@ def compute() -> pd.DataFrame:
     disputed["weight"] = 1.0                       # a census carries no sampling error
 
     # Records added by the rescue review agree only because their own curated row was created
-    # from the chemists' decision about them. Sampling those would be asking whether they agree
-    # with themselves, so the agreement stratum is drawn from the records the review never
-    # touched -- and the weight reflects that smaller population.
-    agreed = frame[frame.agree & ~frame.apply(
+    # from the chemists' decision about them, so the agreement strata are drawn from records the
+    # review never touched.
+    untouched = frame[frame.agree & ~frame.apply(
         lambda r: (r.doi, r["index"]) in settled, axis=1)]
-    take = min(AGREEMENTS, len(agreed))
-    generator = np.random.default_rng(SEED)
-    sample = agreed.iloc[generator.choice(len(agreed), take, replace=False)].copy()
-    sample["stratum"] = "graders agree"
-    sample["weight"] = len(agreed) / take
 
-    work = pd.concat([disputed, sample])
+    # Records both graders flagged are a census too: there are only a dozen, and with the three
+    # the judge alone flags they are the entire basis for the judge's precision. Sampling them
+    # would leave that number uninterpretable.
+    flagged = untouched[untouched.judge == "incorrect"].copy()
+    flagged["stratum"] = "both flagged it"
+    flagged["weight"] = 1.0
+
+    accepted = untouched[untouched.judge == "correct"]
+    take = min(AGREEMENTS, len(accepted))
+    generator = np.random.default_rng(SEED)
+    sample = accepted.iloc[generator.choice(len(accepted), take, replace=False)].copy()
+    sample["stratum"] = "both accepted it"
+    sample["weight"] = len(accepted) / take
+
+    work = pd.concat([disputed, flagged, sample])
     work["prefilled"] = [settled.get((r.doi, r.index), "") for r in work.itertuples()]
     columns = ["doi", "index", "stratum", "dispute", "weight", "prefilled"]
     return work.sort_values(["doi", "index"])[columns].reset_index(drop=True)
@@ -111,7 +122,7 @@ def main() -> None:
 
     untouched = frame[frame.agree & ~frame.apply(
         lambda r: (r.doi, r["index"]) in settled, axis=1)]
-    agreed = len(untouched)
+    agreed = int((untouched.judge == "correct").sum())
     half = 1.96 * np.sqrt(0.10 * 0.90 / min(AGREEMENTS, agreed))
     print(f"\n  the agreement sample estimates how often a chemist rejects what both graders")
     print(f"  accepted. At a true rate near 10% and n={AGREEMENTS}, that is ±{half*100:.0f} points,")

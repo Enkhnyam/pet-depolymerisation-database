@@ -12,6 +12,7 @@ import json
 import sys
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root importable
@@ -21,9 +22,14 @@ from core.evaluation import evaluate
 
 
 # --- what is being measured -----------------------------------------------------------------
-CURATED = "curated_table_final.json"                       # the 253-experiment answer key
-EXTRACTION = RUNS_DIR / "extract_oss/extract_oss_n4_r1"    # scored by the metric checks
-JUDGE = RUNS_DIR / "judge_oss_on_oss/judge_oss_on_oss"     # read by the judge checks
+CURATED = "curated_table_final.json"                       # the 295-experiment answer key
+
+# The shipped pair: luna extracts, gpt-oss judges. These were left pointing at extract_oss and
+# judge_oss_on_oss long after luna became the extractor the database is built with, which meant
+# the metric checks -- and the threshold sweeps in Figure 4 -- described a model that was never
+# shipped. EXTRACTION and JUDGE must stay a matched pair: JUDGE is a judge run *on* EXTRACTION.
+EXTRACTION = RUNS_DIR / "extract_luna/extract_luna_n4_r1"  # scored by the metric checks
+JUDGE = RUNS_DIR / "judge_oss_on_luna/judge_oss_on_luna"   # read by the judge checks
 DATABASE = RUNS_DIR / "mass_luna_1shot"                    # the 1,026-paper corpus run
 DATABASE_JUDGE = RUNS_DIR / "mass_oss_1shot/mass_oss_1shot"
 
@@ -88,9 +94,16 @@ def scored(run: Path = EXTRACTION, table: str = CURATED, accept: float = ACCEPT,
     frame = frame[frame.extracted_index.notna()].copy()   # drop curated rows nothing matched
     frame["index"] = frame.extracted_index.astype(int)
     frame["metric"] = frame.verdict.map({"TP": "correct"}).fillna("incorrect")
-    frame["situation"] = frame.verdict.map({"TP": "accepted",
-                                            "MISMATCH": "matched, names differ",
-                                            "FP": "no curated counterpart"})
+    # A MISMATCH is a pair the assignment made and then rejected, and it happens two different
+    # ways: the catalyst gate refused the pair, or the catalyst agreed and the numbers pushed the
+    # average past the accept threshold. Collapsing both into one label blamed the catalyst for
+    # fourteen of twenty-five records where the catalyst string was identical.
+    gate_failed = frame.fields.apply(
+        lambda f: isinstance(f, dict) and f["catalyst"]["penalty"] > 0)
+    frame["situation"] = frame.verdict.map({"TP": "accepted", "FP": "no curated counterpart"})
+    frame.loc[frame.verdict == "MISMATCH", "situation"] = np.where(
+        gate_failed[frame.verdict == "MISMATCH"],
+        "the catalyst names differ", "the numbers differ")
     return frame
 
 

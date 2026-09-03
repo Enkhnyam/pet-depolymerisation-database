@@ -40,6 +40,33 @@ def verdicts_with(reference: dict) -> pd.DataFrame:
     return frame[["doi", "index", "m"]]
 
 
+def compute() -> pd.DataFrame:
+    """The growth rows, so the paper's Table 4 and its own paragraph read one number.
+
+    They did not: the text quoted F1 rising 0.727 to 0.835 against a table saying 0.802 to 0.878,
+    because both were typed at different times.
+    """
+    both = scored(run=LABELLED).merge(judged(), on=["doi", "index"])
+    unpaired = both.query("situation == @UNMATCHED")
+    base = {paper["doi"]: paper for paper in json.loads(data_path(CURATED).read_text())}
+    extraction = {doi: [record.model_dump(by_alias=True) for record in rows]
+                  for doi, rows in experiments(LABELLED).items()}
+    policies = [("as curated", []),
+                ("+ judge-vouched",
+                 [(r.doi, r.index) for r in unpaired.itertuples() if r.judge == "correct"]),
+                ("+ every unmatched", [(r.doi, r.index) for r in unpaired.itertuples()])]
+    rows = []
+    for name, additions in policies:
+        reference = reference_with(base, extraction, additions)
+        result, _ = evaluate(reference, experiments(LABELLED), ACCEPT, CATALYST, TOLERANCE)
+        rows.append({"answer key": name,
+                     "experiments": sum(len(v) for v in reference.values()),
+                     "added": len(additions),
+                     "precision": result["precision"], "recall": result["recall"],
+                     "f1": result["f1"]})
+    return pd.DataFrame(rows).set_index("answer key")
+
+
 def main() -> None:
     sources(labels=LABELS, labelled_run=LABELLED, answer_key=CURATED, judge=JUDGE)
     both = scored(run=LABELLED).merge(judged(), on=["doi", "index"])
@@ -65,8 +92,7 @@ def main() -> None:
                      "precision": result["precision"],
                      "recall": result["recall"],
                      "f1": result["f1"]})
-    show("the extraction's own score as the answer key grows",
-         pd.DataFrame(rows).set_index("answer key"))
+    show("the extraction's own score as the answer key grows", compute())
 
     human = golden()[["doi", "index", "human"]]
     before = human.merge(verdicts_with(reference_with(base, extraction, [])), on=["doi", "index"])

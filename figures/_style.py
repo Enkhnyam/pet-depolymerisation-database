@@ -17,24 +17,37 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "checks"))          # checks import each other by bare name
 from core.paths import ARTIFACTS
 
-# Two categorical roles, never mixed: route in the chemistry canvas, grader in the quality one.
-ROUTE = {"glycolysis": "#0E7C6B", "hydrolysis": "#C4527A",
-         "methanolysis": "#9A6510", "other/unclear": "#4A6B8A"}
+# ---------------------------------------------------------------------------------------------
+# One palette, five inks, used the same way in every figure.
+#
+# Colour is spent only where it encodes something. A panel that counts one thing is drawn in
+# NEUTRAL; colour appears when, and only when, a second variable is being shown. That is why most
+# panels in this paper are grey: most of them are one series.
+#
+# The categorical sets below are slices of the same ordered CYCLE, so the first category of any
+# set is always teal, the second always rose, and a reader who has learned one figure has learned
+# them all. Two sets never share a canvas -- routes belong to the chemistry figures, measures and
+# graders to the quality ones -- so no colour carries two meanings on one page.
+# ---------------------------------------------------------------------------------------------
+CYCLE = ["#0E7C6B", "#C4527A", "#9A6510", "#4A6B8A"]     # teal, rose, amber, slate
+
+ROUTE = dict(zip(["glycolysis", "hydrolysis", "methanolysis", "other/unclear"], CYCLE))
 ROUTES = ["glycolysis", "hydrolysis", "methanolysis"]
 
-GRADER = {"metric": "#0E7C6B", "judge": "#C4527A"}
-CYCLE = ["#0E7C6B", "#C4527A", "#9A6510", "#4A6B8A"]
+MEASURE = dict(zip(["precision", "recall", "f1", "kappa"], CYCLE))
+GRADER = dict(zip(["metric", "judge"], CYCLE))
+VERDICT = dict(zip(["accepted", "corrected", "dropped"], CYCLE))
 
-VERDICT = {"accepted": "#0E7C6B", "corrected": "#9A6510", "dropped": "#A33A2E"}
 SEQUENTIAL = "BuGn"          # single hue, so heatmaps never compete with the categoricals
 
 INK, DIM, RULE, WARN = "#12201F", "#5D716E", "#D2DEDB", "#A33A2E"
+NEUTRAL = "#54696E"          # anything that encodes no category
+GUIDE = "#C9D6D3"            # connectors, frontiers, reference lines that are not data
 
-# For bars and histograms that encode no category. The categorical hues above are reused across
-# canvases on purpose -- teal is glycolysis in one figure and the metric grader in another -- which
-# is safe only while a canvas carries at most one meaning for a colour. A canvas that shows a route
-# key must therefore draw its uncategorised panels in something that is not a route.
-NEUTRAL = "#54696E"
+# Bar geometry. A bar's width carries no information, so it should take the least ink that still
+# reads as a bar: with three categories in a panel, filling 0.72 of each slot made slabs.
+BAR = 0.30          # single series
+GROUP = 0.46        # total width of one cluster in grouped_bars
 
 plt.rcParams.update({
     "figure.dpi": 200, "savefig.dpi": 300, "savefig.bbox": "tight",
@@ -128,10 +141,10 @@ def bars(axis, series, *, colour="#0E7C6B", horizontal=False, xlabel="", ylabel=
          logx=False, annotate=False):
     """A bar chart from a Series, indexed by category."""
     if horizontal:
-        axis.barh(range(len(series))[::-1], series.values, color=colour, height=0.72)
+        axis.barh(range(len(series))[::-1], series.values, color=colour, height=BAR)
         axis.set_yticks(range(len(series))[::-1], [str(i) for i in series.index])
     else:
-        axis.bar(range(len(series)), series.values, color=colour, width=0.72)
+        axis.bar(range(len(series)), series.values, color=colour, width=BAR)
         axis.set_xticks(range(len(series)), [str(i) for i in series.index])
     if annotate:
         for position, value in enumerate(series.values):
@@ -234,15 +247,23 @@ def caption(template: str, **values) -> str:
     return text
 
 
-def grouped_bars(axis, frame, *, xlabel="", ylabel="", palette=None, rotate=0):
+def grouped_bars(axis, frame, *, xlabel="", ylabel="", palette=None, rotate=0, errors=None):
     """One cluster per row of `frame`, one bar per column -- for comparing a few measures across
-    a few models, where a heatmap would be overkill and a line would imply an ordering."""
+    a few models, where a heatmap would be overkill and a line would imply an ordering.
+
+    `errors` is an optional frame of the same shape. Pass it whenever the numbers are means over
+    repeats: four runs of one model at identical settings span 0.05 in F1 here, wider than the
+    gap between two of the models, and a bare bar asserts a precision the data does not have.
+    """
     names, measures = list(frame.index), list(frame.columns)
-    width = 0.8 / len(measures)
+    width = GROUP / len(measures)
     for offset, measure in enumerate(measures):
-        positions = [i + offset * width - 0.4 + width / 2 for i in range(len(names))]
+        positions = [i + offset * width - GROUP / 2 + width / 2 for i in range(len(names))]
         axis.bar(positions, frame[measure].values, width=width, label=str(measure),
                  color=(palette or {}).get(measure, CYCLE[offset % len(CYCLE)]))
+        if errors is not None and measure in errors:
+            axis.errorbar(positions, frame[measure].values, yerr=errors[measure].values,
+                          fmt="none", ecolor=INK, elinewidth=0.8, capsize=1.8, zorder=4)
     axis.set_xticks(range(len(names)), [str(n) for n in names])
     if rotate:
         axis.tick_params(axis="x", labelrotation=rotate)
@@ -284,3 +305,38 @@ def sci(value: float, digits: int = 0) -> str:
     """
     mantissa, exponent = f"{value:.{digits}e}".split("e")
     return f"{mantissa}\\times10^{{{int(exponent)}}}"
+
+
+def lollipop(axis, series, *, colour=NEUTRAL, xlabel="", ylabel="", annotate=False, xmax=None):
+    """A ranked category as a stem and a dot, read top to bottom.
+
+    A bar chart spends a rectangle of ink on a value that one dot already fixes, and eleven of
+    them in a row read as a wall. The stem carries the comparison, the dot carries the value, and
+    the panel stops competing with the ones beside it.
+    """
+    positions = range(len(series))[::-1]
+    axis.hlines(list(positions), 0, series.values, color=colour, lw=1.0, alpha=0.55)
+    axis.plot(series.values, list(positions), "o", ms=3.6, color=colour, lw=0)
+    axis.set_yticks(list(positions), [str(name) for name in series.index])
+    if xmax is not None:
+        # a little past the maximum: "catalyst" is reported in 100% of records, and an axis that
+        # stopped at 100 cut that dot in half against the spine
+        axis.set_xlim(0, xmax * 1.04)
+    if annotate:
+        for position, value in zip(positions, series.values):
+            axis.annotate(f"{value:,.0f}", (value, position), textcoords="offset points",
+                          xytext=(5, 0), fontsize=5.5, color=DIM, va="center")
+    _finish(axis, xlabel, ylabel)
+
+
+def step_hist(axis, values, *, bins=30, colour=NEUTRAL, xlabel="", ylabel="records", logx=False):
+    """A distribution as an outline rather than a block of bars."""
+    values = pd.Series(values).dropna()
+    if logx:
+        values = values[values > 0]
+        edges = np.logspace(np.log10(values.min()), np.log10(values.max()), bins)
+        axis.set_xscale("log")
+    else:
+        edges = np.linspace(values.min(), values.max(), bins)
+    axis.hist(values, bins=edges, histtype="step", lw=1.1, color=colour)
+    _finish(axis, xlabel, ylabel)

@@ -33,6 +33,9 @@ SCRIPTS = [
     "human/significance.py",
     "human/growth.py",
     "human/worklist.py",
+    "human/precision.py",
+    "human/adjudicated.py",
+    "human/integrity.py",
 
     "cost.py",
 ]

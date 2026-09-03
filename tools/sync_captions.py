@@ -28,7 +28,11 @@ sys.path.insert(0, str(ROOT / "figures"))
 sys.path.insert(0, str(ROOT / "checks"))
 
 FIGURES = ["fig1_database", "fig2_chemistry", "fig3_graders", "fig4_choices"]
-PAPER = ROOT / "paper.tex"
+
+# Both manuscripts get the same captions. paper_rsc.tex previously carried its own hand-written
+# ones in the "(a) the funnel; (b) records per paper" style, which described a panel layout two
+# revisions old -- eight panels for a figure that now has six.
+PAPERS = [ROOT / "paper.tex", ROOT / "paper_rsc.tex", ROOT / "paper_rsc_si.tex"]
 
 
 def generated(name: str) -> str:
@@ -42,10 +46,10 @@ def generated(name: str) -> str:
 
 
 def replace(source: str, name: str, caption: str) -> tuple[str, bool]:
-    """Swap the caption of the float that includes this figure."""
+    """Swap the caption of the float that includes this figure. Absent figure, no change."""
     anchor = source.find(f"{{artifacts/figures/{name}.pdf}}")
     if anchor < 0:
-        raise SystemExit(f"paper.tex does not include {name}.pdf")
+        return source, False
     start = source.find("\\caption{", anchor)
     label = source.find("\\label{", anchor)
     if start < 0 or label < 0 or label < start:
@@ -63,25 +67,37 @@ def main() -> None:
                         help="report which captions are stale, write nothing")
     args = parser.parse_args()
 
-    source = PAPER.read_text(encoding="utf-8")
-    stale = []
-    for name in FIGURES:
-        caption = generated(name)
-        source, changed = replace(source, name, caption)
-        if changed:
-            stale.append(name)
-        print(f"  {name:16s} {'updated' if changed else 'already current'}")
+    # generated once, pasted into every manuscript: running each figure twice would be slow and
+    # could in principle differ, and the whole point is that they cannot
+    captions = {name: generated(name) for name in FIGURES}
+
+    total = 0
+    for paper in PAPERS:
+        if not paper.exists():
+            continue
+        source = paper.read_text(encoding="utf-8")
+        stale = []
+        for name, caption in captions.items():
+            source, changed = replace(source, name, caption)
+            if changed:
+                stale.append(name)
+        print(f"{paper.name}")
+        for name in FIGURES:
+            state = ("updated" if name in stale
+                     else "absent" if f"{{artifacts/figures/{name}.pdf}}" not in source
+                     else "already current")
+            print(f"  {name:16s} {state}")
+        if stale and not args.check:
+            paper.write_text(source, encoding="utf-8")
+            print(f"  -> rewrote {paper.name} ({len(stale)} caption(s))")
+        total += len(stale)
 
     if args.check:
-        print(f"\n{len(stale)} caption(s) differ from the figures" if stale
+        print(f"\n{total} caption(s) differ from the figures" if total
               else "\nevery caption matches its figure")
-        raise SystemExit(1 if stale else 0)
-
-    if stale:
-        PAPER.write_text(source, encoding="utf-8")
-        print(f"\nrewrote {PAPER.relative_to(ROOT)} ({len(stale)} caption(s))")
-    else:
-        print(f"\n{PAPER.relative_to(ROOT)} unchanged")
+        raise SystemExit(1 if total else 0)
+    if not total:
+        print("\nno manuscript needed changing")
 
 
 if __name__ == "__main__":

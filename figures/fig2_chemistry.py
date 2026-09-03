@@ -21,9 +21,8 @@ The outcome fields behave as a literature of optimised runs should, piling up ag
 (\textbf{c}, \textbf{d}), and they also expose the error rate: \textbf{__OVER__ records report a
 yield above 100\%}, which is impossible and which panel \textbf{c} truncates rather than let
 them set its axis. Conversion is reported for only __CONVERSION__\% of records. The three charge fields (\textbf{e}--\textbf{g}) each span five or six orders of
-magnitude, from milligrams of catalyst to bulk solvent --- worth noting because the metric grader
-accepts numbers within 20\%, and 20\% means something very different at the two ends of a
-six-decade axis.
+magnitude, from milligrams of catalyst to bulk solvent. The metric grader accepts numbers within
+20\%, which means something very different at the two ends of a six-decade axis.
 
 Two panels test rather than describe. Yield cannot exceed conversion --- an identity, not a
 correlation --- so nothing may sit above the diagonal (\textbf{h}), and \textbf{only
@@ -38,10 +37,10 @@ chose, on its own feedstock, catalyst and scale, so between-paper spread swamps 
 any one of them. Comparing each paper only against itself removes the lab as a variable and the
 chemistry reappears: \textbf{median $\rho=__WITHIN__$ across __PAPERS__ papers, __AGREE__\% of
 them positive} ($p=__PVAL__$, Wilcoxon). More catalyst likewise gives more, and hotter runs
-finish sooner, on the same within-paper reading. Nothing in the prompt or the schema mentions any
-of these relationships, so an extraction inventing plausible numbers would have no reason to
-reproduce them paper by paper while showing nothing pooled --- which also warns anyone fitting a
-model to this database that the pooled view is the misleading one."""
+finish sooner, on the same within-paper reading. Nothing in the prompt or the schema mentions these relationships. This is a consistency check
+rather than a measure of fidelity: a model drawing on chemical priors could produce the same
+pattern, and getting ratios right while getting absolute masses wrong would preserve within-paper
+correlations. It does show that the pooled view is the wrong one to fit a model to."""
 
 
 def main() -> None:
@@ -58,7 +57,9 @@ def main() -> None:
     # a handful of yields exceed 100%; letting them set the axis wastes the panel
     histogram(panel[2], frame[frame.yield_percent <= 100], "yield_percent",
               xlabel="yield (%)", ylabel="", **stack)
-    over = int((frame.yield_percent > 100).sum())
+    # from the check, not recounted: chemistry.py already publishes this and the two definitions
+    # must not be allowed to drift apart
+    over = int(result["out of range"].loc["yield_percent", "above 100%"])
     histogram(panel[3], frame, "conversion_percent", xlabel="conversion (%)", **stack)
     histogram(panel[4], frame, "catalyst_amount_g", logx=True, xlabel="catalyst (g)",
               ylabel="", **stack)
@@ -80,7 +81,7 @@ def main() -> None:
     lead = trends["table"].loc["hotter gives more"]
     print("\n" + caption(
         CAPTION,
-        conversion=f"{100 * frame.conversion_percent.notna().mean():.0f}",
+        conversion=f"{result['completeness']['conversion %'] * 100:.0f}",
         over=over,
         impossible=identity["yield above conversion"], pairs=identity["pairs with both"],
         pooled=f"{lead['pooled']:+.3f}", pooledn=f"{int(lead['pooled n']):,}",

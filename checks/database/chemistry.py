@@ -27,6 +27,8 @@ CATALYST_CLASSES = [
     ("acid or base", r"naoh|koh|hydroxide|h2so4|sulfuric|hcl|nitric|amine|\btbd\b|\bdbu\b"),
 ]
 
+IDENTITY_SLACK = 1.0      # percentage points of rounding allowed before yield > conversion counts
+
 PAIRS = [
     ("temperature_c", "yield_percent"),
     ("reaction_time_min", "yield_percent"),
@@ -62,7 +64,10 @@ def compute() -> dict:
 
     # yield cannot exceed conversion: an identity, so anything above the line is an error
     both = frame[["conversion_percent", "yield_percent"]].dropna()
-    impossible = (both.yield_percent > both.conversion_percent + 1).sum()
+    # One percentage point of slack, because source papers round: a yield of 95.2 against a
+    # conversion of 95.0 is rounding, not a violated identity. checks/human/integrity.py applies
+    # the same rule, so the two never report different counts of the same records.
+    impossible = (both.yield_percent > both.conversion_percent + IDENTITY_SLACK).sum()
 
     # percentages cannot exceed 100 either, and a record that says so is simply wrong
     out_of_range = {}

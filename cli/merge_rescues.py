@@ -20,6 +20,10 @@ against.
 The `product` field is dropped. It left the schema because the route determines it, and adding it
 back through this door would give the answer key a column nothing else has.
 
+Solvent names are written out in full. A rescue is a record copied from the extraction, and the
+extraction writes whatever the paper's table said -- "EG" as often as "ethylene glycol". Six of
+those went in verbatim and then scored as a different solvent from every hand-curated row.
+
     merge_rescues.py --decisions artifacts/gold/decisions/rescue_decisions_full.json --dry-run
     merge_rescues.py --decisions ... --apply
 """
@@ -33,6 +37,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from core.paths import data_path
+from core.schema import canonical_solvent
 from core.utils import doi_to_filename
 
 SOURCE_RUN = "extract_luna/extract_luna_n4_r1"
@@ -95,7 +100,11 @@ def main() -> None:
         if not same_record(record, decision):
             refused.append((decision["key"], "record at that index is a different experiment"))
             continue
-        accepted.append((decision, {k: v for k, v in record.items() if k not in DROP_FIELDS}))
+        row = {k: v for k, v in record.items() if k not in DROP_FIELDS}
+        # the answer key writes solvents out in full; a rescue copied verbatim once put six "EG"
+        # rows into it, which then scored as a different solvent from the other 289
+        row["solvent"] = canonical_solvent(row.get("solvent")) or row.get("solvent")
+        accepted.append((decision, row))
 
     print(f"decisions            {len(decisions)}")
     print(f"  answered real      {len(accepted) + len(refused)}")
