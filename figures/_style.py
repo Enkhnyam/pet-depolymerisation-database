@@ -10,6 +10,7 @@ from pathlib import Path
 
 import matplotlib
 import numpy as np
+from matplotlib.colors import ListedColormap
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -20,46 +21,48 @@ from core.paths import ARTIFACTS, FIGURES
 from core.schema import OTHER_ROUTE, ROUTES
 
 # ---------------------------------------------------------------------------------------------
-# One palette, and one rule for when colour is allowed to mean anything.
+# One ramp. Everything on every page is a step of it.
 #
-# The previous scheme had four categorical sets -- ROUTE, MEASURE, GRADER, VERDICT -- all slices
-# of one four-colour cycle. Teal meant glycolysis in one figure, precision in the next and the
-# metric grader in a third, and every panel that happened to count one thing was grey. Across a
-# page that reads as colour arriving and leaving for no reason the reader can learn.
+# Counting the colours actually rendered in the three figures found seventeen, in three unrelated
+# green families: route teal #0e7c6b, a separate four-step teal ramp #0b5f52..#a8d2ca for the
+# measures, and eight greens #00441b..#d4efec that matplotlib's BuGn colormap put in one
+# heatmap -- plus rose, amber, red and grey. Three families of the same colour is worse than
+# four unrelated hues, because the reader cannot tell whether the difference means anything.
 #
-# So colour encodes exactly one variable in this manuscript:
+# So there is one ramp, five steps of one hue, and every categorical set is a slice of it. Route
+# takes three steps, a family of measures takes four, the heatmap interpolates the whole thing.
+# Rose and amber are gone.
 #
-#   ROUTE       the depolymerisation route, the one category a chemistry reader tracks between
-#               figures. Teal is glycolysis everywhere, rose hydrolysis, amber methanolysis.
-#   INK         everything not split by route. A panel counting one thing is one ink.
-#   WARN        one meaning only: a value that is physically impossible, or a known defect.
-#               Not "the other series", not "the reference line".
-#   SHADES      several measures of the same quantity -- precision, recall, F1, kappa -- as one
-#               hue at four lightnesses. A family, not four categories, which is what they are.
-#               Never on the same canvas as ROUTE.
-#
-# Position separates within a panel; colour separates between panels. That ordering is
-# Cleveland's and it is also why most panels here need no colour at all.
+# The steps are spaced 14.5 to 17.5 in L*, which is what makes this work: lightness is what
+# greyscale printing keeps and what every kind of colour blindness keeps. Two steps of this ramp
+# are distinguishable to everyone, on any output, with no hatch, no dash and no dot pattern --
+# which is why there are none. A chart that needed a hatch to be read was the wrong chart.
 # ---------------------------------------------------------------------------------------------
-INK, DIM, RULE, WARN = "#12201F", "#5D716E", "#D2DEDB", "#A33A2E"
-NEUTRAL = "#54696E"          # the one ink for anything that encodes no category
-GUIDE = "#C9D6D3"            # connectors, frontiers, reference lines that are not data
+RAMP = ["#0A3C34", "#14685C", "#3E9385", "#84BFB4", "#C9E1DC"]     # dark to light, L* 22..88
 
-CYCLE = ["#0E7C6B", "#C4527A", "#9A6510"]     # teal, rose, amber -- routes, in the field's order
-ROUTE = dict(zip(ROUTES, CYCLE)) | {OTHER_ROUTE: NEUTRAL}
+INK, DIM, RULE = "#12201F", "#5D716E", "#D2DEDB"
+NEUTRAL = "#54696E"          # the one ink for data that encodes no category
+GUIDE = "#C9D6D3"            # connectors, reference lines, frontiers: not data
+ACCENT = WARN = "#B4472C"    # one warm, one meaning: impossible value or known defect
 
-# One hue, four lightnesses, dark to light. Ordered on purpose: a reader who cannot tell the
-# middle two apart still sees which end of the family a bar sits at.
-SHADES = ["#0B5F52", "#2E8577", "#68AFA3", "#A8D2CA"]
+# Route takes the dark end, in corpus order, so the commonest route is the heaviest mark.
+ROUTE = dict(zip(ROUTES, RAMP[:3])) | {OTHER_ROUTE: NEUTRAL}
+CYCLE = RAMP[:3]
 
-# Colour is not enough, and in this palette it is measurably not enough. Teal against rose fails
-# deuteranopia simulation at dE = 11.8 (Machado 2009, CIE76), and the SHADES ramp collapses
-# toward one grey in black-and-white print. So every category is encoded twice, keyed on position
-# in whichever ordered list it came from.
-HATCH = ["", "///", "...", "xxx"]
+# Four measures of one quantity -- precision, recall, F1, kappa -- are a family, not four
+# categories, and read as one across the ramp.
+SHADES = RAMP[:4]
+
+# The heatmap interpolates the same ramp rather than importing a colormap with its own hues.
+SEQUENTIAL = ListedColormap(RAMP[::-1])   # five steps, not an interpolation of them
+
+# A solid pale wash for shading a region. Alpha over white produces a colour that is in no
+# palette, and two of them turned up in the audit; this is one exact value instead.
+WASH = RAMP[4]
+
+# Marker shape, for a scatter where two clouds overlap and lightness alone cannot separate
+# them. Not a hatch: a hatch is a texture laid over a fill and it made the page look busy.
 MARKER = ["o", "s", "^", "D"]
-
-SEQUENTIAL = "BuGn"          # single hue, so a heatmap never competes with the route colours
 
 # Placement. Every figure in this manuscript is a figure* at \textwidth, and \includegraphics
 # scales the PDF to fit -- so a figure drawn at 9.4 in arrives at 0.75 scale and its 6 pt tick
@@ -67,10 +70,6 @@ SEQUENTIAL = "BuGn"          # single hue, so a heatmap never competes with the 
 # (Requires a4paper in the geometry call: letterpaper gives 7.32 in, which RSC does not typeset.)
 DOUBLE_COLUMN = 7.087        # 18.0 cm, \textwidth in the two-column layout
 SINGLE_COLUMN = 3.474        # 8.82 cm, \columnwidth
-
-INK, DIM, RULE, WARN = "#12201F", "#5D716E", "#D2DEDB", "#A33A2E"
-NEUTRAL = "#54696E"          # anything that encodes no category
-GUIDE = "#C9D6D3"            # connectors, frontiers, reference lines that are not data
 
 # Bar geometry. A bar's width carries no information, so it should take the least ink that still
 # reads as a bar: with three categories in a panel, filling 0.72 of each slot made slabs.
@@ -89,24 +88,18 @@ plt.rcParams.update({
     "xtick.color": DIM, "ytick.color": DIM, "xtick.labelsize": 6, "ytick.labelsize": 6,
     "axes.spines.top": False, "axes.spines.right": False,
     "legend.frameon": False, "legend.fontsize": 6.5,
-    # fine enough that a hatch reads as texture rather than as a second fill colour at 7 pt
-    "hatch.linewidth": 0.35,
     "figure.facecolor": "white", "axes.facecolor": "white",
 })
 
 
-def redundant(colour):
-    """The hatch and marker that go with a palette colour.
+def marker_for(colour):
+    """The marker shape that goes with a ramp step, for scatters where clouds overlap.
 
-    Keyed on the colour itself rather than on a category name, so it works for ROUTE, MEASURE,
-    GRADER and VERDICT alike without any of them saying so. A colour that is not in CYCLE
-    encodes no category -- NEUTRAL, DIM, WARN -- and gets no second channel, which is correct.
+    Keyed on the colour rather than on a category name, so any slice of RAMP gets a consistent
+    shape without saying so. This used to return a hatch as well; hatching is gone, because the
+    ramp's lightness spacing already separates every step in greyscale.
     """
-    for ordered in (CYCLE, SHADES):
-        if colour in ordered:
-            position = ordered.index(colour)
-            return HATCH[position], MARKER[position]
-    return "", "o"
+    return MARKER[RAMP.index(colour)] if colour in RAMP else "o"
 
 
 def canvas(rows: int, cols: int, width: float = DOUBLE_COLUMN, height: float = None):
@@ -131,6 +124,25 @@ def _finish(axis, xlabel, ylabel, title=None, logx=False, logy=False, ylim=None)
         axis.set_ylim(*ylim)
 
 
+def density(axis, frame, x, y, *, gridsize=26, xlabel="", ylabel="", xlim=None, ylim=None):
+    """Two columns as a binned density rather than a cloud of translucent dots.
+
+    A thousand-point scatter at alpha 0.45 needs opacity to read as a cloud, and opacity is how
+    the colour audit found four blended greens belonging to no palette. A hex bin uses the five
+    ramp steps and nothing else, and it shows where the mass actually is, which an overplotted
+    cloud cannot.
+    """
+    pair = frame[[x, y]].dropna()
+    axis.hexbin(pair[x], pair[y], gridsize=gridsize, cmap=SEQUENTIAL, mincnt=1,
+                linewidths=0.15, edgecolors="white", bins="log")
+    if xlim:
+        axis.set_xlim(*xlim)
+    if ylim:
+        axis.set_ylim(*ylim)
+    _finish(axis, xlabel, ylabel)
+    return axis
+
+
 def points(axis, frame, x, y, *, colour_by=None, palette=None, order=None, xlabel="", ylabel="",
            title=None, logx=False, logy=False, ylim=None, trend=False, legend=False):
     """A scatter, optionally split by a categorical column.
@@ -148,8 +160,8 @@ def points(axis, frame, x, y, *, colour_by=None, palette=None, order=None, xlabe
         if logy:
             pair = pair[pair[y] > 0]
         if len(pair):
-            colour = (palette or {}).get(name, CYCLE[0])
-            _, marker = redundant(colour)
+            colour = (palette or {}).get(name, RAMP[0])
+            marker = marker_for(colour)
             axis.scatter(pair[x], pair[y], s=13, alpha=0.45, linewidths=0, marker=marker,
                          color=colour, label=name)
     if trend:
@@ -168,7 +180,7 @@ def _trend(axis, frame, x, y, logx):
     pair = pair.sort_values(x)
     window = max(20, len(pair) // 12)
     axis.plot(pair[x], pair[y].rolling(window, center=True, min_periods=window // 2).median(),
-              color=DIM, lw=1.1, ls="--", zorder=3)
+              color=DIM, lw=1.0, zorder=3)
 
 
 def box(axis, frame, group, value, *, order=None, xlabel="", ylabel="", title=None, rotate=0):
@@ -183,22 +195,15 @@ def box(axis, frame, group, value, *, order=None, xlabel="", ylabel="", title=No
     _finish(axis, xlabel, ylabel, title)
 
 
-def bars(axis, series, *, colour="#0E7C6B", horizontal=False, xlabel="", ylabel="", title=None,
+def bars(axis, series, *, colour=NEUTRAL, horizontal=False, xlabel="", ylabel="", title=None,
          logx=False, annotate=False):
     """A bar chart from a Series, indexed by category."""
-    # one hatch per bar when the caller passed a palette colour per bar; a single colour for
-    # every bar encodes nothing, so it gets no hatch
-    hatches = [redundant(c)[0] for c in colour] if isinstance(colour, list) else None
-    edges = dict(edgecolor="white", linewidth=0.3) if hatches else {}
     if horizontal:
-        patches = axis.barh(range(len(series))[::-1], series.values, color=colour, height=BAR,
-                            **edges)
+        axis.barh(range(len(series))[::-1], series.values, color=colour, height=BAR)
         axis.set_yticks(range(len(series))[::-1], [str(i) for i in series.index])
     else:
-        patches = axis.bar(range(len(series)), series.values, color=colour, width=BAR, **edges)
+        axis.bar(range(len(series)), series.values, color=colour, width=BAR)
         axis.set_xticks(range(len(series)), [str(i) for i in series.index])
-    for patch, hatch in zip(patches, hatches or []):
-        patch.set_hatch(hatch)
     if annotate:
         for position, value in enumerate(series.values):
             axis.text(value, len(series) - 1 - position, f" {value:,.0f}", va="center", fontsize=5.5,
@@ -302,12 +307,9 @@ def histogram(axis, frame, column, *, bins=30, logx=False, xlabel="", ylabel="re
         if logx:
             data = [d[d > 0] for d in data]
         colours = [(palette or {}).get(name, DIM) for name in groups]
-        _, _, patches = axis.hist(data, bins=edges, stacked=True, color=colours, label=groups)
-        # hist() takes no per-dataset hatch, so it goes on afterwards, one dataset at a time
-        for colour, artists in zip(colours, patches if len(groups) > 1 else [patches]):
-            hatch, _ = redundant(colour)
-            for patch in artists:
-                patch.set(hatch=hatch, edgecolor="white", linewidth=0.3)
+        # a hairline between stacked fills, so a step boundary is visible without a texture
+        axis.hist(data, bins=edges, stacked=True, color=colours, label=groups,
+                  edgecolor="white", linewidth=0.25)
     else:
         axis.hist(values, bins=edges, color=colour or NEUTRAL)
 
@@ -339,12 +341,9 @@ def grouped_bars(axis, frame, *, xlabel="", ylabel="", palette=None, rotate=0, e
     width = GROUP / len(measures)
     for offset, measure in enumerate(measures):
         positions = [i + offset * width - GROUP / 2 + width / 2 for i in range(len(names))]
-        colour = (palette or {}).get(measure, CYCLE[offset % len(CYCLE)])
-        hatch, _ = redundant(colour)
-        # white hatch over the fill: it reads as texture in colour and as the only difference
-        # between the bars in greyscale, where all four fills are one L* 44-51 grey
+        colour = (palette or {}).get(measure, SHADES[offset % len(SHADES)])
         axis.bar(positions, frame[measure].values, width=width, label=str(measure),
-                 color=colour, hatch=hatch, edgecolor="white", linewidth=0.3)
+                 color=colour, edgecolor="white", linewidth=0.25)
         if errors is not None and measure in errors:
             axis.errorbar(positions, frame[measure].values, yerr=errors[measure].values,
                           fmt="none", ecolor=INK, elinewidth=0.8, capsize=1.8, zorder=4)
@@ -370,8 +369,7 @@ def paired_rho(axis, table, curves, *, xlabel="Spearman rho", labels=None):
         jitter = np.random.default_rng(0).uniform(-0.13, 0.13, len(rhos))
         # NEUTRAL, not a route colour: these dots pool all three routes, so colouring them
         # glycolysis-teal claimed a split the panel does not make
-        axis.scatter(rhos, position + jitter, s=5, alpha=0.45, linewidths=0,
-                     color=NEUTRAL, zorder=2)
+        axis.scatter(rhos, position + jitter, s=4, linewidths=0, color=RAMP[3], zorder=2)
         axis.scatter([np.median(rhos)], [position], marker="D", s=22, zorder=4,
                      color=NEUTRAL, edgecolors="white", linewidths=0.7)
         axis.scatter([table.loc[name, "pooled"]], [position], marker="|", s=90, zorder=5,
@@ -445,26 +443,31 @@ def step_hist(axis, values, *, bins=30, colour=NEUTRAL, xlabel="", ylabel="recor
     _finish(axis, xlabel, ylabel)
 
 
+def _lightness(hexc: str) -> float:
+    """CIE L* of a hex colour. The one number that decides whether two fills are separable in
+    greyscale and under every kind of colour blindness."""
+    channels = [int(hexc[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+    linear = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
+    y = 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+    return 116 * y ** (1 / 3) - 16 if y > 0.008856 else 903.3 * y
+
+
 if __name__ == "__main__":
-    # The palette rule, asserted rather than described. If a future edit reintroduces a second
-    # categorical set, or gives two routes the same hatch, this fails.
-    glycolysis, hydrolysis, methanolysis = CYCLE
-    assert list(ROUTE) == [*ROUTES, OTHER_ROUTE], "ROUTE must follow core.schema's route order"
-    assert ROUTE[OTHER_ROUTE] == NEUTRAL, "an unassigned route is not a category"
+    # The palette rule, asserted rather than described.
+    assert ROUTE == dict(zip(ROUTES, RAMP[:3])) | {OTHER_ROUTE: NEUTRAL}
+    assert SHADES == RAMP[:4] and CYCLE == RAMP[:3], "every set is a slice of one ramp"
 
-    # teal against rose fails deuteranopia simulation, so route must differ in a second channel
-    for left, right in ((glycolysis, hydrolysis), (hydrolysis, methanolysis),
-                        (glycolysis, methanolysis)):
-        assert redundant(left)[0] != redundant(right)[0], "two routes share a hatch"
-        assert redundant(left)[1] != redundant(right)[1], "two routes share a marker"
-    # and the measure family collapses toward one grey in print, so the same applies to it
-    assert len({redundant(c)[0] for c in SHADES}) == len(SHADES), "two measures share a hatch"
+    # This is what replaced hatching: adjacent steps far enough apart in lightness that they
+    # separate in greyscale and under any colour vision. Below about 13 they do not.
+    levels = [_lightness(c) for c in RAMP]
+    gaps = [b - a for a, b in zip(levels, levels[1:])]
+    assert all(gap >= 13 for gap in gaps), f"ramp steps too close in lightness: {gaps}"
+    assert levels == sorted(levels), "the ramp must run dark to light"
 
-    # anything that encodes no category gets no second channel
-    for name, colour in (("NEUTRAL", NEUTRAL), ("WARN", WARN), ("DIM", DIM), ("GUIDE", GUIDE)):
-        assert redundant(colour) == ("", "o"), f"{name} is not a category and must not look like one"
+    assert marker_for(NEUTRAL) == "o" and marker_for(WARN) == "o", "non-categories get no shape"
+    assert len({marker_for(c) for c in RAMP[:3]}) == 3, "two routes share a marker"
 
-    # the figures are drawn at the width they are printed at, so nothing is scaled
+    # drawn at the width it is printed at, so nothing is scaled
     assert canvas(1, 1)[0].get_figwidth() == DOUBLE_COLUMN
     plt.close("all")
-    print("_style self-check ok")
+    print(f"_style self-check ok  (ramp L* gaps {[round(g, 1) for g in gaps]})")
