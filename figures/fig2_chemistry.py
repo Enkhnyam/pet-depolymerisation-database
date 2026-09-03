@@ -4,7 +4,7 @@ Distributions rather than scatters: with five thousand records the scatters were
 the question these panels answer is what the corpus contains, not how two variables trade off.
 The exceptions are the last two panels, where the relationship is the point.
 """
-from _style import (INK, RAMP, ROUTE, ROUTES, canvas, cloud, density, histogram,
+from _style import (INK, ROUTE, ROUTES, canvas, contours, density, histogram,
                     legend_above, save)
 from curated import gao_overlap
 from database import chemistry as chem
@@ -39,25 +39,19 @@ def main() -> None:
             xlabel="conversion (%)", ylabel="yield (%)", xlim=(0, 100), ylim=(0, 100))
     panel[7].plot([0, 100], [0, 100], color=INK, lw=0.8, zorder=3)
 
-    # Panel i: temperature against yield on the 19 papers we share with Gao et al.'s hand
-    # curation -- ours, the curated records that are also ours, and the curated records that are
-    # not. All three from the same papers, which is the only version of this comparison that
-    # says anything: our whole glycolysis corpus against their 19-paper set shows a large cloud
-    # containing a small one, and would look the same if we had extracted nothing from them.
-    # The curated-only points trace the loading sweeps a paper charts rather than tabulates.
+    # Panel i: do our extracted conditions and hand curation cover the same ground? Contours,
+    # not dots. Temperature piles onto the round values experimenters choose -- 150, 160, 180,
+    # 190, 200 -- so a scatter of the two sets came out as columns of overlapping marks and the
+    # overlap, which is the whole claim, was the one thing it did not show. Bands enclose 90%
+    # and 50% of each set's own points, so the hand curation's outline lying inside ours means
+    # it explores no region we do not.
     space = gao_overlap.compute()["condition space"]
-    for name, colour, marker, size in (("ours", RAMP[3], "o", 12),
-                                       ("curated only", RAMP[2], "^", 11),
-                                       ("shared", RAMP[0], "D", 11)):
-        part = space[name]
-        cloud(panel[8], part.temperature_c, part.yield_percent, colour=colour, marker=marker,
-              size=size, edge="white", label=f"{name} ({len(part)})")
-    panel[8].set_xlim(100, 220)
-    panel[8].set_ylim(0, 100)
-    panel[8].set_xlabel("temperature (°C)")
-    panel[8].set_ylabel("yield (%)")
-    panel[8].legend(fontsize=5.0, loc="upper left", handletextpad=0.2, borderpad=0.2,
-                    borderaxespad=0.3, labelspacing=0.25)
+    contours(panel[8], {name: (part.temperature_c, part.yield_percent)
+                        for name, part in space.items()},
+             xlim=(110, 215), ylim=(0, 100),
+             xlabel="temperature (°C)", ylabel="yield (%)")
+    panel[8].legend(fontsize=5.2, loc="lower left", handletextpad=0.4, borderpad=0.25,
+                    borderaxespad=0.3, labelspacing=0.3)
 
     legend_above(figure, panel[0])
     save(figure, "fig2_chemistry")

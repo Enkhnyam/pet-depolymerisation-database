@@ -207,6 +207,52 @@ def pie(axis, series, *, colours, fmt="{:,.0f}", gap=0.26):
     return axis
 
 
+def contours(axis, sets, *, enclose=(0.9, 0.5), grid=110, xlim=None, ylim=None,
+             xlabel="", ylabel=""):
+    """Two 2-D distributions as smoothed density contours, so their overlap is the mark.
+
+    A scatter of two datasets answers "where is each point"; the question here is "do these two
+    cover the same region", and several hundred dots answer that badly -- especially when the
+    x values pile onto the round temperatures experimenters actually choose, which turns a
+    scatter into columns.
+
+    `sets` is an ordered {label: (x, y)} mapping. The first is drawn as filled bands and the
+    rest as outlines over it, which is what makes containment readable: an outline sitting
+    inside a fill means the second dataset explores no region the first does not.
+
+    Levels enclose a stated fraction of each dataset's own points, not a fraction of its peak
+    density, so "the 90% band" means the same thing for both however differently they are
+    spread.
+    """
+    from scipy.stats import gaussian_kde
+
+    xlim = xlim or axis.get_xlim()
+    ylim = ylim or axis.get_ylim()
+    mesh_x, mesh_y = np.meshgrid(np.linspace(*xlim, grid), np.linspace(*ylim, grid))
+    flat = np.vstack([mesh_x.ravel(), mesh_y.ravel()])
+
+    for position, (label, (values_x, values_y)) in enumerate(sets.items()):
+        sample = np.vstack([np.asarray(values_x, float), np.asarray(values_y, float)])
+        kernel = gaussian_kde(sample)
+        surface = kernel(flat).reshape(mesh_x.shape)
+        # the density at each real observation, so a level can enclose a share of the data
+        at_points = kernel(sample)
+        levels = sorted(np.percentile(at_points, 100 * (1 - share)) for share in enclose)
+        if position == 0:
+            axis.contourf(mesh_x, mesh_y, surface, levels=[*levels, surface.max()],
+                          colors=[RAMP[4], RAMP[3]], zorder=1)
+            axis.plot([], [], marker="s", lw=0, ms=4, color=RAMP[3], label=label)
+        else:
+            axis.contour(mesh_x, mesh_y, surface, levels=levels, colors=[RAMP[0]],
+                         linewidths=(0.7, 1.2), zorder=3)
+            axis.plot([], [], lw=1.2, color=RAMP[0], label=label)
+
+    axis.set_xlim(*xlim)
+    axis.set_ylim(*ylim)
+    _finish(axis, xlabel, ylabel)
+    return axis
+
+
 def points(axis, frame, x, y, *, colour_by=None, palette=None, order=None, xlabel="", ylabel="",
            title=None, logx=False, logy=False, ylim=None, trend=False, legend=False):
     """A scatter, optionally split by a categorical column.
