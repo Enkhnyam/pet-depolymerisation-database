@@ -4,15 +4,14 @@ Distributions rather than scatters: with five thousand records the scatters were
 the question these panels answer is what the corpus contains, not how two variables trade off.
 The exceptions are the last two panels, where the relationship is the point.
 """
-from _style import (INK, ROUTE, ROUTES, canvas, density, histogram, legend_above,
-                    paired_rho, save)
+from _style import (INK, RAMP, ROUTE, ROUTES, canvas, cloud, density, histogram,
+                    legend_above, save)
+from curated import gao_overlap
 from database import chemistry as chem
-from database import withinpaper as within
 
 
 def main() -> None:
     result = chem.compute()
-    trends = within.compute()
     frame = result["records"]
     stack = dict(split="route", palette=ROUTE, order=ROUTES)
 
@@ -40,8 +39,25 @@ def main() -> None:
             xlabel="conversion (%)", ylabel="yield (%)", xlim=(0, 100), ylim=(0, 100))
     panel[7].plot([0, 100], [0, 100], color=INK, lw=0.8, zorder=3)
 
-    paired_rho(panel[8], trends["table"], trends["per paper"],
-               xlabel="Spearman ρ")
+    # Panel i: our value against the hand-curated one for the same experiment in the same
+    # paper. Restricted to the records both datasets describe, which is the only comparison that
+    # says anything -- overlaying two whole datasets shows a large cloud containing a small one.
+    # No line of equality: with every point on it the line carried no information the points did
+    # not already carry.
+    parity = gao_overlap.compute()["parity"]
+    for field, colour, marker in (("conversion_percent", RAMP[3], "o"),
+                                  ("selectivity_percent", RAMP[2], "^"),
+                                  ("yield_percent", RAMP[0], "D")):
+        part = parity[parity.field == field]
+        cloud(panel[8], part.gao, part.ours, colour=colour, marker=marker, size=13,
+              edge="white", label=f"{field.split('_')[0]} ({len(part)})")
+    panel[8].set_xlim(-4, 104)
+    panel[8].set_ylim(-4, 104)
+    panel[8].set_aspect("equal")
+    panel[8].set_xlabel("hand-curated (%)")
+    panel[8].set_ylabel("extracted (%)")
+    panel[8].legend(fontsize=5.2, loc="upper left", handletextpad=0.2, borderpad=0.2,
+                    borderaxespad=0.3, labelspacing=0.28)
 
     legend_above(figure, panel[0])
     save(figure, "fig2_chemistry")

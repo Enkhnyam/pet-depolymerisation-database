@@ -419,32 +419,6 @@ def grouped_bars(axis, frame, *, xlabel="", ylabel="", palette=None, rotate=0, e
     return axis
 
 
-def paired_rho(axis, table, curves, *, xlabel="Spearman rho", labels=None):
-    """Per-paper correlations as a strip, against the single pooled value for the same pair.
-
-    The point of the panel is the gap between the two, so both live on one axis: a cloud of
-    per-paper rhos sitting off zero while the pooled marker sits on it is the whole argument,
-    and separating them into two panels would make the reader do the comparison from memory.
-    """
-    rows = list(table.index)[::-1]          # first relationship at the top
-    axis.axvline(0, color=RULE, lw=1, zorder=0)
-    for position, name in enumerate(rows):
-        rhos = curves[name].values
-        jitter = np.random.default_rng(0).uniform(-0.13, 0.13, len(rhos))
-        # a pale ramp step, not a route colour: these dots pool all three routes, so
-        # colouring them glycolysis-dark claimed a split the panel does not make
-        axis.scatter(rhos, position + jitter, s=4, linewidths=0, color=RAMP[3], zorder=2)
-        axis.scatter([np.median(rhos)], [position], marker="D", s=22, zorder=4,
-                     color=EMPHASIS, edgecolors="white", linewidths=0.7)
-        axis.scatter([table.loc[name, "pooled"]], [position], marker="|", s=90, zorder=5,
-                     color=DATA, linewidths=1.6)
-    axis.set_yticks(range(len(rows)))
-    axis.set_yticklabels(labels or rows, fontsize=6)
-    axis.set_xlim(-1.05, 1.05)
-    axis.set_ylim(-0.6, len(rows) - 0.4)
-    _finish(axis, xlabel, "")
-
-
 def sci(value: float, digits: int = 0) -> str:
     """A small number as LaTeX maths: 6.8e-07 -> 7\\times10^{-7}.
 
