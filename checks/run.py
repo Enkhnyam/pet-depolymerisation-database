@@ -8,38 +8,24 @@ import subprocess
 import sys
 from pathlib import Path
 
-SCRIPTS = [
-    # the 24-paper benchmark: the answer key, the graders on it, and the settings we chose
-    "curated/answer_key.py",
-    "curated/extractions.py",
-    "curated/metric.py",
-    "curated/matrix.py",
-    "curated/judged_runs.py",
-    "curated/field_types.py",
-    "curated/thresholds.py",
-    "curated/shots.py",
-    "curated/source_tracking.py",
+# Every check, found rather than listed. The hand-maintained list this replaces had drifted:
+# paper.py and release/release_numbers.py were not in it, so neither ran with the suite, and
+# three entries named files that had been deleted. Order is alphabetical by group so a run reads
+# the same way twice.
+#
+# paper.py last: it reads artifacts/paper_numbers.tex, which the checks above are what
+# tools/paper_numbers.py computes it from, so its verdict is only meaningful after they pass.
+def scripts() -> list[str]:
+    here = Path(__file__).parent
+    found = sorted(str(p.relative_to(here)) for p in here.glob("*/*.py")
+                   if not p.name.startswith("_"))
+    return found + ["cost.py", "paper.py"]
 
-    # the database
-    "database/corpus.py",
-    "database/chemistry.py",
-    "database/verdicts.py",
-    "database/withinpaper.py",
-    "database/formats.py",
-    "database/provenance.py",
 
-    # the 48 records two chemists adjudicated, and what a second round would need
-    "human/growth.py",
-    "human/worklist.py",
-    "human/adjudicated.py",
-    "human/integrity.py",
-
-    "cost.py",
-]
 
 if __name__ == "__main__":
     here = Path(__file__).parent
-    chosen = sys.argv[1:] or SCRIPTS
+    chosen = sys.argv[1:] or scripts()
     failed = []
 
     for rel in chosen:
@@ -49,7 +35,8 @@ if __name__ == "__main__":
         # inherited so it stays in order when the whole suite is piped to a file.
         result = subprocess.run([sys.executable, str(here / rel)], cwd=here, text=True,
                                 capture_output=True,
-                                env={**os.environ, "PYTHONPATH": str(here)})
+                                env={**os.environ, "PYTHONPATH": os.pathsep.join(
+                                    [str(here), str((here / rel).parent)])})
         print(result.stdout.rstrip())
         if result.returncode:
             print(result.stderr.rstrip())
