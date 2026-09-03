@@ -10,6 +10,11 @@ The abstract cited \\AdjFavourJudge of \\AdjPairs while the conclusion two pages
 So for every value a macro defines, this looks for the same value typed out as a bare literal in
 the body. A hit is a number that will not move when the checks move.
 
+This scan earns its place: on its first honest run -- the DEFINITION regex had been silently
+missing every macro with a trailing comment, so 36 of them, including both numbers in the
+abstract, were never scanned -- it found \\textbf{0.935} typed into the agreement table two cells
+from \\MatrixEvaluableHigh{} reading the same grid, with the bold on the wrong maximum.
+
 What is deliberately not scanned: the preamble, where 15pt and 0.5\\textfloatsep are typography
 rather than claims; \\caption blocks, which sync_captions.py rewrites from the figures; and any
 number carrying a unit. What is scanned but excused is listed in REVIEWED below -- coincidences,
@@ -28,6 +33,10 @@ PAPERS = ("paper_rsc.tex",)   # paper.tex and paper_rsc_si.tex were deleted, not
 # "\}\s*$" refused to match -- so all 36 of them counted as undefined, and \ReleaseRecords and
 # \ReleasePapers, the two numbers in the abstract, sat outside every guard in this file.
 DEFINITION = re.compile(r"\\newcommand\{\\(\w+)\}\{(.+?)\}(?:\s*%.*)?$", re.M)
+# Whether a macro exists at all is a different question from what its value is: \MatrixTableRows
+# and \FieldTableRows hold whole table bodies over several lines, which DEFINITION cannot match
+# and should not try to.
+DEFINED = re.compile(r"\\newcommand\{\\(\w+)\}")
 USE = re.compile(r"\\([A-Z][A-Za-z]*)")
 
 # LaTeX's own capitalised control sequences, which appear in the body and are not ours. Short
@@ -48,13 +57,10 @@ REVIEWED = {
     ("MatrixGapHigh", "12"): "12pt font sizes and the both-flagged stratum",
     ("SourceCitingSd", "0.021"): "the pooled standard deviation in the power paragraph",
     ("SourceNotSd", "0.043"): "the pooled standard deviation in the power paragraph",
-    ("AdjWithinPositive", "85"): "85% power in the sizing paragraph, and an 85% yield in the worked penalty example",
     ("AnnotatorsShared", "27"): "27% power to detect a 0.03 difference, in the sizing paragraph",
-    ("ConstraintOverConversion", "40"): "40k tokens of prompt, and the ~40 enzymatic papers",
     ("ConstraintOverHundredCaught", "100"): "100k tokens, the context ceiling being tested",
     ("BenchmarkInCorpus", "12"): "12pt font sizes in the RSC preamble",
     ("AdjBothFlagged", "12"): "12pt font sizes in the RSC preamble",
-    ("JudgeDroppedShare", "0.5"): "McNemar tests against p = 0.5",
     ("ThresholdAcceptBest", "0.5"): "McNemar tests against p = 0.5",
     ("ThresholdToleranceBest", "0.5"): "McNemar tests against p = 0.5",
     ("AdjMetricKappa", "0.21"): "the bootstrap interval [-0.21, -0.02] on the growth contrast",
@@ -69,6 +75,8 @@ REVIEWED = {
     ("YieldOverHundred", "19"): "the draft date, and the superseded round's tables in paper.tex",
     ("GrowthVouchedAdded", "43"): "also the pairs favouring the judge",
     ("GrowthVouchedExperiments", "338"): "also the count of Wiley papers we cannot read",
+    ("WithinPaperPositive", "85"): "the judge's 85% agreement with human assessment, in the abstract",
+    ("CuratedOverlapPapers", "11"): "the 11 papers excluded as reviews without protocols",
 }
 
 
@@ -120,7 +128,7 @@ def hits(text: str, value: str) -> list[str]:
     return found
 
 
-def undefined(text: str, defined: dict) -> list[str]:
+def undefined(text: str, defined) -> list[str]:
     """Macros the body uses that the macro file does not define.
 
     This is the direction that actually breaks a manuscript, and it was the direction nobody
@@ -133,10 +141,10 @@ def undefined(text: str, defined: dict) -> list[str]:
 
 
 def compute() -> dict:
-    defined = dict(DEFINITION.findall(MACROS.read_text(encoding="utf-8")))
-    for extra in (ARTIFACTS / "paper_table_fields.tex", ARTIFACTS / "paper_table_matrix.tex"):
-        if extra.exists():
-            defined.update(DEFINITION.findall(extra.read_text(encoding="utf-8")))
+    sources = [MACROS, ARTIFACTS / "paper_table_fields.tex", ARTIFACTS / "paper_table_matrix.tex"]
+    text = "\n".join(p.read_text(encoding="utf-8") for p in sources if p.exists())
+    defined = dict(DEFINITION.findall(text))
+    exists = set(DEFINED.findall(text))
     broken = {}
     findings, excused = [], []
     for paper in PAPERS:
@@ -144,7 +152,7 @@ def compute() -> dict:
         if not path.exists():
             continue
         text = body(path.read_text(encoding="utf-8"))
-        missing = undefined(text, defined)
+        missing = undefined(text, exists)
         if missing:
             broken[paper] = missing
         for name, value in sorted(defined.items()):
@@ -153,7 +161,8 @@ def compute() -> dict:
             for context in hits(text, value):
                 row = {"paper": paper, "macro": f"\\{name}", "value": value, "context": context}
                 (excused if (name, value) in REVIEWED else findings).append(row)
-    return {"defined": defined, "findings": findings, "excused": excused, "broken": broken}
+    return {"defined": defined, "exists": exists, "findings": findings, "excused": excused,
+            "broken": broken}
 
 
 def main() -> None:
@@ -187,6 +196,7 @@ def main() -> None:
         print(f"    …{row['context']}…")
     print("\n  each of these is a number that will not move when the checks move.")
     print("  replace the literal with the macro, or add it to REVIEWED with its reason.")
+    raise SystemExit(1)
 
 
 if __name__ == "__main__":
