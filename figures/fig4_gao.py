@@ -8,19 +8,19 @@ than in a figure of its own.
 
 Every mark is a step of _style.RAMP. Nothing is hatched.
 """
-from _style import (ACCENT, DIM, INK, RAMP, ROUTE, ROUTES, RULE, WASH, canvas,
+from _style import (DIM, EMPHASIS, INK, RAMP, ROUTE, ROUTES, RULE, WASH, canvas,
                     marker_for, ranked_bars, save)
 from curated import gao_overlap
 from database import withinpaper
 
 # Why a curated record is or is not in ours, in the order the argument runs: agreed, then three
-# kinds of explained, then ours. Lightness carries the grouping -- the explained reasons sit in
-# the pale middle of the ramp, the shortfall is the one accented bar.
-GAP = [("both", "in both", RAMP[0]),
+# kinds of explained, then ours. Five reasons, five steps of the ramp, one each. The shortfall
+# takes the darkest step rather than a red one -- it is the number that matters, not an alarm.
+GAP = [("both", "in both", RAMP[1]),
        ("chart", "read off a chart", RAMP[2]),
        ("si", "in SI we lack", RAMP[3]),
        ("rule", "a design table we skip", RAMP[4]),
-       ("missed", "in a table we read", ACCENT)]
+       ("missed", "in a table we read", EMPHASIS)]
 
 FIELDS = {"temperature_c": "temperature", "reaction_time_min": "reaction time",
           "catalyst_amount_g": "catalyst mass", "PET_amount_g": "PET mass",
@@ -55,7 +55,7 @@ def main() -> None:
         panel[1].annotate(f"{count}  ({count / total:.0%})",
                           (count, len(GAP) - 1 - position), textcoords="offset points",
                           xytext=(4, 0), fontsize=5.4, va="center",
-                          color=ACCENT if key == "missed" else DIM,
+                          color=EMPHASIS if key == "missed" else DIM,
                           fontweight="bold" if key == "missed" else "normal")
     panel[1].set_yticks(range(len(GAP))[::-1], [label for _, label, _ in GAP], fontsize=5.6)
     panel[1].set_xlim(0, int(gao["split"].max()) * 1.45)

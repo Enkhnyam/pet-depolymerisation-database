@@ -40,13 +40,18 @@ from core.schema import OTHER_ROUTE, ROUTES
 # ---------------------------------------------------------------------------------------------
 RAMP = ["#0A3C34", "#14685C", "#3E9385", "#84BFB4", "#C9E1DC"]     # dark to light, L* 22..88
 
-INK, DIM, RULE = "#12201F", "#5D716E", "#D2DEDB"
-NEUTRAL = "#54696E"          # the one ink for data that encodes no category
-GUIDE = "#C9D6D3"            # connectors, reference lines, frontiers: not data
-ACCENT = WARN = "#B4472C"    # one warm, one meaning: impossible value or known defect
+# Non-data ink. Nothing that carries a value is drawn in any of these: a grey bar and a red bar
+# were doing exactly that, and grey read as "this panel opted out of the palette" while red read
+# as an alarm on a number that is simply the smallest one.
+INK, DIM, RULE = "#12201F", "#5D716E", "#D2DEDB"   # reference lines, tick labels, axis rules
+GUIDE = "#C9D6D3"            # connectors and frontiers
+
+# Data ink. A series that encodes no category still gets a ramp step, not a grey.
+DATA = RAMP[1]               # the default for one series
+EMPHASIS = RAMP[0]           # the one mark in a panel worth pointing at, by weight not by hue
 
 # Route takes the dark end, in corpus order, so the commonest route is the heaviest mark.
-ROUTE = dict(zip(ROUTES, RAMP[:3])) | {OTHER_ROUTE: NEUTRAL}
+ROUTE = dict(zip([*ROUTES, OTHER_ROUTE], [*RAMP[:3], RAMP[4]]))
 CYCLE = RAMP[:3]
 
 # Four measures of one quantity -- precision, recall, F1, kappa -- are a family, not four
@@ -189,13 +194,13 @@ def box(axis, frame, group, value, *, order=None, xlabel="", ylabel="", title=No
     axis.boxplot([frame[frame[group] == name][value].dropna() for name in order],
                  # full names: a label cut to six characters turns "methanolysis" into "methan"
                  tick_labels=[str(name) for name in order],
-                 showfliers=False, widths=0.6, medianprops=dict(color=INK))
+                 showfliers=False, widths=0.6, medianprops=dict(color=EMPHASIS))
     if rotate:
         axis.tick_params(axis="x", labelrotation=rotate)
     _finish(axis, xlabel, ylabel, title)
 
 
-def bars(axis, series, *, colour=NEUTRAL, horizontal=False, xlabel="", ylabel="", title=None,
+def bars(axis, series, *, colour=DATA, horizontal=False, xlabel="", ylabel="", title=None,
          logx=False, annotate=False):
     """A bar chart from a Series, indexed by category."""
     if horizontal:
@@ -240,7 +245,7 @@ def heatmap(axis, grid, *, vmin=None, vmax=None, xlabel="", ylabel="", title=Non
     return image
 
 
-def note(axis, text, *, colour=WARN, x=0.03, y=0.04, ha="left"):
+def note(axis, text, *, colour=DIM, x=0.03, y=0.04, ha="left"):
     """A short annotation inside a panel, for a caveat the reader needs at the point of looking."""
     axis.text(x, y, text, transform=axis.transAxes, fontsize=5.6, color=colour,
               ha=ha, va="center")
@@ -311,7 +316,7 @@ def histogram(axis, frame, column, *, bins=30, logx=False, xlabel="", ylabel="re
         axis.hist(data, bins=edges, stacked=True, color=colours, label=groups,
                   edgecolor="white", linewidth=0.25)
     else:
-        axis.hist(values, bins=edges, color=colour or NEUTRAL)
+        axis.hist(values, bins=edges, color=colour or DATA)
 
     _finish(axis, xlabel or column, ylabel, logx=logx)
     return axis
@@ -346,7 +351,7 @@ def grouped_bars(axis, frame, *, xlabel="", ylabel="", palette=None, rotate=0, e
                  color=colour, edgecolor="white", linewidth=0.25)
         if errors is not None and measure in errors:
             axis.errorbar(positions, frame[measure].values, yerr=errors[measure].values,
-                          fmt="none", ecolor=INK, elinewidth=0.8, capsize=1.8, zorder=4)
+                          fmt="none", ecolor=INK, elinewidth=0.7, capsize=1.8, zorder=4)
     axis.set_xticks(range(len(names)), [str(n) for n in names])
     if rotate:
         axis.tick_params(axis="x", labelrotation=rotate)
@@ -367,13 +372,13 @@ def paired_rho(axis, table, curves, *, xlabel="Spearman rho", labels=None):
     for position, name in enumerate(rows):
         rhos = curves[name].values
         jitter = np.random.default_rng(0).uniform(-0.13, 0.13, len(rhos))
-        # NEUTRAL, not a route colour: these dots pool all three routes, so colouring them
-        # glycolysis-teal claimed a split the panel does not make
+        # a pale ramp step, not a route colour: these dots pool all three routes, so
+        # colouring them glycolysis-dark claimed a split the panel does not make
         axis.scatter(rhos, position + jitter, s=4, linewidths=0, color=RAMP[3], zorder=2)
         axis.scatter([np.median(rhos)], [position], marker="D", s=22, zorder=4,
-                     color=NEUTRAL, edgecolors="white", linewidths=0.7)
+                     color=EMPHASIS, edgecolors="white", linewidths=0.7)
         axis.scatter([table.loc[name, "pooled"]], [position], marker="|", s=90, zorder=5,
-                     color=INK, linewidths=1.6)
+                     color=DATA, linewidths=1.6)
     axis.set_yticks(range(len(rows)))
     axis.set_yticklabels(labels or rows, fontsize=6)
     axis.set_xlim(-1.05, 1.05)
@@ -404,7 +409,7 @@ def ranked_bars(axis, series, *, colour=None, accent=None, xlabel="", fmt="{:,.0
     would be a second copy of them.
     """
     series = series.sort_values()
-    colour = colour or NEUTRAL
+    colour = colour or DATA
     colours = [colour] * len(series)
     if accent is not None and len(series):
         colours[-1] = accent
@@ -423,7 +428,7 @@ def ranked_bars(axis, series, *, colour=None, accent=None, xlabel="", fmt="{:,.0
     return axis
 
 
-def step_hist(axis, values, *, bins=30, colour=NEUTRAL, xlabel="", ylabel="records", logx=False,
+def step_hist(axis, values, *, bins=30, colour=DATA, xlabel="", ylabel="records", logx=False,
               logy=False):
     """A distribution as an outline rather than a block of bars.
 
@@ -454,8 +459,10 @@ def _lightness(hexc: str) -> float:
 
 if __name__ == "__main__":
     # The palette rule, asserted rather than described.
-    assert ROUTE == dict(zip(ROUTES, RAMP[:3])) | {OTHER_ROUTE: NEUTRAL}
+    assert ROUTE == dict(zip([*ROUTES, OTHER_ROUTE], [*RAMP[:3], RAMP[4]]))
     assert SHADES == RAMP[:4] and CYCLE == RAMP[:3], "every set is a slice of one ramp"
+    # no grey and no red carries a value: every data ink is a step of the ramp
+    assert {DATA, EMPHASIS, *ROUTE.values(), *SHADES} <= set(RAMP), "a data ink left the ramp"
 
     # This is what replaced hatching: adjacent steps far enough apart in lightness that they
     # separate in greyscale and under any colour vision. Below about 13 they do not.
@@ -464,7 +471,7 @@ if __name__ == "__main__":
     assert all(gap >= 13 for gap in gaps), f"ramp steps too close in lightness: {gaps}"
     assert levels == sorted(levels), "the ramp must run dark to light"
 
-    assert marker_for(NEUTRAL) == "o" and marker_for(WARN) == "o", "non-categories get no shape"
+    assert marker_for(DIM) == "o" and marker_for(RULE) == "o", "non-data ink gets no shape"
     assert len({marker_for(c) for c in RAMP[:3]}) == 3, "two routes share a marker"
 
     # drawn at the width it is printed at, so nothing is scaled

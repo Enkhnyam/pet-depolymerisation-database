@@ -3,7 +3,7 @@
 Panels carry only their letter; what each is for belongs in the which this prints so it
 can be pasted into the paper. Numbers come from the checks, which print the same values.
 """
-from _style import (INK, ROUTE, ROUTES, WARN, bars, canvas, heatmap, ranked_bars,
+from _style import (EMPHASIS, ROUTE, ROUTES, bars, canvas, heatmap, ranked_bars,
                     save, step_hist)
 from curated import matrix as matrix_check
 from database import chemistry as chem
@@ -41,15 +41,15 @@ def main() -> None:
     ranked_bars(panel[2], completeness, xlabel="records reporting it (%)", fmt="{:.0f}%")
 
     # "none" -- the uncatalysed baselines -- is the largest single group and that is the finding,
-    # so it is the one accented bar rather than another shade of the same grey
-    ranked_bars(panel[3], chemistry["catalysts"].head(10), accent=INK, xlabel="records")
+    # so it is the one bar at the dark end of the ramp. Emphasis by weight, not by a second hue
+    ranked_bars(panel[3], chemistry["catalysts"].head(10), accent=EMPHASIS, xlabel="records")
 
     heatmap(panel[4], agreement.pivot(index="judge", columns="extraction", values="agreement"),
             xlabel="extraction", ylabel="judge")
 
     fields = judged["fields"].head(9)
     fields.index = [str(name).replace("_", " ") for name in fields.index]
-    ranked_bars(panel[5], fields, accent=WARN, xlabel="records changed")
+    ranked_bars(panel[5], fields, accent=EMPHASIS, xlabel="records changed")
 
     save(figure, "fig1_database")
 

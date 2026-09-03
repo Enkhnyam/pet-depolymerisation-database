@@ -5,7 +5,7 @@ alone -- bars, then a scatter, then a dumbbell -- and the reader had to learn th
 follow one argument. All three are grouped bars now: same geometry, same measure colours, so the
 comparison a reader makes in the first panel is the comparison they make in the third.
 """
-from _style import BAR, NEUTRAL, SHADES, canvas, grouped_bars, note, save
+from _style import BAR, DATA, DIM, SHADES, canvas, grouped_bars, note, save
 from curated import extractions as extractions_check
 from human import adjudicated as adjudicated_check
 
@@ -33,20 +33,20 @@ def main() -> None:
     panel[1].legend(frameon=False, fontsize=6, loc="upper center", ncol=4,
                     columnspacing=0.8, handletextpad=0.3, borderpad=0.1)
 
-    # NEUTRAL, not the grader colours: on this canvas teal already means precision, and a bar
-    # that meant "metric" in one panel and "precision" in the next would make the page unreadable.
-    # The axis labels carry which grader is which, so colour has nothing left to say here.
+    # One ramp step for both bars. They are one series -- counts of informative pairs -- and the
+    # axis labels say which grader won each, so colour has nothing left to encode. It was grey,
+    # which read as this panel opting out of the palette.
     split = {"judge": mcnemar["favouring the judge"], "metric": mcnemar["favouring the metric"]}
-    panel[2].bar(range(2), [split["metric"], split["judge"]], width=BAR, color=NEUTRAL)
+    panel[2].bar(range(2), [split["metric"], split["judge"]], width=BAR, color=DATA)
     panel[2].set_xticks(range(2), ["metric was right", "judge was right"])
     panel[2].set_ylabel("informative pairs")
     panel[2].set_ylim(0, max(split.values()) * 1.35)
     panel[2].set_xlim(-0.7, 1.7)
     for position, value in enumerate([split["metric"], split["judge"]]):
         panel[2].annotate(f"{value}", (position, value), textcoords="offset points",
-                          xytext=(0, 3), ha="center", fontsize=6.5, color=NEUTRAL)
+                          xytext=(0, 3), ha="center", fontsize=6.5, color=DIM)
     note(panel[2], f"McNemar p = {mcnemar['p']:.1e}  ({mcnemar['informative pairs']} pairs)",
-         x=0.5, y=0.93, ha="center", colour=NEUTRAL)
+         x=0.5, y=0.93, ha="center", colour=DIM)
 
     save(figure, "fig3_graders")
 
