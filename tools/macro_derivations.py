@@ -82,6 +82,10 @@ DERIVATION = {
     "RouteMethanolysis": "Records whose solvent implies methanolysis.",
     "RouteOther": "Records whose solvent names no route, so no product is fixed.",
     "RouteNamedTotal": "The three named routes summed. With RouteOther it accounts for the corpus.",
+    "SelectivityCoverage": "Share of records reporting selectivity: the thinnest outcome field.",
+    "RouteRatio":
+        "Glycolysis records divided by hydrolysis plus methanolysis. The corpus is lopsided, "
+        "which is why the grader study was built on glycolysis.",
     "DistinctCatalysts":
         "Distinct catalyst strings. Large and long-tailed, which is what defeats a grader "
         "comparing catalysts by spelling.",

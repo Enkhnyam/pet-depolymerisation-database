@@ -15,6 +15,12 @@ missing every macro with a trailing comment, so 36 of them, including both numbe
 abstract, were never scanned -- it found \\textbf{0.935} typed into the agreement table two cells
 from \\MatrixEvaluableHigh{} reading the same grid, with the bold on the wrong maximum.
 
+Captions are scanned too, and that is new. They used to be exempt because tools/sync_captions.py
+generated them from the figure modules -- which meant a number in a caption could not go stale,
+and also meant the manuscript's own caption prose was overwritten on every build. The captions
+are hand-written now, so the same rule as the body applies to them: the words are the author's
+and the numbers are the checks'.
+
 What is deliberately not scanned: the preamble, where 15pt and 0.5\\textfloatsep are typography
 rather than claims; \\caption blocks, which sync_captions.py rewrites from the figures; and any
 number carrying a unit. What is scanned but excused is listed in REVIEWED below -- coincidences,
@@ -44,7 +50,6 @@ USE = re.compile(r"\\([A-Z][A-Za-z]*)")
 # defined the manuscript is quoting a number that no longer exists.
 LATEX = {"Large", "LARGE", "Huge", "HUGE", "Roman", "Alph", "AA", "LaTeX", "TeX", "S",
          "IfFileExists"}
-CAPTION = re.compile(r"\\caption\{")
 UNIT = re.compile(r"(pt|in|em|ex|cm|mm|\\textfloatsep|\\textwidth|\\columnwidth|\\linewidth)")
 # \@setfontsize{12pt}{14} is typography, and the RSC template's block of them sits *after*
 # \begin{document}, so body() cannot strip it as preamble. UNIT only looks forward, and the
@@ -87,32 +92,11 @@ REVIEWED = {
 }
 
 
-def strip_captions(text: str) -> str:
-    """Remove each \\caption{...} whole. A caption runs to its matching brace and contains plenty
-    of its own, so counting depth is the only way to find where it ends."""
-    out, position = [], 0
-    for match in CAPTION.finditer(text):
-        if match.start() < position:
-            continue
-        out.append(text[position:match.start()])
-        depth, index = 1, match.end()
-        while index < len(text) and depth:
-            if text[index] == "\\":
-                index += 2
-                continue
-            depth += (text[index] == "{") - (text[index] == "}")
-            index += 1
-        position = index
-    out.append(text[position:])
-    return " ".join(out)
-
-
 def body(text: str) -> str:
-    """The manuscript without its preamble, its comments, or its generated captions."""
+    """The manuscript without its preamble or its comments. Captions included."""
     start = text.find("\\begin{document}")
     text = text[start:] if start >= 0 else text
-    text = "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("%"))
-    return strip_captions(text)
+    return "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("%"))
 
 
 def informative(value: str) -> bool:
@@ -180,7 +164,6 @@ def main() -> None:
     result = compute()
     print(f"\n{len(result['defined'])} macros defined, body text of {len(PAPERS)} manuscripts "
           f"scanned")
-    print(f"  captions are not scanned: sync_captions.py rewrites them from the figures")
     print(f"  {len(result['excused'])} known coincidence(s) excused by name in REVIEWED")
 
     if result["broken"]:

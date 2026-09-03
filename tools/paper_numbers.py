@@ -134,6 +134,8 @@ def collect() -> tuple[dict, dict]:
         "IdentityPairs": f"{int(identity['pairs with both']):,}",
         "IdentityImpossible": f"{int(identity['yield above conversion']):,}",
         "ConversionCoverage": f"{ch['completeness']['conversion %'] * 100:.0f}",
+        "SelectivityCoverage": f"{ch['completeness']['selectivity %'] * 100:.0f}",
+        "RouteRatio": f"{routes['glycolysis'] / routes.reindex(ROUTES[1:]).sum():.1f}",
         # --- the curated benchmark -------------------------------------------
         "CuratedExperiments": f"{len(curated_rows):,}",
         "CuratedPapers": f"{curated_rows.doi.nunique():,}",

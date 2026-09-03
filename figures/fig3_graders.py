@@ -5,35 +5,10 @@ alone -- bars, then a scatter, then a dumbbell -- and the reader had to learn th
 follow one argument. All three are grouped bars now: same geometry, same measure colours, so the
 comparison a reader makes in the first panel is the comparison they make in the third.
 """
-from _style import BAR, NEUTRAL, canvas, caption, grouped_bars, note, save, sci
+from _style import BAR, NEUTRAL, canvas, grouped_bars, note, save, sci
 from curated import extractions as extractions_check
 from human import adjudicated as adjudicated_check
 
-CAPTION = r"""\textbf{Extraction quality, and the two graders against the chemists.}
-__BEST_MODEL__ scores highest of the three extractors on the curated papers (\textbf{a}, $F_1 =
-__BEST_F1__ \pm __BEST_SD__$) against __SECOND_MODEL__ at __SECOND_F1__, a gap of the same size as
-the spread between repeats of one model, so the ordering is not resolved by these data. All three are scored at
-__BENCH_SHOTS__ worked example, the setting the database ships, __BENCH_RUNS__; the score is the
-mean over them. The adjudication in \textbf{b} and \textbf{c} was run earlier, against a
-four-example benchmark extraction of the same model, so panel \textbf{a} and the adjudication
-describe the same two models at different prompt settings. Repeats matter here: runs of one model at identical settings, differing only in
-the model's nondeterminism, span $0.05$ in $F_1$, which is wider than the gap between two of these
-three models.
-
-Panels \textbf{b} and \textbf{c} report the adjudication of __RECORDS__ records by two chemists.
-Both graders flag more records than the chemists reject (\textbf{b}): of the metric's
-__METRIC_FLAGS__ flags, __METRIC_RIGHT__ were records a chemist also called wrong, a precision of
-__METRIC_PRECISION__, against __JUDGE_PRECISION__ for the judge on __JUDGE_FLAGS__ flags. Recall
-runs the other way, since the metric flags freely enough to catch everything the chemists
-rejected, so $F_1$ separates the two less than precision does. Agreement beyond chance is low for
-both ($\kappa = __METRIC_KAPPA__$ and $__JUDGE_KAPPA__$): neither grader substitutes for a chemist.
-
-The comparison between them is nonetheless clear (\textbf{c}). Of the __PAIRS__ records where
-exactly one grader matched the chemists, __FAVOUR_JUDGE__ favour the judge and __FAVOUR_METRIC__
-the metric ($p = __MCNEMAR_P__$, McNemar). Those pairs all come from the disagreement stratum,
-which was censused rather than sampled, so the comparison carries no sampling error. The recall
-figures beside it do: their intervals are wide because the accepted stratum was sampled,
-__SAMPLED__ records of it reviewed."""
 
 
 def main() -> None:
@@ -77,28 +52,6 @@ def main() -> None:
     records = int(audit["records"].shape[0])
     # the reviewed count, not the drawn one: two censused records moved into this stratum
     reviewed = int((audit["records"].stratum == "both accepted it").sum())
-    print("\n" + caption(
-        CAPTION,
-        records=records, sampled=reviewed,
-        bench_shots=int(scores["n_shots"].iloc[0]),
-        bench_runs=("over {} repeats each".format(int(scores["runs"].min()))
-                    if scores["runs"].nunique() == 1 and scores["runs"].min() > 1
-                    else "over {} to {} repeats per model".format(
-                        int(scores["runs"].min()), int(scores["runs"].max()))),
-        best_model=ranked.index[0], best_f1=f"{ranked.f1.iloc[0]:.3f}",
-        best_sd=f"{ranked['f1 sd'].iloc[0]:.3f}",
-        second_model=ranked.index[1], second_f1=f"{ranked.f1.iloc[1]:.3f}",
-        metric_flags=int(table.loc["metric", "flagged"]),
-        metric_right=int(table.loc["metric", "of those wrong"]),
-        metric_precision=f"{table.loc['metric', 'precision']:.2f}",
-        metric_kappa=f"{table.loc['metric', 'kappa']:.2f}",
-        judge_flags=int(table.loc["judge", "flagged"]),
-        judge_precision=f"{table.loc['judge', 'precision']:.2f}",
-        judge_kappa=f"{table.loc['judge', 'kappa']:.2f}",
-        pairs=mcnemar["informative pairs"],
-        favour_judge=mcnemar["favouring the judge"],
-        favour_metric=mcnemar["favouring the metric"],
-        mcnemar_p=sci(mcnemar["p"])))
 
 
 if __name__ == "__main__":
