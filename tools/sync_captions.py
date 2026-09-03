@@ -1,17 +1,21 @@
-"""Paste each figure's generated caption into paper.tex, replacing the one already there.
+"""Paste each figure's generated caption into the manuscript, replacing the one already there.
 
 The figure modules print a caption built from the same checks that draw the panels, so a number
-in a caption cannot drift from the number in the figure. That guarantee stopped at the clipboard:
-paper.tex held whatever caption was pasted the last time somebody remembered, and after the
-database was rebuilt it described a corpus of 451 papers under figures drawn from 1,026 --- median
-5 and "largest 75" against a panel running to 84, "527 distinct names" against 1,110.
+in a caption cannot drift from the number in the figure. That guarantee used to stop at the
+clipboard, and then it stopped somewhere worse: this file hard-coded the four figure names and
+the path `artifacts/figures/`, while the manuscript had moved to `artifacts/figures_pdf/`. Every
+name missed, so every figure was reported "absent" and the run still exited 0 -- a green check
+over a manuscript whose captions had never once been synced.
 
-This closes that gap, so the guarantee reaches the page.
+So neither the list nor the path is written down twice any more. The figures are whatever the
+manuscript \\includegraphics from core.paths.FIGURES, in the order it includes them, and a figure
+it asks for that has neither a module to draw it nor a PDF on disk is an error rather than a
+shrug.
 
 Captions are collapsed to one line: a blank line inside \\caption{} starts a paragraph, which
 LaTeX refuses in a float.
 
-    sync_captions.py            rewrite paper.tex
+    sync_captions.py            rewrite the manuscript
     sync_captions.py --check    report drift and change nothing (exit 1 if any)
 """
 import argparse
@@ -27,12 +31,18 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "figures"))
 sys.path.insert(0, str(ROOT / "checks"))
 
-FIGURES = ["fig1_database", "fig2_chemistry", "fig3_graders", "fig4_choices"]
+from core.paths import FIGURES
 
-# Both manuscripts get the same captions. paper_rsc.tex previously carried its own hand-written
-# ones in the "(a) the funnel; (b) records per paper" style, which described a panel layout two
-# revisions old -- eight panels for a figure that now has six.
-PAPERS = [ROOT / "paper.tex", ROOT / "paper_rsc.tex", ROOT / "paper_rsc_si.tex"]
+PAPERS = [ROOT / "paper_rsc.tex"]
+
+# The manuscript is the list. \includegraphics{artifacts/figures/fig2_chemistry.pdf} says both
+# that fig2_chemistry is a figure and where its PDF has to be; nothing else needs to say either.
+INCLUDE = re.compile(re.escape(f"{{{FIGURES.relative_to(ROOT)}/") + r"(\w+)\.pdf\}")
+
+
+def wanted(source: str) -> list[str]:
+    """Figure names the manuscript includes, in order, without repeats."""
+    return list(dict.fromkeys(INCLUDE.findall(source)))
 
 
 def generated(name: str) -> str:
@@ -46,10 +56,8 @@ def generated(name: str) -> str:
 
 
 def replace(source: str, name: str, caption: str) -> tuple[str, bool]:
-    """Swap the caption of the float that includes this figure. Absent figure, no change."""
-    anchor = source.find(f"{{artifacts/figures/{name}.pdf}}")
-    if anchor < 0:
-        return source, False
+    """Swap the caption of the float that includes this figure."""
+    anchor = source.find(f"{{{FIGURES.relative_to(ROOT)}/{name}.pdf}}")
     start = source.find("\\caption{", anchor)
     label = source.find("\\label{", anchor)
     if start < 0 or label < 0 or label < start:
@@ -67,9 +75,27 @@ def main() -> None:
                         help="report which captions are stale, write nothing")
     args = parser.parse_args()
 
+    names = list(dict.fromkeys(
+        name for paper in PAPERS if paper.exists()
+        for name in wanted(paper.read_text(encoding="utf-8"))))
+    if not names:
+        raise SystemExit(f"no \\includegraphics from {FIGURES.relative_to(ROOT)}/ in "
+                         f"{', '.join(p.name for p in PAPERS)} -- nothing to sync, which is "
+                         f"never what anyone wants")
+
+    # A figure with a module is generated and its caption is written from the same run. A figure
+    # without one is hand-drawn (the pipeline schematic); it only has to be on disk.
+    drawn = [n for n in names if (ROOT / "figures" / f"{n}.py").exists()]
+    static = [n for n in names if n not in drawn]
+    missing = [n for n in static if not (FIGURES / f"{n}.pdf").exists()]
+    if missing:
+        raise SystemExit(f"the manuscript includes {', '.join(missing)} with neither "
+                         f"figures/<name>.py to draw it nor {FIGURES.relative_to(ROOT)}/"
+                         f"<name>.pdf on disk")
+
     # generated once, pasted into every manuscript: running each figure twice would be slow and
     # could in principle differ, and the whole point is that they cannot
-    captions = {name: generated(name) for name in FIGURES}
+    captions = {name: generated(name) for name in drawn}
 
     total = 0
     for paper in PAPERS:
@@ -82,11 +108,10 @@ def main() -> None:
             if changed:
                 stale.append(name)
         print(f"{paper.name}")
-        for name in FIGURES:
-            state = ("updated" if name in stale
-                     else "absent" if f"{{artifacts/figures/{name}.pdf}}" not in source
-                     else "already current")
-            print(f"  {name:16s} {state}")
+        for name in drawn:
+            print(f"  {name:16s} {'updated' if name in stale else 'already current'}")
+        for name in static:
+            print(f"  {name:16s} hand-drawn, caption left alone")
         if stale and not args.check:
             paper.write_text(source, encoding="utf-8")
             print(f"  -> rewrote {paper.name} ({len(stale)} caption(s))")

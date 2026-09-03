@@ -8,6 +8,7 @@ ENV_FILE = ROOT / ".env"
 ARTIFACTS = ROOT / "artifacts"
 DATA_DIR = ARTIFACTS / "data"       # curated paper inputs (copyright)
 RUNS_DIR = ARTIFACTS / "runs"       # run bundles
+FIGURES = ARTIFACTS / "figures"     # figure PDFs, \includegraphics-ed by the manuscript
 
 PROMPTS_DIR = ROOT / "prompts"
 ABLATION_CONFIGS_DIR = ROOT / "configs" / "extract"

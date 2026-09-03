@@ -15,7 +15,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "checks"))          # checks import each other by bare name
-from core.paths import ARTIFACTS
+from core.paths import ARTIFACTS, FIGURES
 
 # ---------------------------------------------------------------------------------------------
 # One palette, five inks, used the same way in every figure.
@@ -199,7 +199,7 @@ def legend_above(figure, axis, labels_from=None):
 
 def save(figure, name: str, *, legend_room=False):
     figure.tight_layout(rect=(0, 0, 1, 0.955) if legend_room else None)
-    out = ARTIFACTS / "figures" / f"{name}.pdf"
+    out = FIGURES / f"{name}.pdf"
     out.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(out)
     plt.close(figure)
