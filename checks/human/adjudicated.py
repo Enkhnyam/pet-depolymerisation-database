@@ -24,12 +24,12 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.stats import beta, binomtest
+from scipy.stats import beta, binom, binomtest
 
-from _setup import ARTIFACTS, show, sources
-from human import significance, worklist
-from human.significance import power_at
+from _setup import ARTIFACTS, golden, show, sources
+from human import worklist
 
+ALPHA = 0.05
 CONFIDENCE = 0.95
 POWER_RATES = (0.60, 0.65, 0.70, 0.75, 0.80)
 DRAWS = 20_000
@@ -61,6 +61,26 @@ def interval(hits: float, total: float) -> tuple[float, float]:
     if total <= 0:
         return float("nan"), float("nan")
     return beta.interval(CONFIDENCE, hits + 0.5, max(total - hits, 0) + 0.5)
+
+
+def power_at(n: int, rate: float) -> float:
+    """Chance of reaching significance with n discordant pairs, if the judge is right `rate` of
+    the time. Sums the probability of every outcome whose two-sided test would reject.
+
+    Came from human/significance.py, which asked this of the 48-record round and concluded the
+    comparison was unanswerable. This round answered it, so the sizing argument is history and
+    only the two functions it left behind are still wanted.
+    """
+    return sum(binom.pmf(k, n, rate)
+               for k in range(n + 1) if binomtest(k, n).pvalue < ALPHA)
+
+
+def prior_pairs() -> int:
+    """Discordant pairs from the earlier randomly sampled round -- the number that made the case
+    for censusing disagreements instead of sampling."""
+    labelled = golden()
+    return int(((labelled.judge == labelled.human) & (labelled.metric != labelled.human)).sum()
+               + ((labelled.metric == labelled.human) & (labelled.judge != labelled.human)).sum())
 
 
 def decided_fresh(path: Path) -> int:
@@ -195,7 +215,7 @@ def compute(path: Path) -> dict:
     return {"table": table, "records": merged, "simulated": simulated, "path": path,
             "decided fresh": decided_fresh(path),
             "mcnemar": mcnemar, "power": power, "pool": payload_pool(path),
-            "prior_pairs": significance.prior_pairs()}
+            "prior_pairs": prior_pairs()}
 
 
 def main() -> None:

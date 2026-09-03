@@ -29,11 +29,8 @@ SCRIPTS = [
     "database/provenance.py",
 
     # the 48 records two chemists adjudicated, and what a second round would need
-    "human/labelled.py",
-    "human/significance.py",
     "human/growth.py",
     "human/worklist.py",
-    "human/precision.py",
     "human/adjudicated.py",
     "human/integrity.py",
 
