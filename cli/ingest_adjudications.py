@@ -37,7 +37,6 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "checks"))
 from core.utils import doi_to_filename
 from human import worklist

@@ -24,7 +24,6 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))          # tools/ importable
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root importable
 from core.paths import ARTIFACTS, RUNS_DIR, data_path
 from core.utils import doi_to_filename
 from _page import validate

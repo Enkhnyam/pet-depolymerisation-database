@@ -15,7 +15,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root importable
 from core.paths import ARTIFACTS, ROOT, RUNS_DIR, data_path
 from core.schema import Experiment, load_curated
 from core.evaluation import evaluate

@@ -10,7 +10,6 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from core.paths import RUNS_DIR
 from core import bundle
 from core.schema import Experiment, canonical_field

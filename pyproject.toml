@@ -1,21 +1,41 @@
 [project]
-name = "llm-as-a-judge-for-evaluating-document-extraction-capabilities-of-llms"
+name = "pet-depolymerisation-database"
 version = "0.1.0"
-description = "Add your description here"
+description = "A database of homogeneous catalytic PET depolymerisation experiments, extracted from the literature by an LLM and audited by a second one."
 readme = "README.md"
 requires-python = ">=3.14"
+
+# What the code actually imports. The previous list declared ipython, markdown-it-py, tenacity
+# and scikit-learn, none of which anything imports, and omitted openpyxl -- which was the
+# second most-imported third-party package in the repo after pandas -- along with rdkit, scipy,
+# pydantic, py2opsin and datasets. A fresh `uv sync` produced a clone that could not run its
+# own checks.
 dependencies = [
+    "datasets>=4.5.0",       # imported inside export_hf / quality / apply_fixes
     "docling>=2.110.0",
     "envyaml>=1.10.211231",
-    "ipython>=9.16.1",
     "litellm>=1.91.0",
-    "markdown-it-py>=4.2.0",
+    "lxml>=6.0.0",           # Elsevier full-text XML
     "matplotlib>=3.11.0",
     "numpy>=2.5.1",
     "openai>=2.44.0",
+    "openpyxl>=3.1.5",       # every .xlsx read and written
     "pandas>=3.0.3",
-    "scikit-learn>=1.9.0",
-    "tenacity>=9.1.4",
+    "py2opsin>=1.0.0",       # IUPAC name -> SMILES, for catalyst structures
+    "pyarrow>=25.0.0",       # not imported: pandas needs it as the parquet engine
+    "pydantic>=2.0",         # the extraction schema
+    "rdkit>=2026.3.5",
+    "scipy>=1.18.0",         # every t-test, ANOVA, Wilcoxon and binomial in checks/
+    "tqdm>=4.67.0",
     "wandb>=0.28.0",
     "weave>=0.53.1",
 ]
+
+# So `import core` works without every file pushing the repo root onto sys.path first.
+# Install with: uv pip install -e . --no-deps
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["core"]

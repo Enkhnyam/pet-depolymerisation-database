@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "checks"))          # checks import each other by bare name
 from core.paths import ARTIFACTS, FIGURES
 

@@ -1,5 +1,3 @@
-import sys, pathlib
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))  # repo root importable
 import argparse
 import json
 from pathlib import Path

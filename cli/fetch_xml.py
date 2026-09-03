@@ -3,7 +3,6 @@ so the whole corpus can be re-chunked without re-downloading anything."""
 import argparse, csv, sys, time
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
 from core.paths import data_path
 from cli.fetch_elsevier import credentials, request, QUOTA
 

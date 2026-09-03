@@ -23,7 +23,6 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
 
 from core.paths import ARTIFACTS
 from core.smiles import TIERS, canonical, cleaned, product_for, substrate, tier_of

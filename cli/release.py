@@ -22,7 +22,6 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
 from core.paths import ARTIFACTS, RUNS_DIR, data_path
 from core.schema import canonical_field
 from core.utils import doi_to_filename

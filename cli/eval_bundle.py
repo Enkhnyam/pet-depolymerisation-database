@@ -7,8 +7,6 @@ No API keys, no network. Requires only: numpy, scipy, pydantic.
 This is the reproducibility path — a reviewer runs this against the deposited
 data and confirms the numbers match the paper.
 """
-import sys, pathlib
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import json
 import sys
 import argparse
