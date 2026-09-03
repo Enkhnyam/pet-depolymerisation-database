@@ -225,6 +225,7 @@ def collect() -> tuple[dict, dict]:
         "ShotsBonferroni": f"{0.05 / shots_comparisons:.3f}",
         "ShotsSmallestPairwise": f"{shots_smallest_pairwise:.2f}",
         "WithinPaperRho": f"{within_lead['within']:.2f}",
+        "WithinPaperP": sci(within_lead['p']),
         # the pooled figure the within-paper one is contrasted against; the contrast is
         # the point, so both halves of it must come from the same computation
         "WithinPooledRho": f"{within_lead['pooled']:+.3f}",

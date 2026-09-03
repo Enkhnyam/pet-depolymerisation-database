@@ -24,7 +24,16 @@ from _setup import ARTIFACTS, ROOT, show, sources
 
 MACROS = ARTIFACTS / "paper_numbers.tex"
 PAPERS = ("paper.tex", "paper_rsc.tex")   # paper_rsc_si.tex is a copy; see below
-DEFINITION = re.compile(r"\\newcommand\{\\(\w+)\}\{(.+?)\}\s*$", re.M)
+# The released-dataset macros carry a trailing "  % derivation" comment, which the original
+# "\}\s*$" refused to match -- so all 36 of them counted as undefined, and \ReleaseRecords and
+# \ReleasePapers, the two numbers in the abstract, sat outside every guard in this file.
+DEFINITION = re.compile(r"\\newcommand\{\\(\w+)\}\{(.+?)\}(?:\s*%.*)?$", re.M)
+USE = re.compile(r"\\([A-Z][A-Za-z]*)")
+
+# LaTeX's own capitalised control sequences, which appear in the body and are not ours. Short
+# list on purpose: anything else matching \Capitalised is a paper macro, and if it is not
+# defined the manuscript is quoting a number that no longer exists.
+LATEX = {"Large", "LARGE", "Huge", "HUGE", "Roman", "Alph", "AA", "LaTeX", "TeX", "S"}
 CAPTION = re.compile(r"\\caption\{")
 UNIT = re.compile(r"(pt|in|em|ex|cm|mm|\\textfloatsep|\\textwidth|\\columnwidth|\\linewidth)")
 
@@ -110,21 +119,40 @@ def hits(text: str, value: str) -> list[str]:
     return found
 
 
+def undefined(text: str, defined: dict) -> list[str]:
+    """Macros the body uses that the macro file does not define.
+
+    This is the direction that actually breaks a manuscript, and it was the direction nobody
+    checked. The body cited \\AdjWithinRho and \\AdjWithinPositive for two revisions after the
+    check that computes them renamed both to WithinPaper*; LaTeX prints "Undefined control
+    sequence" into a log nobody reads and carries on.
+    """
+    return sorted({name for name in USE.findall(text)
+                   if name not in defined and name not in LATEX})
+
+
 def compute() -> dict:
     defined = dict(DEFINITION.findall(MACROS.read_text(encoding="utf-8")))
+    for extra in (ARTIFACTS / "paper_table_fields.tex", ARTIFACTS / "paper_table_matrix.tex"):
+        if extra.exists():
+            defined.update(DEFINITION.findall(extra.read_text(encoding="utf-8")))
+    broken = {}
     findings, excused = [], []
     for paper in PAPERS:
         path = ROOT / paper
         if not path.exists():
             continue
         text = body(path.read_text(encoding="utf-8"))
+        missing = undefined(text, defined)
+        if missing:
+            broken[paper] = missing
         for name, value in sorted(defined.items()):
             if not informative(value):
                 continue
             for context in hits(text, value):
                 row = {"paper": paper, "macro": f"\\{name}", "value": value, "context": context}
                 (excused if (name, value) in REVIEWED else findings).append(row)
-    return {"defined": defined, "findings": findings, "excused": excused}
+    return {"defined": defined, "findings": findings, "excused": excused, "broken": broken}
 
 
 def main() -> None:
@@ -134,6 +162,15 @@ def main() -> None:
           f"scanned")
     print(f"  captions are not scanned: sync_captions.py rewrites them from the figures")
     print(f"  {len(result['excused'])} known coincidence(s) excused by name in REVIEWED")
+
+    if result["broken"]:
+        for paper, names in result["broken"].items():
+            print(f"\n  {paper} uses macros nothing defines:")
+            for name in names:
+                print(f"    \\{name}")
+        print("\n  each of these prints \"Undefined control sequence\" and builds anyway.")
+        raise SystemExit(1)
+    print("  every macro the body uses is defined")
 
     findings = result["findings"]
     if not findings:
