@@ -39,25 +39,25 @@ def main() -> None:
             xlabel="conversion (%)", ylabel="yield (%)", xlim=(0, 100), ylim=(0, 100))
     panel[7].plot([0, 100], [0, 100], color=INK, lw=0.8, zorder=3)
 
-    # Panel i: our value against the hand-curated one for the same experiment in the same
-    # paper. Restricted to the records both datasets describe, which is the only comparison that
-    # says anything -- overlaying two whole datasets shows a large cloud containing a small one.
-    # No line of equality: with every point on it the line carried no information the points did
-    # not already carry.
-    parity = gao_overlap.compute()["parity"]
-    for field, colour, marker in (("conversion_percent", RAMP[3], "o"),
-                                  ("selectivity_percent", RAMP[2], "^"),
-                                  ("yield_percent", RAMP[0], "D")):
-        part = parity[parity.field == field]
-        cloud(panel[8], part.gao, part.ours, colour=colour, marker=marker, size=13,
-              edge="white", label=f"{field.split('_')[0]} ({len(part)})")
-    panel[8].set_xlim(-4, 104)
-    panel[8].set_ylim(-4, 104)
-    panel[8].set_aspect("equal")
-    panel[8].set_xlabel("hand-curated (%)")
-    panel[8].set_ylabel("extracted (%)")
-    panel[8].legend(fontsize=5.2, loc="upper left", handletextpad=0.2, borderpad=0.2,
-                    borderaxespad=0.3, labelspacing=0.28)
+    # Panel i: temperature against yield on the 19 papers we share with Gao et al.'s hand
+    # curation -- ours, the curated records that are also ours, and the curated records that are
+    # not. All three from the same papers, which is the only version of this comparison that
+    # says anything: our whole glycolysis corpus against their 19-paper set shows a large cloud
+    # containing a small one, and would look the same if we had extracted nothing from them.
+    # The curated-only points trace the loading sweeps a paper charts rather than tabulates.
+    space = gao_overlap.compute()["condition space"]
+    for name, colour, marker, size in (("ours", RAMP[3], "o", 12),
+                                       ("curated only", RAMP[2], "^", 11),
+                                       ("shared", RAMP[0], "D", 11)):
+        part = space[name]
+        cloud(panel[8], part.temperature_c, part.yield_percent, colour=colour, marker=marker,
+              size=size, edge="white", label=f"{name} ({len(part)})")
+    panel[8].set_xlim(100, 220)
+    panel[8].set_ylim(0, 100)
+    panel[8].set_xlabel("temperature (°C)")
+    panel[8].set_ylabel("yield (%)")
+    panel[8].legend(fontsize=5.0, loc="upper left", handletextpad=0.2, borderpad=0.2,
+                    borderaxespad=0.3, labelspacing=0.25)
 
     legend_above(figure, panel[0])
     save(figure, "fig2_chemistry")

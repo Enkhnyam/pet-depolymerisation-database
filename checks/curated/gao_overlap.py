@@ -133,6 +133,31 @@ def identical(frame: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).set_index("field")
 
 
+def condition_space(frame: pd.DataFrame) -> dict:
+    """Temperature against yield on the shared papers, in three sets.
+
+    All three come from the same 19 papers, which is the whole point: our full glycolysis corpus
+    against Gao's 19-paper set shows a large cloud containing a small one, and would look the
+    same if we had extracted nothing from their papers.
+
+      ours        every record we hold on those papers
+      shared      the curated records that are also in ours -- these land on top of ours
+      curated only  the rest of the curated set, which is mostly values read off a plotted
+                  curve. Those trace out the loading sweeps a paper charts rather than tabulates,
+                  which is what the difference between the two datasets looks like.
+    """
+    ours = frame[frame.category.isin(["both", "ours"])]
+    return {
+        "ours": ours[["ours_temperature_c", "ours_yield_percent"]].dropna()
+                    .set_axis(["temperature_c", "yield_percent"], axis=1),
+        "shared": frame[frame.category == "both"][["gao_temperature_c", "gao_yield_percent"]]
+                    .dropna().set_axis(["temperature_c", "yield_percent"], axis=1),
+        "curated only": frame[~frame.category.isin(["both", "ours"])]
+                    [["gao_temperature_c", "gao_yield_percent"]].dropna()
+                    .set_axis(["temperature_c", "yield_percent"], axis=1),
+    }
+
+
 def compute() -> dict:
     frame = records()
     papers = pd.read_csv(data_path(PAPERS))
@@ -147,6 +172,7 @@ def compute() -> dict:
         "split": split.reindex(REASONS).fillna(0).astype(int),
         "agreement": agreement(frame),
         "parity": parity(frame),
+        "condition space": condition_space(frame),
         "identical": identical(frame),
         "counts": {
             "Gao records": len(gao),
