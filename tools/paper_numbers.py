@@ -36,9 +36,10 @@ sys.path.insert(0, str(ROOT / "tools"))
 from core.paths import ARTIFACTS
 from macro_derivations import DERIVATION
 import _setup
-from curated import extractions, shots, source_tracking, thresholds
-from database import chemistry, corpus, provenance, verdicts
-from human import adjudicated, integrity, worklist
+import cost
+from curated import extractions, matrix, shots, source_tracking, thresholds
+from database import chemistry, corpus, provenance, verdicts, withinpaper
+from human import adjudicated, growth, integrity, worklist
 
 OUT = ARTIFACTS / "paper_numbers.tex"
 FIELD_TABLE = ARTIFACTS / "paper_table_fields.tex"
@@ -61,10 +62,20 @@ WORDS = {60: "Sixty", 65: "SixtyFive", 70: "Seventy", 75: "SeventyFive", 80: "Ei
 # way that \NR is not, and the point of this file is that a reader of the .tex can see where a
 # number came from.
 def collect() -> tuple[dict, dict]:
+    """Every quoted number, read off the checks. Nothing here computes.
+
+    It used to. This function carried twelve imports in its body -- `from curated import matrix
+    as _matrix`, `import cost as _cost`, `from scipy.stats import ttest_ind as _tt` -- and its
+    own pairwise t-tests, its own cost arithmetic, its own glob over every extraction file
+    (parsed twice per iteration), its own re-read of corpus_candidates.csv. Every one of those
+    was a second implementation of a question a check already owned, so the two could and did
+    drift: the shots pairwise count here was ten while shots.py printed fifteen.
+    """
     co, ch, ve, pr = corpus.compute(), chemistry.compute(), verdicts.compute(), provenance.compute()
     ex = extractions.arms()
     sh = shots.compute()
     contrast = shots.contrast(sh)
+    pairs_frame = shots.pairwise(sh)
     src = source_tracking.compute()
     sweeps = thresholds.compute()
     audit = adjudicated.compute(adjudicated.REAL)
@@ -74,38 +85,14 @@ def collect() -> tuple[dict, dict]:
     identity = ch["identity"]
     curated_rows = _setup.curated()
     integ = integrity.compute()
-    decided_fresh = _decided_fresh()
-    from curated import matrix as _matrix
-    mx = _matrix.compute()
+    mx = matrix.compute()
     mx_ship = mx[(mx.judge == "oss") & (mx.extraction == "luna")].iloc[0]
-    from curated import extractions as _ex
-    import cost as _cost
-    _runs, _ledger = _ex.runs(), _cost.compute().set_index("run")
-    def _arm_cost(model):
-        arm = _runs[(_runs.model == model) & (_runs.n_shots == int(ex.loc[model, "n_shots"]))]
-        vals = [_ledger.loc[k, "cost_usd"] for n in arm.run for k in _ledger.index if k.endswith("/" + n)]
-        return sum(vals) / len(vals) if vals else float("nan")
-    cost_luna, cost_terra = _arm_cost("luna"), _arm_cost("terra")
-    database_meta = json.loads((_setup.DATABASE / "run_meta.json").read_text())
-    from itertools import combinations as _comb
-    from scipy.stats import ttest_ind as _tt
-    _arms = [n for n in sorted(sh.n_shots.unique()) if n > 0]
-    _pairs = list(_comb(_arms, 2))
-    shots_comparisons = len(_pairs)
-    shots_smallest_pairwise = min(
-        _tt(sh.query("n_shots == @a").f1, sh.query("n_shots == @b").f1).pvalue
-        for a, b in _pairs)
-    from database import withinpaper
     within_lead = withinpaper.compute()["table"].loc["hotter gives more"]
-    import glob as _glob
-    from core.paths import data_path as _dp
-    largest_judged = max(
-        ((_dp("corpus_markdown") / (json.loads(open(f).read())["doi"].replace("/", "@").lower() + ".md")).stat().st_size // 4)
-        for f in _glob.glob(str(_setup.DATABASE / "extractions/*.json"))
-        if (_dp("corpus_markdown") / (json.loads(open(f).read())["doi"].replace("/", "@").lower() + ".md")).exists())
+    growth_rows = growth.compute()
     constraints_table = integ["constraints"]
-    growth_rows = growth_table()
-    database_shots = json.loads((_setup.DATABASE / "config.json").read_text())["harness_params"]["n_shots"]
+    database_meta = json.loads((_setup.DATABASE / "run_meta.json").read_text())
+    database_shots = json.loads(
+        (_setup.DATABASE / "config.json").read_text())["harness_params"]["n_shots"]
 
     values = {
         # --- the corpus ------------------------------------------------------
@@ -210,12 +197,12 @@ def collect() -> tuple[dict, dict]:
         "AdjAcceptedReviewed": f"{int((audit['records'].stratum == 'both accepted it').sum())}",
         "AdjAcceptedSampled": f"{int(((audit['records'].stratum == 'both accepted it') & (audit['records'].design_stratum == 'both accepted it')).sum())}",
         "AdjAcceptedMovedIn": f"{int(((audit['records'].stratum == 'both accepted it') & (audit['records'].design_stratum != 'both accepted it')).sum())}",
-        "AdjDecidedFresh": f"{decided_fresh}",
-        "AdjCarriedOver": f"{audit['records'].shape[0] - decided_fresh}",
+        "AdjDecidedFresh": f"{audit['decided fresh']}",
+        "AdjCarriedOver": f"{audit['records'].shape[0] - audit['decided fresh']}",
         "AdjDesignAccepted": f"{int((audit['records'].design_stratum == 'both accepted it').sum())}",
         "JudgeContextCap": "131{,}072",
         "JudgeOverContext": "0",
-        "LargestJudgedTokens": f"{largest_judged:,}",
+        "LargestJudgedTokens": f"{co['largest judged tokens']:,}",
         "FunnelDroppedPolymer": f"{abs(int(funnel['dropped, no polymer named'])):,}",
         "FunnelDroppedRoute": f"{abs(int(funnel['dropped, no depolymerisation route named'])):,}",
         "FunnelDroppedOffTopic": f"{abs(int(funnel['dropped, off-topic or a review'])):,}",
@@ -223,9 +210,9 @@ def collect() -> tuple[dict, dict]:
         "DatabaseCost": f"{database_meta['cost_usd']:.2f}",
         "FieldTopCount": f"{int(ve['fields'].iloc[0]):,}",
         "FieldSecondCount": f"{int(ve['fields'].iloc[1]):,}",
-        "ShotsComparisons": f"{shots_comparisons}",
-        "ShotsBonferroni": f"{0.05 / shots_comparisons:.3f}",
-        "ShotsSmallestPairwise": f"{shots_smallest_pairwise:.2f}",
+        "ShotsComparisons": f"{len(pairs_frame)}",
+        "ShotsBonferroni": f"{0.05 / len(pairs_frame):.3f}",
+        "ShotsSmallestPairwise": f"{pairs_frame.p.min():.2f}",
         "WithinPaperRho": f"{within_lead['within']:.2f}",
         "WithinPaperP": sci(within_lead['p']),
         # the pooled figure the within-paper one is contrasted against; the contrast is
@@ -236,8 +223,8 @@ def collect() -> tuple[dict, dict]:
         "GrowthAllAdded": f"{int(growth_rows['added'].iloc[2]):,}",
         "GrowthAllPrecision": f"{growth_rows['precision'].iloc[2]:.3f}",
         "GrowthAllFone": f"{growth_rows['f1'].iloc[2]:.3f}",
-        "CostLuna": f"{cost_luna:.2f}",
-        "CostTerra": f"{cost_terra:.2f}",
+        "CostLuna": f"{cost.arm_cost('luna', ex.loc['luna', 'n_shots']):.2f}",
+        "CostTerra": f"{cost.arm_cost('terra', ex.loc['terra', 'n_shots']):.2f}",
         "WithinPaperPapers": f"{int(within_lead['papers'])}",
         "WithinPaperPositive": f"{100 * within_lead['as predicted']:.0f}",
         "WithinPaperShare": f"{100 * int(within_lead['papers']) / int(co['extraction']['papers yielding records']):.0f}",
@@ -245,7 +232,7 @@ def collect() -> tuple[dict, dict]:
         "AdjDesignDisagree": f"{int((audit['records'].design_stratum == 'graders disagree').sum())}",
         "CorpusNotObtained": f"{int(funnel['passed the filter']) - int(funnel['converted to chunked text']):,}",
         "CorpusUnextracted": f"{int(funnel['converted to chunked text']) - int(funnel['extracted so far']):,}",
-        **{f"Corpus{tag}": f"{count:,}" for tag, count in obtained_by().items()},
+        **{f"Corpus{tag}": f"{count:,}" for tag, count in co["obtained by"].items()},
         # --- the integrity questions a referee asks first ---------------------
         "ExemplarPool": f"{integ['contamination']['worked-example pool']}",
         "ExemplarsInBenchmark": f"{integ['contamination']['examples that are also benchmark papers']}",
@@ -299,31 +286,6 @@ def write_field_table(fields) -> None:
         *body, "}", ""]), encoding="utf-8")
 
 
-def obtained_by() -> dict:
-    """How many of the converted papers came in by each route.
-
-    The manuscripts' funnel did not close: it listed 806 reachable under the publisher
-    entitlements and 582 by other means, summing to 1,388 against 1,027 actually retrieved, and
-    implied 187 out of reach where the text said 549. Counting the corpus itself instead of
-    reciting candidate pools makes the column add up.
-    """
-    import csv
-    from core.paths import data_path
-    kept = {row["doi"].lower() for row in
-            csv.DictReader(data_path("corpus_candidates.csv").open(encoding="utf-8"))
-            if row["keep"].lower() == "true"}
-    fmt = {row["doi"].lower(): row["format"] for row in
-           csv.DictReader(data_path("source_format.csv").open(encoding="utf-8"))}
-    converted = {path.stem.replace("@", "/").lower()
-                 for path in data_path("corpus_markdown").glob("*.md")}
-    tags = {"Elsevier XML": "ElsevierXml", "Europe PMC JATS": "EuropePmc", "PDF": "Pdf"}
-    counts = {name: 0 for name in tags.values()}
-    counts["OtherSource"] = 0
-    for doi in converted & kept:
-        counts[tags.get(fmt.get(doi), "OtherSource")] += 1
-    return counts
-
-
 def write_matrix_table() -> None:
     """The judge x extraction agreement grid, as rows.
 
@@ -344,32 +306,6 @@ def write_matrix_table() -> None:
     MATRIX_TABLE.write_text("\n".join([
         "% Generated by tools/paper_numbers.py -- do not edit.",
         "\\newcommand{\\MatrixTableRows}{%", *lines, "}", ""]), encoding="utf-8")
-
-
-def _decided_fresh() -> int:
-    """Verdicts decided in this round, as opposed to carried over from the rescue review."""
-    from core.paths import ARTIFACTS as _A
-    base = _A / "gold" / "decisions"
-    raw = {}
-    for who in ("karim", "mohammad"):
-        path = base / f"adjudication_{who}.json"
-        if not path.exists():
-            continue
-        for row in json.loads(path.read_text())["decisions"]:
-            raw.setdefault((row["doi"], row["extracted_index"]), {})[who] = bool(row.get("carried_over"))
-    fresh = 0
-    for row in json.loads((base / "adjudicated.json").read_text())["decisions"]:
-        key = (row["doi"], row["extracted_index"])
-        flags = [raw.get(key, {}).get(w) for w in (row.get("decided_by") or []) if w in raw.get(key, {})]
-        if not (flags and all(flags)):
-            fresh += 1
-    return fresh
-
-
-def growth_table():
-    """The answer-key growth rows, from the check that prints them."""
-    from human import growth
-    return growth.compute()
 
 
 def sci(value: float, digits: int = 0) -> str:

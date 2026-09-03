@@ -63,6 +63,31 @@ def interval(hits: float, total: float) -> tuple[float, float]:
     return beta.interval(CONFIDENCE, hits + 0.5, max(total - hits, 0) + 0.5)
 
 
+def decided_fresh(path: Path) -> int:
+    """Verdicts decided in this round, as against carried over from the rescue review.
+
+    tools/paper_numbers.py re-read all three decision files to work this out, beside a compute()
+    that had already read them. The distinction only exists in these files, so it belongs here.
+    """
+    base = path.parent
+    carried = {}
+    for who in ("karim", "mohammad"):
+        one = base / f"adjudication_{who}.json"
+        if not one.exists():
+            continue
+        for row in json.loads(one.read_text())["decisions"]:
+            carried.setdefault((row["doi"], row["extracted_index"]), {})[who] = bool(
+                row.get("carried_over"))
+
+    fresh = 0
+    for row in json.loads(path.read_text())["decisions"]:
+        seen = carried.get((row["doi"], row["extracted_index"]), {})
+        flags = [seen[who] for who in (row.get("decided_by") or []) if who in seen]
+        if not (flags and all(flags)):
+            fresh += 1
+    return fresh
+
+
 def compute(path: Path) -> dict:
     decisions, simulated = load(path)
     # cells() carries its own extracted_index from the curated matching, which is not the record
@@ -168,6 +193,7 @@ def compute(path: Path) -> dict:
     power = {rate: power_at(pairs, rate) for rate in POWER_RATES} if pairs else {}
 
     return {"table": table, "records": merged, "simulated": simulated, "path": path,
+            "decided fresh": decided_fresh(path),
             "mcnemar": mcnemar, "power": power, "pool": payload_pool(path),
             "prior_pairs": significance.prior_pairs()}
 

@@ -50,6 +50,22 @@ def contrast(frame: pd.DataFrame) -> dict:
     }
 
 
+def pairwise(frame: pd.DataFrame) -> pd.DataFrame:
+    """Every pair of arms that include at least one example, with its p.
+
+    The zero arm is a different question, answered by contrast(); mixing it in here is what
+    made two parts of the project disagree about how many comparisons were run. main() printed
+    all fifteen pairs over arms 0-5, while tools/paper_numbers.py computed ten over arms 1-5
+    with its own local copy of the t-test -- and the paper's Bonferroni threshold, 0.05/10, came
+    from the second. One definition, in the check that owns the ablation.
+    """
+    arms = [n for n in sorted(frame.n_shots.unique()) if n > 0]
+    return pd.DataFrame(
+        [{"a": a, "b": b, "p": float(ttest_ind(frame.query("n_shots == @a").f1,
+                                               frame.query("n_shots == @b").f1).pvalue)}
+         for a, b in combinations(arms, 2)]).set_index(["a", "b"])
+
+
 def compute() -> pd.DataFrame | None:
     """F1 per number of worked examples, or None if the sweep has not run."""
     rows = []
@@ -102,11 +118,10 @@ def main() -> None:
 
     detectable(frame)
 
-    show("every pair (p)", pd.DataFrame(
-        [{"a": a, "b": b, "p": ttest_ind(frame.query("n_shots == @a").f1,
-                                         frame.query("n_shots == @b").f1).pvalue}
-         for a, b in combinations(sorted(arms.index), 2)]).set_index(["a", "b"]),
-        fmt="{:.3f}")
+    pairs = pairwise(frame)
+    show("every pair of arms with at least one example (p)", pairs, fmt="{:.3f}")
+    print(f"\n  {len(pairs)} comparisons, so Bonferroni asks for p < {0.05 / len(pairs):.3f}; "
+          f"the smallest is {pairs.p.min():.2f}")
 
 
 if __name__ == "__main__":
