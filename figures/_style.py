@@ -148,6 +148,65 @@ def density(axis, frame, x, y, *, gridsize=26, xlabel="", ylabel="", xlim=None, 
     return axis
 
 
+def cloud(axis, x, y, *, colour, marker="o", size=7, label=None, edge=None, zorder=2):
+    """One set of points. Overlay two calls to compare two datasets on the same axes.
+
+    Solid fills, no opacity: alpha over alpha was where the colour audit found blends belonging
+    to no palette. Two sets separate by lightness and by marker instead, and the paler one is
+    drawn first so the darker overlay sits on top of it.
+    """
+    axis.scatter(x, y, s=size, marker=marker, color=colour, linewidths=0.3 if edge else 0,
+                 edgecolors=edge or "none", label=label, zorder=zorder)
+    return axis
+
+
+def pie(axis, series, *, colours, fmt="{:,.0f}", gap=0.26):
+    """A part-to-whole with the slices labelled outside, no legend.
+
+    A pie is the wrong mark for comparing magnitudes and the right one for showing that a set
+    decomposes: every curated record has exactly one reason and they sum to the whole.
+
+    Labels are pushed apart vertically before they are drawn. Three of these five slices are
+    under a tenth of the circle, so their natural label positions land on top of one another --
+    which is what the first draft did.
+    """
+    total = float(series.sum())
+    wedges, _ = axis.pie(series.values, colors=colours, startangle=90, counterclock=False,
+                         wedgeprops=dict(linewidth=0.6, edgecolor="white"))
+
+    placed = []
+    for wedge, (name, value) in zip(wedges, series.items()):
+        middle = np.deg2rad((wedge.theta1 + wedge.theta2) / 2)
+        placed.append({"name": name, "value": value,
+                       "x": np.cos(middle), "y": np.sin(middle),
+                       "right": np.cos(middle) >= 0})
+
+    # de-collide each side independently, working outward from the middle of the circle
+    for right in (True, False):
+        side = sorted((row for row in placed if row["right"] == right),
+                      key=lambda row: row["y"])
+        for lower, upper in zip(side, side[1:]):
+            if upper["y"] - lower["y"] < gap:
+                upper["y"] = lower["y"] + gap
+
+    for row in placed:
+        axis.annotate(f"{row['name']}  {fmt.format(row['value'])} "
+                      f"({row['value'] / total:.0%})",
+                      (1.05 * (1 if row["right"] else -1), row["y"]),
+                      ha="left" if row["right"] else "right", va="center",
+                      fontsize=5.2, color=INK,
+                      # a hairline from the label back to its own slice, since a pushed label
+                      # no longer points at the wedge it describes
+                      xytext=(1.28 * (1 if row["right"] else -1), row["y"]),
+                      textcoords="data",
+                      arrowprops=dict(arrowstyle="-", color=RULE, lw=0.5,
+                                      shrinkA=1, shrinkB=1))
+    axis.set_xlim(-3.4, 3.4)
+    axis.set_ylim(-1.45, 1.45)
+    axis.set_aspect("equal")
+    return axis
+
+
 def points(axis, frame, x, y, *, colour_by=None, palette=None, order=None, xlabel="", ylabel="",
            title=None, logx=False, logy=False, ylim=None, trend=False, legend=False):
     """A scatter, optionally split by a categorical column.
