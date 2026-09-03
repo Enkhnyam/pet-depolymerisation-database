@@ -20,6 +20,7 @@ LaTeX refuses in a float.
 """
 import argparse
 import io
+import os
 import re
 import runpy
 import sys
@@ -31,6 +32,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "figures"))
 sys.path.insert(0, str(ROOT / "checks"))
 
+import _style
 from core.paths import FIGURES
 
 PAPERS = [ROOT / "paper_rsc.tex"]
@@ -74,6 +76,8 @@ def main() -> None:
     parser.add_argument("--check", action="store_true",
                         help="report which captions are stale, write nothing")
     args = parser.parse_args()
+    if args.check:
+        os.environ["FIGURES_CHECK"] = "1"      # _style.save() compares instead of overwriting
 
     names = list(dict.fromkeys(
         name for paper in PAPERS if paper.exists()
@@ -118,9 +122,14 @@ def main() -> None:
         total += len(stale)
 
     if args.check:
-        print(f"\n{total} caption(s) differ from the figures" if total
-              else "\nevery caption matches its figure")
-        raise SystemExit(1 if total else 0)
+        # Running the modules redraws every figure, so we already know whether each PDF on disk
+        # matches what the checks say now. Reporting the captions and staying quiet about that
+        # was how "everything is current" came to sit over figures three days out of date.
+        for name in _style.STALE:
+            print(f"  {name:16s} PDF ON DISK IS STALE")
+        print(f"\n{total} caption(s) and {len(_style.STALE)} figure PDF(s) differ from the checks"
+              if total or _style.STALE else "\nevery caption and figure matches the checks")
+        raise SystemExit(1 if total or _style.STALE else 0)
     if not total:
         print("\nno manuscript needed changing")
 

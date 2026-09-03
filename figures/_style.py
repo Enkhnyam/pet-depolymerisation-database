@@ -3,6 +3,8 @@
 A figure module composes panels; it never computes. The numbers come from the check that prints
 them, so a panel and `scripts/checks.sh` cannot disagree.
 """
+import io
+import os
 import sys
 from pathlib import Path
 
@@ -197,13 +199,35 @@ def legend_above(figure, axis, labels_from=None):
                   handletextpad=0.25, columnspacing=1.4, bbox_to_anchor=(0.5, 1.02))
 
 
+# Figures a save() call found different from what was already on disk. matplotlib's PDF output
+# is byte-reproducible for identical input, so "the bytes changed" means "the data changed",
+# which is the only honest definition of a stale figure: scripts/paper.sh --check used to pass
+# over figure PDFs three days older than the macros beside them, because nothing compared them
+# to anything.
+STALE = []
+
+
 def save(figure, name: str, *, legend_room=False):
     figure.tight_layout(rect=(0, 0, 1, 0.955) if legend_room else None)
     out = FIGURES / f"{name}.pdf"
     out.parent.mkdir(parents=True, exist_ok=True)
-    figure.savefig(out)
+
+    buffer = io.BytesIO()
+    # CreationDate omitted, so identical data gives identical bytes across processes and
+    # "the bytes changed" keeps meaning "the data changed" rather than "the clock moved"
+    figure.savefig(buffer, format="pdf", metadata={"CreationDate": None})
     plt.close(figure)
-    print(f"wrote {out.relative_to(ROOT)}")
+    drawn = buffer.getvalue()
+
+    changed = not out.exists() or out.read_bytes() != drawn
+    if changed:
+        STALE.append(name)
+    # FIGURES_CHECK is how --check asks "would this differ?" without answering it by overwriting
+    checking = bool(os.environ.get("FIGURES_CHECK"))
+    if changed and not checking:
+        out.write_bytes(drawn)
+    verb = "stale" if changed and checking else "wrote" if changed else "unchanged"
+    print(f"{verb} {out.relative_to(ROOT)}")
     return out
 
 
