@@ -26,8 +26,9 @@ def run_config(config_path: str, stage: str, limit: int | None) -> None:
 def main():
     parser = argparse.ArgumentParser(prog="run")
     parser.add_argument("stage", choices=["extract", "eval", "parse", "all"], default="all")
-    parser.add_argument("--config", type=str, default="rwth_bundle_config.yaml",
-                        help="Single bundle config YAML")
+    parser.add_argument("--config", type=str,
+                        help="Single bundle config YAML. No default: the one this carried, "
+                             "rwth_bundle_config.yaml, has not existed for a long time.")
     parser.add_argument("--configs", type=str, nargs="+", default=None,
                         help="Multiple config YAMLs to run in sequence (overrides --config)")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of papers")
@@ -40,7 +41,10 @@ def main():
         return
 
     tracking.init_tracing()   # Weave call-tracing on for the whole process
-    for config_path in (args.configs or [args.config]):
+    chosen = args.configs or ([args.config] if args.config else [])
+    if not chosen:
+        parser.error("pass --config or --configs")
+    for config_path in chosen:
         run_config(config_path, args.stage, args.limit)
 
 

@@ -9,7 +9,7 @@ from core import tracking, sweep
 
 def main():
     parser = argparse.ArgumentParser(prog="ablation")
-    parser.add_argument("--config", default="openai_oss_120b.yaml", help="Config YAML in configs/extract/")
+    parser.add_argument("--config", required=True, help="Config YAML in configs/extract/")
     parser.add_argument("--shots", type=int, nargs="*", default=[0, 1, 2, 3, 4, 5, 6],
                         help="n_shots values to sweep; pass one value to hold shots fixed")
     parser.add_argument("--repeats", type=int, default=5, help="Repeats per n_shots value")

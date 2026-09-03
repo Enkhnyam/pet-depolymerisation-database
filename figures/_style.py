@@ -252,7 +252,7 @@ def histogram(axis, frame, column, *, bins=30, logx=False, xlabel="", ylabel="re
         axis.hist(data, bins=edges, stacked=True,
                   color=[(palette or {}).get(name, DIM) for name in groups], label=groups)
     else:
-        axis.hist(values, bins=edges, color=colour or REACHABLE)
+        axis.hist(values, bins=edges, color=colour or NEUTRAL)
 
     _finish(axis, xlabel or column, ylabel, logx=logx)
     return axis

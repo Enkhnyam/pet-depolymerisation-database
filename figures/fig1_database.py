@@ -12,10 +12,6 @@ from database import chemistry as chem
 from database import corpus as corpus_check
 from database import verdicts as verdicts_check
 
-# every panel but (b) counts something uncategorised, so only (b) spends colour, and the
-# route key above the canvas can only be read as belonging to it
-REACHABLE = NEUTRAL
-
 CAPTION = r"""\textbf{What the database contains, and where it is thin.}
 The corpus is shaped like the literature it came from: most papers report a handful of
 experiments and a few report dozens (\textbf{a}, median __MEDIAN__, largest __LARGEST__), and

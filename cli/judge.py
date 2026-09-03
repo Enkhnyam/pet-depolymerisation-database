@@ -10,8 +10,9 @@ from core import judge, tracking
 
 def main():
     parser = argparse.ArgumentParser(prog="judge")
-    parser.add_argument("--config", default="judge_configs/judge_mistral_v1.yaml",
-                        help="Judge config YAML")
+    parser.add_argument("--config", required=True,
+                        help="Judge config YAML under configs/judge/. No default: the one this "
+                             "carried named a directory that no longer exists.")
     parser.add_argument("--limit", type=int, default=None, help="Limit papers (debug)")
     parser.add_argument("--split", choices=["dev", "test"], default=None,
                         help="Judge only this half of gold/split.json (one call per paper)")
