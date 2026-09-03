@@ -49,7 +49,7 @@ def main() -> None:
     frame = result["records"]
     stack = dict(split="route", palette=ROUTE, order=ROUTES)
 
-    figure, panel = canvas(3, 3, width=9.4, height=7.6)
+    figure, panel = canvas(3, 3, height=5.73)
 
     histogram(panel[0], frame, "temperature_c", xlabel="temperature (°C)", **stack)
     histogram(panel[1], frame, "reaction_time_min", logx=True, ylabel="",

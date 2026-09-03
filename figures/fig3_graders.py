@@ -43,7 +43,7 @@ def main() -> None:
 
     ranked = scores.sort_values("f1", ascending=False)
 
-    figure, panel = canvas(1, 3, width=9.0, height=3.0)
+    figure, panel = canvas(1, 3, height=2.36)
 
     grouped_bars(panel[0], scores[["precision", "recall", "f1"]], ylabel="score")
     panel[0].set_ylim(0, 1.02)

@@ -32,6 +32,18 @@ from core.paths import ARTIFACTS, FIGURES
 # ---------------------------------------------------------------------------------------------
 CYCLE = ["#0E7C6B", "#C4527A", "#9A6510", "#4A6B8A"]     # teal, rose, amber, slate
 
+# Colour is not enough, and in this palette it is measurably not enough. Two pairs fail
+# colour-vision simulation (Machado 2009, CIE76): teal against rose at deuteranopia dE = 11.8,
+# which is GRADER and the first two of every categorical set, and rose against slate at
+# protanopia dE = 9.9, which is MEASURE recall against kappa. All four sit at L* 44-51, so in
+# black-and-white print they are one grey.
+#
+# So every category is encoded twice. These are indexed by position in CYCLE, and every named
+# set below is a zip over CYCLE, so one table serves all of them: a category's colour already
+# determines its hatch and its marker, and no primitive needs a second argument to say so.
+HATCH = ["", "///", "...", "xxx"]
+MARKER = ["o", "s", "^", "D"]
+
 ROUTE = dict(zip(["glycolysis", "hydrolysis", "methanolysis", "other/unclear"], CYCLE))
 ROUTES = ["glycolysis", "hydrolysis", "methanolysis"]
 
@@ -40,6 +52,13 @@ GRADER = dict(zip(["metric", "judge"], CYCLE))
 VERDICT = dict(zip(["accepted", "corrected", "dropped"], CYCLE))
 
 SEQUENTIAL = "BuGn"          # single hue, so heatmaps never compete with the categoricals
+
+# Placement. Every figure in this manuscript is a figure* at \textwidth, and \includegraphics
+# scales the PDF to fit -- so a figure drawn at 9.4 in arrives at 0.75 scale and its 6 pt tick
+# labels print at 4.5 pt, under the 5 pt floor. Draw at the printed width and scale is 1.0.
+# (Requires a4paper in the geometry call: letterpaper gives 7.32 in, which RSC does not typeset.)
+DOUBLE_COLUMN = 7.087        # 18.0 cm, \textwidth in the two-column layout
+SINGLE_COLUMN = 3.474        # 8.82 cm, \columnwidth
 
 INK, DIM, RULE, WARN = "#12201F", "#5D716E", "#D2DEDB", "#A33A2E"
 NEUTRAL = "#54696E"          # anything that encodes no category
@@ -62,11 +81,27 @@ plt.rcParams.update({
     "xtick.color": DIM, "ytick.color": DIM, "xtick.labelsize": 6, "ytick.labelsize": 6,
     "axes.spines.top": False, "axes.spines.right": False,
     "legend.frameon": False, "legend.fontsize": 6.5,
+    # fine enough that a hatch reads as texture rather than as a second fill colour at 7 pt
+    "hatch.linewidth": 0.35,
     "figure.facecolor": "white", "axes.facecolor": "white",
 })
 
 
-def canvas(rows: int, cols: int, width: float = 9.2, height: float = None):
+def redundant(colour):
+    """The hatch and marker that go with a palette colour.
+
+    Keyed on the colour itself rather than on a category name, so it works for ROUTE, MEASURE,
+    GRADER and VERDICT alike without any of them saying so. A colour that is not in CYCLE
+    encodes no category -- NEUTRAL, DIM, WARN -- and gets no second channel, which is correct.
+    """
+    try:
+        position = CYCLE.index(colour)
+    except ValueError:
+        return "", "o"
+    return HATCH[position], MARKER[position]
+
+
+def canvas(rows: int, cols: int, width: float = DOUBLE_COLUMN, height: float = None):
     """A multi-panel figure with the panel letters already placed."""
     figure, axes = plt.subplots(rows, cols, figsize=(width, height or width * rows / cols * 0.62))
     panels = list(axes.ravel()) if rows * cols > 1 else [axes]
@@ -105,8 +140,10 @@ def points(axis, frame, x, y, *, colour_by=None, palette=None, order=None, xlabe
         if logy:
             pair = pair[pair[y] > 0]
         if len(pair):
-            axis.scatter(pair[x], pair[y], s=13, alpha=0.45, linewidths=0,
-                         color=(palette or {}).get(name, "#0E7C6B"), label=name)
+            colour = (palette or {}).get(name, CYCLE[0])
+            _, marker = redundant(colour)
+            axis.scatter(pair[x], pair[y], s=13, alpha=0.45, linewidths=0, marker=marker,
+                         color=colour, label=name)
     if trend:
         _trend(axis, frame, x, y, logx)
     if legend:
@@ -141,12 +178,19 @@ def box(axis, frame, group, value, *, order=None, xlabel="", ylabel="", title=No
 def bars(axis, series, *, colour="#0E7C6B", horizontal=False, xlabel="", ylabel="", title=None,
          logx=False, annotate=False):
     """A bar chart from a Series, indexed by category."""
+    # one hatch per bar when the caller passed a palette colour per bar; a single colour for
+    # every bar encodes nothing, so it gets no hatch
+    hatches = [redundant(c)[0] for c in colour] if isinstance(colour, list) else None
+    edges = dict(edgecolor="white", linewidth=0.3) if hatches else {}
     if horizontal:
-        axis.barh(range(len(series))[::-1], series.values, color=colour, height=BAR)
+        patches = axis.barh(range(len(series))[::-1], series.values, color=colour, height=BAR,
+                            **edges)
         axis.set_yticks(range(len(series))[::-1], [str(i) for i in series.index])
     else:
-        axis.bar(range(len(series)), series.values, color=colour, width=BAR)
+        patches = axis.bar(range(len(series)), series.values, color=colour, width=BAR, **edges)
         axis.set_xticks(range(len(series)), [str(i) for i in series.index])
+    for patch, hatch in zip(patches, hatches or []):
+        patch.set_hatch(hatch)
     if annotate:
         for position, value in enumerate(series.values):
             axis.text(value, len(series) - 1 - position, f" {value:,.0f}", va="center", fontsize=5.5,
@@ -249,8 +293,13 @@ def histogram(axis, frame, column, *, bins=30, logx=False, xlabel="", ylabel="re
         data = [frame.loc[frame[split] == name, column].dropna() for name in groups]
         if logx:
             data = [d[d > 0] for d in data]
-        axis.hist(data, bins=edges, stacked=True,
-                  color=[(palette or {}).get(name, DIM) for name in groups], label=groups)
+        colours = [(palette or {}).get(name, DIM) for name in groups]
+        _, _, patches = axis.hist(data, bins=edges, stacked=True, color=colours, label=groups)
+        # hist() takes no per-dataset hatch, so it goes on afterwards, one dataset at a time
+        for colour, artists in zip(colours, patches if len(groups) > 1 else [patches]):
+            hatch, _ = redundant(colour)
+            for patch in artists:
+                patch.set(hatch=hatch, edgecolor="white", linewidth=0.3)
     else:
         axis.hist(values, bins=edges, color=colour or NEUTRAL)
 
@@ -282,8 +331,12 @@ def grouped_bars(axis, frame, *, xlabel="", ylabel="", palette=None, rotate=0, e
     width = GROUP / len(measures)
     for offset, measure in enumerate(measures):
         positions = [i + offset * width - GROUP / 2 + width / 2 for i in range(len(names))]
+        colour = (palette or {}).get(measure, CYCLE[offset % len(CYCLE)])
+        hatch, _ = redundant(colour)
+        # white hatch over the fill: it reads as texture in colour and as the only difference
+        # between the bars in greyscale, where all four fills are one L* 44-51 grey
         axis.bar(positions, frame[measure].values, width=width, label=str(measure),
-                 color=(palette or {}).get(measure, CYCLE[offset % len(CYCLE)]))
+                 color=colour, hatch=hatch, edgecolor="white", linewidth=0.3)
         if errors is not None and measure in errors:
             axis.errorbar(positions, frame[measure].values, yerr=errors[measure].values,
                           fmt="none", ecolor=INK, elinewidth=0.8, capsize=1.8, zorder=4)
@@ -363,3 +416,24 @@ def step_hist(axis, values, *, bins=30, colour=NEUTRAL, xlabel="", ylabel="recor
         edges = np.linspace(values.min(), values.max(), bins)
     axis.hist(values, bins=edges, histtype="step", lw=1.1, color=colour)
     _finish(axis, xlabel, ylabel)
+
+
+if __name__ == "__main__":
+    # The two pairs that fail colour-vision simulation must differ in their second channel too,
+    # or the redundancy is decorative. Named by colour, since that is what redundant() keys on.
+    teal, rose, amber, slate = CYCLE
+    for left, right, why in [(teal, rose, "deuteranopia dE 11.8: GRADER, and the first two of "
+                                         "ROUTE and MEASURE"),
+                             (rose, slate, "protanopia dE 9.9: MEASURE recall against kappa")]:
+        assert redundant(left) != redundant(right), why
+        assert redundant(left)[0] != redundant(right)[0], f"same hatch -- {why}"
+        assert redundant(left)[1] != redundant(right)[1], f"same marker -- {why}"
+    # all four distinct, so the panel survives greyscale where every fill is one L* 44-51 grey
+    assert len({redundant(c)[0] for c in CYCLE}) == len(CYCLE), "two categories share a hatch"
+    assert len({redundant(c)[1] for c in CYCLE}) == len(CYCLE), "two categories share a marker"
+    # anything that encodes no category gets no second channel
+    assert redundant(NEUTRAL) == ("", "o") and redundant(WARN) == ("", "o")
+    # and the figures are drawn at the width they are printed at, so nothing is scaled
+    assert canvas(1, 1)[0].get_figwidth() == DOUBLE_COLUMN
+    plt.close("all")
+    print("_style self-check ok")

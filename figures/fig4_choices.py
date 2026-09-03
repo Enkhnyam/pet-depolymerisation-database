@@ -60,7 +60,7 @@ gpt-oss is plotted at \$0.01 so it appears on a logarithmic axis."""
 
 
 def main() -> None:
-    figure, panel = canvas(2, 3, width=8.8, height=5.0)
+    figure, panel = canvas(2, 3, height=4.03)
 
     sweeps = thresholds_check.compute()
     for position, (name, frame) in enumerate(sweeps.items()):

@@ -67,7 +67,7 @@ def main() -> None:
     judged = verdicts_check.compute()
     funnel, counts = corpus["funnel"], judged["counts"]
 
-    figure, panel = canvas(2, 1, width=8.4, height=3.6)
+    figure, panel = canvas(2, 1, height=3.2)
     top, bottom = panel
 
     # --- a: the funnel, as three boxes narrowing left to right -------------------------------
