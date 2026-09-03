@@ -107,6 +107,20 @@ DERIVATION = {
     "GaoSi": "Gao records sitting in Supporting Information we do not hold.",
     "GaoRule": "Gao records from response-surface design tables our scope excludes.",
     "GaoWorstShare": "Agreement on the weakest field. Every other field is above it.",
+    "GaoParityPairs":
+        "Matched outcome values -- yield, conversion, selectivity -- with a number on both "
+        "sides. All three are percentages, so one parity axis serves them.",
+    "GaoParityAgree": "Of those, how many agree within GaoParitySlack percentage points.",
+    "GaoParitySlack":
+        "Percentage points of slack in that comparison. Absolute, not relative: these are all "
+        "percentages, and a relative tolerance calls 1% against 3% a disagreement.",
+    "GaoIdenticalConditions":
+        "Matched pairs whose temperature is byte-identical on both sides. Reaction time is the "
+        "same count.",
+    "GaoIdenticalPairs": "Matched pairs reporting temperature at all, the denominator for that.",
+    "GaoRuleOverruled":
+        "Records the automatic rule called our extraction's miss that a chemist reading the "
+        "paper reclassified as chart-read or out of scope. The shortfall is human-reduced.",
     "GaoReclassified": "Automatic reasons a chemist reading the paper overruled.",
     "WithinRoutePairs":
         "Route-relationship pairs whose median within-paper rho runs the way chemistry predicts. "

@@ -96,6 +96,43 @@ def canonical_name(name) -> str:
     return text.replace("(ac)", "(oac)").replace("ac", "oac").replace("ooac", "oac")
 
 
+# The three outcome fields share a 0-100 axis, so they can be compared on one parity panel
+# without normalising anything.
+OUTCOMES = ["yield_percent", "conversion_percent", "selectivity_percent"]
+PARITY_SLACK = 2.0     # percentage points; these are all percentages, so absolute, not relative
+
+
+def parity(frame: pd.DataFrame) -> pd.DataFrame:
+    """Gao's value beside ours for every matched record, long-form, one row per pair.
+
+    Only the records both datasets describe -- same paper, same experiment. An overlay of two
+    whole datasets is not this: our corpus holds 2,531 glycolysis records from 337 papers
+    against Gao's 364 from 19, and drawing those on one axis shows that a large cloud contains
+    a small one, which would be true even if we had extracted nothing from their papers.
+    """
+    both = frame[frame.category == "both"]
+    rows = []
+    for field in OUTCOMES:
+        pair = both[["doi", f"gao_{field}", f"ours_{field}"]].dropna()
+        for doi, theirs, mine in pair.itertuples(index=False):
+            rows.append({"field": field, "doi": doi, "gao": theirs, "ours": mine})
+    frame = pd.DataFrame(rows)
+    frame["agrees"] = (frame.gao - frame.ours).abs() <= PARITY_SLACK
+    return frame
+
+
+def identical(frame: pd.DataFrame) -> pd.DataFrame:
+    """Per field, how many matched pairs carry byte-identical values."""
+    both = frame[frame.category == "both"]
+    rows = []
+    for field in NUMERIC:
+        pair = both[[f"gao_{field}", f"ours_{field}"]].dropna()
+        same = int((pair.iloc[:, 0] == pair.iloc[:, 1]).sum())
+        rows.append({"field": field, "pairs": len(pair), "identical": same,
+                     "share": same / len(pair) if len(pair) else float("nan")})
+    return pd.DataFrame(rows).set_index("field")
+
+
 def compute() -> dict:
     frame = records()
     papers = pd.read_csv(data_path(PAPERS))
@@ -109,6 +146,8 @@ def compute() -> dict:
         "records": frame,
         "split": split.reindex(REASONS).fillna(0).astype(int),
         "agreement": agreement(frame),
+        "parity": parity(frame),
+        "identical": identical(frame),
         "counts": {
             "Gao records": len(gao),
             "Gao papers": int(gao.doi.nunique()),
@@ -121,8 +160,12 @@ def compute() -> dict:
         "true miss": int(split.get("missed", 0)),
         "true miss share": split.get("missed", 0) / len(gao),
         "chart share": split.get("chart", 0) / len(gao),
-        # how often the automatic rule needed a person to overrule it
+        # how often the automatic rule needed a person to overrule it, and in which direction:
+        # nine of the fourteen were the rule calling something our miss and a chemist deciding
+        # it was chart-read or a design table, so the shortfall is human-reduced not inflated
         "reclassified": int((gao.rule_said.notna() & (gao.rule_said != gao.category)).sum()),
+        "reclassified from missed": int(((gao.rule_said == "missed")
+                                         & (gao.category != "missed")).sum()),
     }
 
 
