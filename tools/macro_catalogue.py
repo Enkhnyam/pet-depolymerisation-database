@@ -101,6 +101,9 @@ CATALOGUE = {
  "WithinPaperRho": ("Chemistry", "database/withinpaper.py", MASS,
    "Median within-paper Spearman rho for temperature against yield. Positive, i.e. the expected "
    "chemistry, once each paper is compared only with itself."),
+ "WithinPaperP": ("Chemistry", "database/withinpaper.py", MASS,
+   "Wilcoxon signed-rank p for those within-paper correlations against zero. Was typed into the "
+   "body by hand as 7e-7 while the check had been returning it all along."),
  "WithinPaperPapers": ("Chemistry", "database/withinpaper.py", MASS, "Papers with enough records to compute that correlation."),
  "WithinPaperPositive": ("Chemistry", "database/withinpaper.py", MASS, "Share of those papers where the correlation runs the predicted way."),
  "WithinPaperShare": ("Chemistry", "database/withinpaper.py", MASS, "Those papers as a share of all yielding papers."),

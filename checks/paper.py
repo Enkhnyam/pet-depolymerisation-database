@@ -23,7 +23,7 @@ import pandas as pd
 from _setup import ARTIFACTS, ROOT, show, sources
 
 MACROS = ARTIFACTS / "paper_numbers.tex"
-PAPERS = ("paper.tex", "paper_rsc.tex")   # paper_rsc_si.tex is a copy; see below
+PAPERS = ("paper_rsc.tex",)   # paper.tex and paper_rsc_si.tex were deleted, not renamed
 # The released-dataset macros carry a trailing "  % derivation" comment, which the original
 # "\}\s*$" refused to match -- so all 36 of them counted as undefined, and \ReleaseRecords and
 # \ReleasePapers, the two numbers in the abstract, sat outside every guard in this file.
@@ -33,7 +33,8 @@ USE = re.compile(r"\\([A-Z][A-Za-z]*)")
 # LaTeX's own capitalised control sequences, which appear in the body and are not ours. Short
 # list on purpose: anything else matching \Capitalised is a paper macro, and if it is not
 # defined the manuscript is quoting a number that no longer exists.
-LATEX = {"Large", "LARGE", "Huge", "HUGE", "Roman", "Alph", "AA", "LaTeX", "TeX", "S"}
+LATEX = {"Large", "LARGE", "Huge", "HUGE", "Roman", "Alph", "AA", "LaTeX", "TeX", "S",
+         "IfFileExists"}
 CAPTION = re.compile(r"\\caption\{")
 UNIT = re.compile(r"(pt|in|em|ex|cm|mm|\\textfloatsep|\\textwidth|\\columnwidth|\\linewidth)")
 
