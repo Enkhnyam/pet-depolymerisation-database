@@ -5,10 +5,9 @@ alone -- bars, then a scatter, then a dumbbell -- and the reader had to learn th
 follow one argument. All three are grouped bars now: same geometry, same measure colours, so the
 comparison a reader makes in the first panel is the comparison they make in the third.
 """
-from _style import BAR, NEUTRAL, canvas, grouped_bars, note, save, sci
+from _style import BAR, NEUTRAL, SHADES, canvas, grouped_bars, note, save
 from curated import extractions as extractions_check
 from human import adjudicated as adjudicated_check
-
 
 
 def main() -> None:
@@ -16,18 +15,20 @@ def main() -> None:
     audit = adjudicated_check.compute(adjudicated_check.REAL)
     table, mcnemar = audit["table"], audit["mcnemar"]
 
-    ranked = scores.sort_values("f1", ascending=False)
 
     figure, panel = canvas(1, 3, height=2.36)
 
-    grouped_bars(panel[0], scores[["precision", "recall", "f1"]], ylabel="score")
+    measures = ["precision", "recall", "f1"]
+    grouped_bars(panel[0], scores[measures], ylabel="score",
+                 palette=dict(zip(measures, SHADES)))
     panel[0].set_ylim(0, 1.02)
     panel[0].legend(frameon=False, fontsize=6, loc="upper center", ncol=3,
                     columnspacing=1.0, handletextpad=0.4, borderpad=0.1)
 
     # the same geometry and the same measure colours as (a), so the two read as one comparison
     against = table[["precision", "recall", "F1", "kappa"]].rename(columns=str.lower)
-    grouped_bars(panel[1], against, ylabel="against the chemists")
+    grouped_bars(panel[1], against, ylabel="against the chemists",
+                 palette=dict(zip(against.columns, SHADES)))
     panel[1].set_ylim(0, 1.15)
     panel[1].legend(frameon=False, fontsize=6, loc="upper center", ncol=4,
                     columnspacing=0.8, handletextpad=0.3, borderpad=0.1)
@@ -48,10 +49,6 @@ def main() -> None:
          x=0.5, y=0.93, ha="center", colour=NEUTRAL)
 
     save(figure, "fig3_graders")
-
-    records = int(audit["records"].shape[0])
-    # the reviewed count, not the drawn one: two censused records moved into this stratum
-    reviewed = int((audit["records"].stratum == "both accepted it").sum())
 
 
 if __name__ == "__main__":

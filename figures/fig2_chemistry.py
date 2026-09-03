@@ -5,10 +5,9 @@ the question these panels answer is what the corpus contains, not how two variab
 The exceptions are the last two panels, where the relationship is the point.
 """
 from _style import (ROUTE, ROUTES, WARN, canvas, histogram, legend_above,
-                    paired_rho, points, save, sci)
+                    paired_rho, points, save)
 from database import chemistry as chem
 from database import withinpaper as within
-
 
 
 def main() -> None:
@@ -27,7 +26,6 @@ def main() -> None:
               xlabel="yield (%)", ylabel="", **stack)
     # from the check, not recounted: chemistry.py already publishes this and the two definitions
     # must not be allowed to drift apart
-    over = int(result["out of range"].loc["yield_percent", "above 100%"])
     histogram(panel[3], frame, "conversion_percent", xlabel="conversion (%)", **stack)
     histogram(panel[4], frame, "catalyst_amount_g", logx=True, xlabel="catalyst (g)",
               ylabel="", **stack)
@@ -44,9 +42,6 @@ def main() -> None:
 
     legend_above(figure, panel[0])
     save(figure, "fig2_chemistry")
-
-    identity = result["identity"]
-    lead = trends["table"].loc["hotter gives more"]
 
 
 if __name__ == "__main__":

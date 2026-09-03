@@ -20,38 +20,46 @@ from core.paths import ARTIFACTS, FIGURES
 from core.schema import OTHER_ROUTE, ROUTES
 
 # ---------------------------------------------------------------------------------------------
-# One palette, five inks, used the same way in every figure.
+# One palette, and one rule for when colour is allowed to mean anything.
 #
-# Colour is spent only where it encodes something. A panel that counts one thing is drawn in
-# NEUTRAL; colour appears when, and only when, a second variable is being shown. That is why most
-# panels in this paper are grey: most of them are one series.
+# The previous scheme had four categorical sets -- ROUTE, MEASURE, GRADER, VERDICT -- all slices
+# of one four-colour cycle. Teal meant glycolysis in one figure, precision in the next and the
+# metric grader in a third, and every panel that happened to count one thing was grey. Across a
+# page that reads as colour arriving and leaving for no reason the reader can learn.
 #
-# The categorical sets below are slices of the same ordered CYCLE, so the first category of any
-# set is always teal, the second always rose, and a reader who has learned one figure has learned
-# them all. Two sets never share a canvas -- routes belong to the chemistry figures, measures and
-# graders to the quality ones -- so no colour carries two meanings on one page.
+# So colour encodes exactly one variable in this manuscript:
+#
+#   ROUTE       the depolymerisation route, the one category a chemistry reader tracks between
+#               figures. Teal is glycolysis everywhere, rose hydrolysis, amber methanolysis.
+#   INK         everything not split by route. A panel counting one thing is one ink.
+#   WARN        one meaning only: a value that is physically impossible, or a known defect.
+#               Not "the other series", not "the reference line".
+#   SHADES      several measures of the same quantity -- precision, recall, F1, kappa -- as one
+#               hue at four lightnesses. A family, not four categories, which is what they are.
+#               Never on the same canvas as ROUTE.
+#
+# Position separates within a panel; colour separates between panels. That ordering is
+# Cleveland's and it is also why most panels here need no colour at all.
 # ---------------------------------------------------------------------------------------------
-CYCLE = ["#0E7C6B", "#C4527A", "#9A6510", "#4A6B8A"]     # teal, rose, amber, slate
+INK, DIM, RULE, WARN = "#12201F", "#5D716E", "#D2DEDB", "#A33A2E"
+NEUTRAL = "#54696E"          # the one ink for anything that encodes no category
+GUIDE = "#C9D6D3"            # connectors, frontiers, reference lines that are not data
 
-# Colour is not enough, and in this palette it is measurably not enough. Two pairs fail
-# colour-vision simulation (Machado 2009, CIE76): teal against rose at deuteranopia dE = 11.8,
-# which is GRADER and the first two of every categorical set, and rose against slate at
-# protanopia dE = 9.9, which is MEASURE recall against kappa. All four sit at L* 44-51, so in
-# black-and-white print they are one grey.
-#
-# So every category is encoded twice. These are indexed by position in CYCLE, and every named
-# set below is a zip over CYCLE, so one table serves all of them: a category's colour already
-# determines its hatch and its marker, and no primitive needs a second argument to say so.
+CYCLE = ["#0E7C6B", "#C4527A", "#9A6510"]     # teal, rose, amber -- routes, in the field's order
+ROUTE = dict(zip(ROUTES, CYCLE)) | {OTHER_ROUTE: NEUTRAL}
+
+# One hue, four lightnesses, dark to light. Ordered on purpose: a reader who cannot tell the
+# middle two apart still sees which end of the family a bar sits at.
+SHADES = ["#0B5F52", "#2E8577", "#68AFA3", "#A8D2CA"]
+
+# Colour is not enough, and in this palette it is measurably not enough. Teal against rose fails
+# deuteranopia simulation at dE = 11.8 (Machado 2009, CIE76), and the SHADES ramp collapses
+# toward one grey in black-and-white print. So every category is encoded twice, keyed on position
+# in whichever ordered list it came from.
 HATCH = ["", "///", "...", "xxx"]
 MARKER = ["o", "s", "^", "D"]
 
-ROUTE = dict(zip([*ROUTES, OTHER_ROUTE], CYCLE))
-
-MEASURE = dict(zip(["precision", "recall", "f1", "kappa"], CYCLE))
-GRADER = dict(zip(["metric", "judge"], CYCLE))
-VERDICT = dict(zip(["accepted", "corrected", "dropped"], CYCLE))
-
-SEQUENTIAL = "BuGn"          # single hue, so heatmaps never compete with the categoricals
+SEQUENTIAL = "BuGn"          # single hue, so a heatmap never competes with the route colours
 
 # Placement. Every figure in this manuscript is a figure* at \textwidth, and \includegraphics
 # scales the PDF to fit -- so a figure drawn at 9.4 in arrives at 0.75 scale and its 6 pt tick
@@ -94,11 +102,11 @@ def redundant(colour):
     GRADER and VERDICT alike without any of them saying so. A colour that is not in CYCLE
     encodes no category -- NEUTRAL, DIM, WARN -- and gets no second channel, which is correct.
     """
-    try:
-        position = CYCLE.index(colour)
-    except ValueError:
-        return "", "o"
-    return HATCH[position], MARKER[position]
+    for ordered in (CYCLE, SHADES):
+        if colour in ordered:
+            position = ordered.index(colour)
+            return HATCH[position], MARKER[position]
+    return "", "o"
 
 
 def canvas(rows: int, cols: int, width: float = DOUBLE_COLUMN, height: float = None):
@@ -360,12 +368,14 @@ def paired_rho(axis, table, curves, *, xlabel="Spearman rho", labels=None):
     for position, name in enumerate(rows):
         rhos = curves[name].values
         jitter = np.random.default_rng(0).uniform(-0.13, 0.13, len(rhos))
+        # NEUTRAL, not a route colour: these dots pool all three routes, so colouring them
+        # glycolysis-teal claimed a split the panel does not make
         axis.scatter(rhos, position + jitter, s=5, alpha=0.45, linewidths=0,
-                     color=ROUTE["glycolysis"], zorder=2)
+                     color=NEUTRAL, zorder=2)
         axis.scatter([np.median(rhos)], [position], marker="D", s=22, zorder=4,
-                     color=ROUTE["glycolysis"], edgecolors="white", linewidths=0.7)
+                     color=NEUTRAL, edgecolors="white", linewidths=0.7)
         axis.scatter([table.loc[name, "pooled"]], [position], marker="|", s=90, zorder=5,
-                     color=WARN, linewidths=1.6)
+                     color=INK, linewidths=1.6)
     axis.set_yticks(range(len(rows)))
     axis.set_yticklabels(labels or rows, fontsize=6)
     axis.set_xlim(-1.05, 1.05)
@@ -383,30 +393,45 @@ def sci(value: float, digits: int = 0) -> str:
     return f"{mantissa}\\times10^{{{int(exponent)}}}"
 
 
-def lollipop(axis, series, *, colour=NEUTRAL, xlabel="", ylabel="", annotate=False, xmax=None):
-    """A ranked category as a stem and a dot, read top to bottom.
+def ranked_bars(axis, series, *, colour=None, accent=None, xlabel="", fmt="{:,.0f}",
+                axis_off=True):
+    """A ranked horizontal bar per category, largest at the top, value on the bar end.
 
-    A bar chart spends a rectangle of ink on a value that one dot already fixes, and eleven of
-    them in a row read as a wall. The stem carries the comparison, the dot carries the value, and
-    the panel stops competing with the ones beside it.
+    Replaces a lollipop -- a stem and a dot -- which is the right mark for a distribution of
+    ranges and the wrong one for a magnitude. Three of six panels in Figure 1 were lollipops and
+    the page read as rows of faint lines.
+
+    `accent` colours the largest bar alone, for the panels where one category dominates and that
+    is the finding. The x axis is dropped by default: the bar ends carry the numbers, so an axis
+    would be a second copy of them.
     """
-    positions = range(len(series))[::-1]
-    axis.hlines(list(positions), 0, series.values, color=colour, lw=1.0, alpha=0.55)
-    axis.plot(series.values, list(positions), "o", ms=3.6, color=colour, lw=0)
+    series = series.sort_values()
+    colour = colour or NEUTRAL
+    colours = [colour] * len(series)
+    if accent is not None and len(series):
+        colours[-1] = accent
+    positions = range(len(series))
+    axis.barh(list(positions), series.values, color=colours, height=0.62)
     axis.set_yticks(list(positions), [str(name) for name in series.index])
-    if xmax is not None:
-        # a little past the maximum: "catalyst" is reported in 100% of records, and an axis that
-        # stopped at 100 cut that dot in half against the spine
-        axis.set_xlim(0, xmax * 1.04)
-    if annotate:
-        for position, value in zip(positions, series.values):
-            axis.annotate(f"{value:,.0f}", (value, position), textcoords="offset points",
-                          xytext=(5, 0), fontsize=5.5, color=DIM, va="center")
-    _finish(axis, xlabel, ylabel)
+    span = float(series.max()) if len(series) and series.max() else 1.0
+    for position, value in zip(positions, series.values):
+        axis.annotate(fmt.format(value), (value, position), textcoords="offset points",
+                      xytext=(3, 0), fontsize=5.4, color=DIM, va="center")
+    axis.set_xlim(0, span * 1.22)
+    if axis_off:
+        axis.set_xticks([])
+        axis.spines["bottom"].set_visible(False)
+    _finish(axis, xlabel, "")
+    return axis
 
 
-def step_hist(axis, values, *, bins=30, colour=NEUTRAL, xlabel="", ylabel="records", logx=False):
-    """A distribution as an outline rather than a block of bars."""
+def step_hist(axis, values, *, bins=30, colour=NEUTRAL, xlabel="", ylabel="records", logx=False,
+              logy=False):
+    """A distribution as an outline rather than a block of bars.
+
+    `logy` for the heavily skewed counts: papers-per-record peaks at one and runs to 84, and on a
+    linear axis that panel was a single spike with nine tenths of it empty.
+    """
     values = pd.Series(values).dropna()
     if logx:
         values = values[values > 0]
@@ -415,25 +440,31 @@ def step_hist(axis, values, *, bins=30, colour=NEUTRAL, xlabel="", ylabel="recor
     else:
         edges = np.linspace(values.min(), values.max(), bins)
     axis.hist(values, bins=edges, histtype="step", lw=1.1, color=colour)
+    if logy:
+        axis.set_yscale("log")
     _finish(axis, xlabel, ylabel)
 
 
 if __name__ == "__main__":
-    # The two pairs that fail colour-vision simulation must differ in their second channel too,
-    # or the redundancy is decorative. Named by colour, since that is what redundant() keys on.
-    teal, rose, amber, slate = CYCLE
-    for left, right, why in [(teal, rose, "deuteranopia dE 11.8: GRADER, and the first two of "
-                                         "ROUTE and MEASURE"),
-                             (rose, slate, "protanopia dE 9.9: MEASURE recall against kappa")]:
-        assert redundant(left) != redundant(right), why
-        assert redundant(left)[0] != redundant(right)[0], f"same hatch -- {why}"
-        assert redundant(left)[1] != redundant(right)[1], f"same marker -- {why}"
-    # all four distinct, so the panel survives greyscale where every fill is one L* 44-51 grey
-    assert len({redundant(c)[0] for c in CYCLE}) == len(CYCLE), "two categories share a hatch"
-    assert len({redundant(c)[1] for c in CYCLE}) == len(CYCLE), "two categories share a marker"
+    # The palette rule, asserted rather than described. If a future edit reintroduces a second
+    # categorical set, or gives two routes the same hatch, this fails.
+    glycolysis, hydrolysis, methanolysis = CYCLE
+    assert list(ROUTE) == [*ROUTES, OTHER_ROUTE], "ROUTE must follow core.schema's route order"
+    assert ROUTE[OTHER_ROUTE] == NEUTRAL, "an unassigned route is not a category"
+
+    # teal against rose fails deuteranopia simulation, so route must differ in a second channel
+    for left, right in ((glycolysis, hydrolysis), (hydrolysis, methanolysis),
+                        (glycolysis, methanolysis)):
+        assert redundant(left)[0] != redundant(right)[0], "two routes share a hatch"
+        assert redundant(left)[1] != redundant(right)[1], "two routes share a marker"
+    # and the measure family collapses toward one grey in print, so the same applies to it
+    assert len({redundant(c)[0] for c in SHADES}) == len(SHADES), "two measures share a hatch"
+
     # anything that encodes no category gets no second channel
-    assert redundant(NEUTRAL) == ("", "o") and redundant(WARN) == ("", "o")
-    # and the figures are drawn at the width they are printed at, so nothing is scaled
+    for name, colour in (("NEUTRAL", NEUTRAL), ("WARN", WARN), ("DIM", DIM), ("GUIDE", GUIDE)):
+        assert redundant(colour) == ("", "o"), f"{name} is not a category and must not look like one"
+
+    # the figures are drawn at the width they are printed at, so nothing is scaled
     assert canvas(1, 1)[0].get_figwidth() == DOUBLE_COLUMN
     plt.close("all")
     print("_style self-check ok")
