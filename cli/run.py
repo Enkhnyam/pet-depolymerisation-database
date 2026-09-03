@@ -4,7 +4,7 @@ import litellm
 from envyaml import EnvYAML
 
 from core.paths import ROOT, ENV_FILE, output_root
-from core import extraction, evaluation, parse, tracking
+from core import extraction, evaluation, parse
 
 
 def track_cost(kwargs, completion_response, start_time, end_time):
@@ -40,7 +40,6 @@ def main():
         parse.run(args.src, args.dest)
         return
 
-    tracking.init_tracing()   # Weave call-tracing on for the whole process
     chosen = args.configs or ([args.config] if args.config else [])
     if not chosen:
         parser.error("pass --config or --configs")

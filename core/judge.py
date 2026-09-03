@@ -10,14 +10,13 @@ import re
 from pathlib import Path
 from typing import Literal
 
-import weave
 import litellm
 from tqdm import tqdm
 
 from pydantic import BaseModel, Field, ValidationError
 
 from .utils import filename_to_doi, doi_to_filename
-from . import bundle, tracking
+from . import bundle
 from .paths import prompt_path, data_path, RUNS_DIR
 
 
@@ -70,7 +69,6 @@ def construct_messages(rubric: str, full_text: str, records: list[dict]) -> list
                         f"extracted records below.\n\n{numbered}"}]
 
 
-@weave.op(postprocess_output=lambda out: {"n": len(out[0].verdicts) if out and out[0] else 0})
 def cost(resp) -> float:
     try:
         return float(litellm.completion_cost(completion_response=resp) or 0.0)
@@ -209,4 +207,3 @@ def run(env: dict, run_dir: Path, limit: int | None = None,
         print(f"  {len(failures)} paper(s) failed and were skipped; rerun to retry just those:")
         for doi, why in failures[:10]:
             print(f"    {doi}: {why}")
-    tracking.log_bundle(run_dir, stage="judge")

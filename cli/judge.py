@@ -5,7 +5,7 @@ from pathlib import Path
 from envyaml import EnvYAML
 
 from core.paths import ROOT, ENV_FILE, ARTIFACTS, output_root
-from core import judge, tracking
+from core import judge
 
 
 def main():
@@ -25,7 +25,6 @@ def main():
     if args.split:
         dois = set(json.loads((ARTIFACTS / "gold" / "split.json").read_text())[args.split])
 
-    tracking.init_tracing()
     judge.run(env, run_dir, limit=args.limit, dois=dois)
 
 

@@ -14,3 +14,4 @@ __pycache__/
 *.bbl
 *.blg
 paper_rsc.pdf
+wandb/

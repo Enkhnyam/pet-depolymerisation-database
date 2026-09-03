@@ -241,7 +241,6 @@ def evaluate(curated_by_doi: dict[str, list[Experiment]],
     return result, labels
 
 def run(env, run_dir: Path) -> None:
-    from . import tracking   # lazy: keeps the metric importable without weave (for the deposit)
     ev = env["harness_params"]["evaluation"]
     # The scoring reference is deliberately separate from harness_params.curated_data_path, which
     # names the source of the few-shot examples. Scoring always uses the current curated table.
@@ -264,4 +263,3 @@ def run(env, run_dir: Path) -> None:
     print(f"eval -> P={result['precision']:.3f} R={result['recall']:.3f} "
           f"F1={result['f1']:.3f}  (TP={result['tp']} FP={result['fp']} FN={result['fn']})")
 
-    tracking.log_bundle(run_dir, stage="eval")

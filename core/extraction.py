@@ -5,7 +5,6 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-import weave
 import litellm
 from tqdm import tqdm
 
@@ -13,7 +12,7 @@ from pydantic import ValidationError
 
 from .schema import ExtractionResponse, ExtractionResponseNoSource
 from .utils import filename_to_doi, doi_to_filename
-from . import bundle, tracking
+from . import bundle
 from .paths import prompt_path, data_path
 from .licensing import licensable_dois
 
@@ -29,7 +28,6 @@ def _cost(resp) -> float:
 REQUEST_TIMEOUT = 600     # seconds; slower than this is stuck, not working
 
 
-@weave.op(postprocess_output=lambda out: {"records": out[0] if out else []})
 def run_llm(llm_params: dict, messages, response_model=ExtractionResponse, **kwargs):
     """Call the model and parse its JSON into records"""
     # The RWTH endpoint caps *concurrent* requests (429 too_many_concurrent_requests) rather than
@@ -77,7 +75,6 @@ def run_llm(llm_params: dict, messages, response_model=ExtractionResponse, **kwa
 def read_prompt(harness_params: dict) -> str:
     return prompt_path(harness_params.get("prompt_file", "prompt.txt")).read_text(encoding="utf-8")
 
-@weave.op()
 def construct_prompt(harness_params: dict, target_doi: str) -> list[dict]:
     n_shots = harness_params["n_shots"]
     prompt = read_prompt(harness_params)
@@ -231,4 +228,3 @@ def run(env: dict, run_dir: Path, limit: int | None = None) -> None:
     if meta["parse_failed_papers"]:
         print(f"  note: {meta['parse_failed_papers']}/{meta['n_papers']} papers returned "
               f"unparseable output (0 records); see raw/*.json 'response_content'.")
-    tracking.log_bundle(run_dir, stage="extract")

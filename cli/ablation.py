@@ -4,7 +4,7 @@ import copy
 import litellm
 
 from core.paths import ABLATION_CONFIGS_DIR, output_root
-from core import tracking, sweep
+from core import sweep
 
 
 def main():
@@ -22,7 +22,6 @@ def main():
     base = sweep.load_config(ABLATION_CONFIGS_DIR / args.config)
     prefix = args.prefix or base["run_name"]
     litellm.success_callback = base["success_callback"]
-    tracking.init_tracing()
 
     conditions = [(n, r) for n in args.shots for r in range(1, args.repeats + 1)]
     # With a single --shots value the sweep is over repeats alone, which is how the

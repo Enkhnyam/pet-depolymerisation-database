@@ -6,7 +6,8 @@ readme = "README.md"
 requires-python = ">=3.14"
 
 # What the code actually imports. The previous list declared ipython, tenacity, scikit-learn and
-# openai, none of which anything imports, and omitted openpyxl -- which was the
+# openai, none of which anything imports; weave and wandb went with the tracing they served.
+# It omitted openpyxl -- which was the
 # second most-imported third-party package in the repo after pandas -- along with rdkit, scipy,
 # pydantic, py2opsin and datasets. A fresh `uv sync` produced a clone that could not run its
 # own checks.
@@ -27,8 +28,6 @@ dependencies = [
     "rdkit>=2026.3.5",
     "scipy>=1.18.0",         # every t-test, ANOVA, Wilcoxon and binomial in checks/
     "tqdm>=4.67.0",
-    "wandb>=0.28.0",
-    "weave>=0.53.1",
 ]
 
 # So `import core` works without every file pushing the repo root onto sys.path first.
