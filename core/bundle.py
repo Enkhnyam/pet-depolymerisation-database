@@ -25,7 +25,11 @@ def unpack_config(env) -> dict:
     NOTE: api_key is deliberately dropped so it never lands in a bundle.
     """
     llm_params = {k: v for k, v in dict(env["llm_params"]).items() if k != "api_key"}
-    harness_params = {k: v for k, v in dict(env["harness_params"]).items() if k != "prompt_file"}
+    # prompt_file stays in. It used to be stripped alongside api_key, which meant a run bundle
+    # recorded every setting except which prompt produced it -- and the prompt version files in
+    # prompts/ were the only remaining record of that, kept by hand beside a git repository.
+    # A different prompt is a different run, so it belongs in the hash.
+    harness_params = dict(env["harness_params"])
     return {
         "run_name": env["run_name"],
         "llm_params": llm_params,
