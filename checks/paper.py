@@ -46,6 +46,10 @@ LATEX = {"Large", "LARGE", "Huge", "HUGE", "Roman", "Alph", "AA", "LaTeX", "TeX"
          "IfFileExists"}
 CAPTION = re.compile(r"\\caption\{")
 UNIT = re.compile(r"(pt|in|em|ex|cm|mm|\\textfloatsep|\\textwidth|\\columnwidth|\\linewidth)")
+# \@setfontsize{12pt}{14} is typography, and the RSC template's block of them sits *after*
+# \begin{document}, so body() cannot strip it as preamble. UNIT only looks forward, and the
+# second argument of a setfontsize call is followed by a brace rather than a unit.
+TYPOGRAPHY = re.compile(r"@setfontsize|\\the\\|setlength")
 
 # Macro values that also appear as unrelated constants. Each is a real coincidence, not a number
 # anyone should have written as a macro.
@@ -77,6 +81,9 @@ REVIEWED = {
     ("GrowthVouchedExperiments", "338"): "also the count of Wiley papers we cannot read",
     ("WithinPaperPositive", "85"): "the judge's 85% agreement with human assessment, in the abstract",
     ("CuratedOverlapPapers", "11"): "the 11 papers excluded as reviews without protocols",
+    ("WithinRoutePairs", "11"): "also the 11 papers excluded as reviews without protocols",
+    ("GaoMissed", "12"): "the schema's 12 fields per record",
+    ("WithinRouteTotal", "12"): "the schema's 12 fields per record",
 }
 
 
@@ -124,7 +131,10 @@ def hits(text: str, value: str) -> list[str]:
         tail = text[match.end():match.end() + 14]
         if UNIT.match(tail.lstrip()):
             continue                                    # 15pt, 0.5\textfloatsep: typography
-        found.append(" ".join(text[max(0, match.start() - 60):match.end() + 45].split()))
+        context = text[max(0, match.start() - 60):match.end() + 45]
+        if TYPOGRAPHY.search(context):
+            continue                                    # a font-size declaration, not a claim
+        found.append(" ".join(context.split()))
     return found
 
 

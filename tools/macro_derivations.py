@@ -91,6 +91,23 @@ DERIVATION = {
     "IdentityPairs": "Records reporting both yield and conversion, so the identity can be tested.",
     "IdentityImpossible":
         "Of those, records with yield above conversion. An identity, not a correlation.",
+    "GaoRecords": "Experiments Gao et al. curated by hand from the ionic-liquid glycolysis literature.",
+    "GaoPapers": "Papers those came from, identified from Gao's short labels by hand.",
+    "GaoShared": "Experiments both datasets describe, so agreement can be measured on them.",
+    "GaoOursOnly": "Tabulated experiments we hold on those papers that the hand curation does not.",
+    "GaoMissed": "Gao records tabulated in text the model read and did not pick up. The real extraction shortfall.",
+    "GaoMissedShare": "Those as a share of Gao's set.",
+    "GaoChartShare":
+        "Share of Gao's set read off a plotted curve rather than a table. Our prompt instructs "
+        "the model to read tables and ignore figures, so this gap is a scope decision.",
+    "GaoSi": "Gao records sitting in Supporting Information we do not hold.",
+    "GaoRule": "Gao records from response-surface design tables our scope excludes.",
+    "GaoWorstShare": "Agreement on the weakest field. Every other field is above it.",
+    "GaoReclassified": "Automatic reasons a chemist reading the paper overruled.",
+    "WithinRoutePairs":
+        "Route-relationship pairs whose median within-paper rho runs the way chemistry predicts. "
+        "Strictly: an exactly-zero median counts for neither side.",
+    "WithinRouteTotal": "Route-relationship pairs tested: four relationships in each of three routes.",
     "WithinPaperRho":
         "Median within-paper Spearman rho for temperature against yield. Positive, i.e. the "
         "expected chemistry, once each paper is compared only with itself.",

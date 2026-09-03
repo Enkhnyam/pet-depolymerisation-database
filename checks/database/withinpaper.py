@@ -25,6 +25,7 @@ import pandas as pd
 from scipy.stats import wilcoxon
 
 from _setup import DATABASE, records, show, sources
+from core.schema import ROUTES
 from database.chemistry import compute as chemistry
 
 # Below five runs a rank correlation is mostly noise; below three distinct values on either axis
@@ -54,6 +55,36 @@ def per_paper(frame: pd.DataFrame, x: str, y: str) -> pd.Series:
         if pd.notna(rho):
             found[doi] = rho
     return pd.Series(found, dtype=float)
+
+
+def by_route(frame: pd.DataFrame | None = None) -> dict:
+    """The same test, run inside each route separately.
+
+    The pooled version answers "does the chemistry appear at all". This answers the question a
+    referee actually asks about a corpus benchmarked on glycolysis alone: does it appear in
+    hydrolysis and methanolysis too, where no external dataset exists to check against. Same
+    relationships, same thresholds, no external reference -- so it is the only leg of the
+    quality argument that reaches all three routes.
+    """
+    frame = chemistry()["records"] if frame is None else frame
+    found = {}
+    for route in ROUTES:
+        part = frame[frame.route == route]
+        rows, curves = [], {}
+        for x, y, expectation, sign in PAIRS:
+            rhos = per_paper(part, x, y)
+            curves[expectation] = rhos
+            rows.append({
+                "relationship": expectation,
+                "expected": "+" if sign > 0 else "-",
+                "papers": len(rhos),
+                "within": rhos.median() if len(rhos) else float("nan"),
+                "as predicted": float((np.sign(rhos) == sign).mean()) if len(rhos) else float("nan"),
+                "p": wilcoxon(rhos).pvalue if len(rhos) > 8 else float("nan"),
+            })
+        found[route] = {"table": pd.DataFrame(rows).set_index("relationship"),
+                        "per paper": curves}
+    return found
 
 
 def compute() -> dict:

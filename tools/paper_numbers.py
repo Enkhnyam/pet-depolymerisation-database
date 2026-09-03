@@ -33,10 +33,11 @@ sys.path.insert(0, str(ROOT / "checks"))
 sys.path.insert(0, str(ROOT / "tools"))
 
 from core.paths import ARTIFACTS
+from core.schema import ROUTES
 from macro_derivations import DERIVATION
 import _setup
 import cost
-from curated import extractions, matrix, shots, source_tracking, thresholds
+from curated import extractions, gao_overlap, matrix, shots, source_tracking, thresholds
 from database import chemistry, corpus, provenance, verdicts, withinpaper
 from human import adjudicated, growth, integrity, worklist
 
@@ -93,6 +94,8 @@ def collect() -> tuple[dict, dict]:
     mx_ship = mx[(mx.judge == "oss") & (mx.extraction == "luna")].iloc[0]
     within_lead = withinpaper.compute()["table"].loc["hotter gives more"]
     growth_rows = growth.compute()
+    gao = gao_overlap.compute()
+    route_trends = withinpaper.by_route()
     constraints_table = integ["constraints"]
     database_meta = json.loads((_setup.DATABASE / "run_meta.json").read_text())
     database_shots = json.loads(
@@ -217,6 +220,20 @@ def collect() -> tuple[dict, dict]:
         "ShotsComparisons": f"{len(pairs_frame)}",
         "ShotsBonferroni": f"{0.05 / len(pairs_frame):.3f}",
         "ShotsSmallestPairwise": f"{pairs_frame.p.min():.2f}",
+        # --- the comparison against hand curation, and the test that outlives it -----------
+        "GaoRecords": f"{sum(gao['split']):,}",
+        "GaoPapers": f"{gao['counts']['Gao papers']}",
+        "GaoShared": f"{gao['counts']['shared records']}",
+        "GaoOursOnly": f"{gao['counts']['ours alone']}",
+        "GaoMissed": f"{gao['split']['missed']}",
+        "GaoMissedShare": f"{gao['true miss share'] * 100:.0f}",
+        "GaoChartShare": f"{gao['chart share'] * 100:.0f}",
+        "GaoSi": f"{gao['split']['si']}",
+        "GaoRule": f"{gao['split']['rule']}",
+        "GaoWorstShare": f"{gao['agreement'].share.min() * 100:.0f}",
+        "GaoReclassified": f"{gao['reclassified']}",
+        "WithinRoutePairs": f"{_route_pairs(route_trends)}",
+        "WithinRouteTotal": f"{len(withinpaper.PAIRS) * len(ROUTES)}",
         "WithinPaperRho": f"{within_lead['within']:.2f}",
         "WithinPaperP": sci(within_lead['p']),
         # the pooled figure the within-paper one is contrasted against; the contrast is
@@ -268,6 +285,20 @@ def collect() -> tuple[dict, dict]:
         "adjudication": adjudicated.REAL,
     }
     return values, runs
+
+
+def _route_pairs(routes: dict) -> int:
+    """Route-relationship pairs whose median within-paper rho runs the way chemistry predicts.
+
+    Strictly: a median of exactly zero is on neither side. Reaction time against temperature in
+    hydrolysis is exactly zero, and an == comparison counted it as agreeing -- which would have
+    put "12 of 12" in the manuscript.
+    """
+    agreeing = 0
+    for route, found in routes.items():
+        for name, row in found["table"].iterrows():
+            agreeing += row["within"] > 0 if row["expected"] == "+" else row["within"] < 0
+    return int(agreeing)
 
 
 def write_field_table(fields) -> None:

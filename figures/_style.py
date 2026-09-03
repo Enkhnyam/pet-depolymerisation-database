@@ -17,6 +17,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "checks"))          # checks import each other by bare name
 from core.paths import ARTIFACTS, FIGURES
+from core.schema import OTHER_ROUTE, ROUTES
 
 # ---------------------------------------------------------------------------------------------
 # One palette, five inks, used the same way in every figure.
@@ -44,8 +45,7 @@ CYCLE = ["#0E7C6B", "#C4527A", "#9A6510", "#4A6B8A"]     # teal, rose, amber, sl
 HATCH = ["", "///", "...", "xxx"]
 MARKER = ["o", "s", "^", "D"]
 
-ROUTE = dict(zip(["glycolysis", "hydrolysis", "methanolysis", "other/unclear"], CYCLE))
-ROUTES = ["glycolysis", "hydrolysis", "methanolysis"]
+ROUTE = dict(zip([*ROUTES, OTHER_ROUTE], CYCLE))
 
 MEASURE = dict(zip(["precision", "recall", "f1", "kappa"], CYCLE))
 GRADER = dict(zip(["metric", "judge"], CYCLE))

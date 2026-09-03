@@ -109,6 +109,9 @@ ROUTE_FROM_SOLVENT = [
     ("hydrolysis", r"water|aqueous|\bnaoh\b|\bkoh\b|h2so4|h3po4|acid solution|steam"),
 ]
 OTHER_ROUTE = "other/unclear"
+# The three routes the schema covers, in the order this literature lists them. The names are
+# chemistry and belong here; their colours are presentation and stay in figures/_style.py.
+ROUTES = ["glycolysis", "hydrolysis", "methanolysis"]
 
 
 def route_of(solvent) -> str:
