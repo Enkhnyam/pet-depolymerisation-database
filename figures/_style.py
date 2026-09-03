@@ -207,7 +207,7 @@ def pie(axis, series, *, colours, fmt="{:,.0f}", gap=0.26):
     return axis
 
 
-def contours(axis, sets, *, enclose=(0.9, 0.5), grid=110, xlim=None, ylim=None,
+def contours(axis, sets, *, enclose=(0.9,), grid=110, xlim=None, ylim=None,
              xlabel="", ylabel=""):
     """Two 2-D distributions as smoothed density contours, so their overlap is the mark.
 
@@ -216,13 +216,17 @@ def contours(axis, sets, *, enclose=(0.9, 0.5), grid=110, xlim=None, ylim=None,
     x values pile onto the round temperatures experimenters actually choose, which turns a
     scatter into columns.
 
-    `sets` is an ordered {label: (x, y)} mapping. The first is drawn as filled bands and the
+    `sets` is an ordered {label: (x, y)} mapping. The first is drawn as a filled region and the
     rest as outlines over it, which is what makes containment readable: an outline sitting
     inside a fill means the second dataset explores no region the first does not.
 
     Levels enclose a stated fraction of each dataset's own points, not a fraction of its peak
-    density, so "the 90% band" means the same thing for both however differently they are
-    spread.
+    density, so "the 90% region" means the same thing for both however differently they are
+    spread. One level by default: two nested bands per set put four boundaries in a panel whose
+    only job is to show that two shapes sit on top of each other.
+
+    No legend is drawn. The caller labels the shapes directly -- with two of them there is
+    nothing a legend adds except a box and some eye travel.
     """
     from scipy.stats import gaussian_kde
 
@@ -240,12 +244,10 @@ def contours(axis, sets, *, enclose=(0.9, 0.5), grid=110, xlim=None, ylim=None,
         levels = sorted(np.percentile(at_points, 100 * (1 - share)) for share in enclose)
         if position == 0:
             axis.contourf(mesh_x, mesh_y, surface, levels=[*levels, surface.max()],
-                          colors=[RAMP[4], RAMP[3]], zorder=1)
-            axis.plot([], [], marker="s", lw=0, ms=4, color=RAMP[3], label=label)
+                          colors=[RAMP[3]] * len(levels), zorder=1)
         else:
             axis.contour(mesh_x, mesh_y, surface, levels=levels, colors=[RAMP[0]],
-                         linewidths=(0.7, 1.2), zorder=3)
-            axis.plot([], [], lw=1.2, color=RAMP[0], label=label)
+                         linewidths=1.3, zorder=3)
 
     axis.set_xlim(*xlim)
     axis.set_ylim(*ylim)

@@ -4,8 +4,8 @@ Distributions rather than scatters: with five thousand records the scatters were
 the question these panels answer is what the corpus contains, not how two variables trade off.
 The exceptions are the last two panels, where the relationship is the point.
 """
-from _style import (INK, ROUTE, ROUTES, canvas, contours, density, histogram,
-                    legend_above, save)
+from _style import (DIM, INK, RAMP, ROUTE, ROUTES, canvas, contours, density,
+                    histogram, legend_above, save)
 from curated import gao_overlap
 from database import chemistry as chem
 
@@ -39,19 +39,24 @@ def main() -> None:
             xlabel="conversion (%)", ylabel="yield (%)", xlim=(0, 100), ylim=(0, 100))
     panel[7].plot([0, 100], [0, 100], color=INK, lw=0.8, zorder=3)
 
-    # Panel i: do our extracted conditions and hand curation cover the same ground? Contours,
-    # not dots. Temperature piles onto the round values experimenters choose -- 150, 160, 180,
-    # 190, 200 -- so a scatter of the two sets came out as columns of overlapping marks and the
-    # overlap, which is the whole claim, was the one thing it did not show. Bands enclose 90%
-    # and 50% of each set's own points, so the hand curation's outline lying inside ours means
-    # it explores no region we do not.
+    # Panel i: do our extracted conditions and hand curation cover the same ground? One filled
+    # region and one outline, each enclosing 90% of its own experiments, labelled on the shape
+    # rather than in a legend. Contours and not dots because temperature piles onto the round
+    # values experimenters choose -- 150, 160, 180, 190, 200 -- so a scatter of the two sets came
+    # out as columns of marks and hid the overlap, which is the only thing the panel is for.
     space = gao_overlap.compute()["condition space"]
     contours(panel[8], {name: (part.temperature_c, part.yield_percent)
                         for name, part in space.items()},
              xlim=(110, 215), ylim=(0, 100),
              xlabel="temperature (°C)", ylabel="yield (%)")
-    panel[8].legend(fontsize=5.2, loc="lower left", handletextpad=0.4, borderpad=0.25,
-                    borderaxespad=0.3, labelspacing=0.3)
+    # top left, in the colour of the mark each names. Nothing in the corpus runs below about
+    # 160 C at these yields, so that corner is free at every height
+    panel[8].annotate("this work", (0.03, 0.93), xycoords="axes fraction", fontsize=6,
+                      color=RAMP[2], fontweight="bold")
+    panel[8].annotate("hand-curated", (0.03, 0.845), xycoords="axes fraction", fontsize=6,
+                      color=RAMP[0], fontweight="bold")
+    panel[8].annotate("90% of each set", (0.03, 0.765), xycoords="axes fraction", fontsize=5.2,
+                      color=DIM)
 
     legend_above(figure, panel[0])
     save(figure, "fig2_chemistry")
