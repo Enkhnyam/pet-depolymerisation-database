@@ -207,52 +207,55 @@ def pie(axis, series, *, colours, fmt="{:,.0f}", gap=0.26):
     return axis
 
 
-def contours(axis, sets, *, enclose=(0.9,), grid=110, xlim=None, ylim=None,
-             xlabel="", ylabel=""):
-    """Two 2-D distributions as smoothed density contours, so their overlap is the mark.
+def overlap(axis, first, second, *, enclose=0.9, grid=220, xlim, ylim, pad=0.10):
+    """Where two 2-D distributions sit, and where they sit on top of each other.
 
-    A scatter of two datasets answers "where is each point"; the question here is "do these two
-    cover the same region", and several hundred dots answer that badly -- especially when the
-    x values pile onto the round temperatures experimenters actually choose, which turns a
-    scatter into columns.
+    Both sets get a filled region -- an earlier version gave the first a blob and the second an
+    outline, which made two symmetric datasets look like a measurement and a reference. Two
+    opaque fills cannot overlap, and opacity would blend two palette colours into a third that
+    is in no palette, so the overlap is drawn as its own region instead: three solid colours,
+    "only the first", "only the second", and "both".
 
-    `sets` is an ordered {label: (x, y)} mapping. The first is drawn as a filled region and the
-    rest as outlines over it, which is what makes containment readable: an outline sitting
-    inside a fill means the second dataset explores no region the first does not.
+    Each region is the smallest area enclosing `enclose` of that set's own observations, taken
+    from the kernel density evaluated at the real points rather than from a share of peak
+    density, so the same fraction means the same thing for both however differently they spread.
 
-    Levels enclose a stated fraction of each dataset's own points, not a fraction of its peak
-    density, so "the 90% region" means the same thing for both however differently they are
-    spread. One level by default: two nested bands per set put four boundaries in a panel whose
-    only job is to show that two shapes sit on top of each other.
-
-    No legend is drawn. The caller labels the shapes directly -- with two of them there is
-    nothing a legend adds except a box and some eye travel.
+    The grid runs `pad` beyond the visible axes so a region closes instead of being cut off at
+    the frame; the caller still sets the limits a reader sees.
     """
     from scipy.stats import gaussian_kde
 
-    xlim = xlim or axis.get_xlim()
-    ylim = ylim or axis.get_ylim()
-    mesh_x, mesh_y = np.meshgrid(np.linspace(*xlim, grid), np.linspace(*ylim, grid))
+    width, height = xlim[1] - xlim[0], ylim[1] - ylim[0]
+    span_x = (xlim[0] - pad * width, xlim[1] + pad * width)
+    span_y = (ylim[0] - pad * height, ylim[1] + pad * height)
+    mesh_x, mesh_y = np.meshgrid(np.linspace(*span_x, grid), np.linspace(*span_y, grid))
     flat = np.vstack([mesh_x.ravel(), mesh_y.ravel()])
 
-    for position, (label, (values_x, values_y)) in enumerate(sets.items()):
+    # A signed field per set -- density minus the level -- rather than a boolean mask. Filling
+    # a mask draws its staircase: contourf can only follow grid cells, and the edges came out
+    # visibly blocky. Filling where a smooth field crosses zero gives a smooth boundary.
+    fields = []
+    for values_x, values_y in (first, second):
         sample = np.vstack([np.asarray(values_x, float), np.asarray(values_y, float)])
         kernel = gaussian_kde(sample)
         surface = kernel(flat).reshape(mesh_x.shape)
-        # the density at each real observation, so a level can enclose a share of the data
-        at_points = kernel(sample)
-        levels = sorted(np.percentile(at_points, 100 * (1 - share)) for share in enclose)
-        if position == 0:
-            axis.contourf(mesh_x, mesh_y, surface, levels=[*levels, surface.max()],
-                          colors=[RAMP[3]] * len(levels), zorder=1)
-        else:
-            axis.contour(mesh_x, mesh_y, surface, levels=levels, colors=[RAMP[0]],
-                         linewidths=1.3, zorder=3)
+        level = np.percentile(kernel(sample), 100 * (1 - enclose))
+        fields.append(surface - level)
+
+    inside_first, inside_second = fields
+    regions = (("only first", np.minimum(inside_first, -inside_second), RAMP[3]),
+               ("only second", np.minimum(inside_second, -inside_first), RAMP[2]),
+               ("both", np.minimum(inside_first, inside_second), RAMP[0]))
+    covered = {}
+    for name, field, colour in regions:
+        covered[name] = int((field > 0).sum())
+        if covered[name]:
+            axis.contourf(mesh_x, mesh_y, field, levels=[0.0, field.max()],
+                          colors=[colour], zorder=1)
 
     axis.set_xlim(*xlim)
     axis.set_ylim(*ylim)
-    _finish(axis, xlabel, ylabel)
-    return axis
+    return covered
 
 
 def points(axis, frame, x, y, *, colour_by=None, palette=None, order=None, xlabel="", ylabel="",

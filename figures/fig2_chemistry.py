@@ -4,8 +4,8 @@ Distributions rather than scatters: with five thousand records the scatters were
 the question these panels answer is what the corpus contains, not how two variables trade off.
 The exceptions are the last two panels, where the relationship is the point.
 """
-from _style import (DIM, INK, RAMP, ROUTE, ROUTES, canvas, contours, density,
-                    histogram, legend_above, save)
+from _style import (DIM, INK, RAMP, ROUTE, ROUTES, canvas, density, histogram,
+                    legend_above, overlap, save)
 from curated import gao_overlap
 from database import chemistry as chem
 
@@ -39,24 +39,36 @@ def main() -> None:
             xlabel="conversion (%)", ylabel="yield (%)", xlim=(0, 100), ylim=(0, 100))
     panel[7].plot([0, 100], [0, 100], color=INK, lw=0.8, zorder=3)
 
-    # Panel i: do our extracted conditions and hand curation cover the same ground? One filled
-    # region and one outline, each enclosing 90% of its own experiments, labelled on the shape
-    # rather than in a legend. Contours and not dots because temperature piles onto the round
-    # values experimenters choose -- 150, 160, 180, 190, 200 -- so a scatter of the two sets came
-    # out as columns of marks and hid the overlap, which is the only thing the panel is for.
+    # Panel i: do our extracted conditions and hand curation cover the same ground? Three
+    # regions -- ours alone, theirs alone, and where they coincide -- each the smallest area
+    # holding 90% of that set's own experiments. Regions and not dots because temperature piles
+    # onto the round values experimenters choose, 150, 160, 180, 190, 200, so a scatter of the
+    # two sets came out as columns of marks and hid the overlap, which is all the panel is for.
     space = gao_overlap.compute()["condition space"]
-    contours(panel[8], {name: (part.temperature_c, part.yield_percent)
-                        for name, part in space.items()},
-             xlim=(110, 215), ylim=(0, 100),
-             xlabel="temperature (°C)", ylabel="yield (%)")
-    # top left, in the colour of the mark each names. Nothing in the corpus runs below about
-    # 160 C at these yields, so that corner is free at every height
-    panel[8].annotate("this work", (0.03, 0.93), xycoords="axes fraction", fontsize=6,
-                      color=RAMP[2], fontweight="bold")
-    panel[8].annotate("hand-curated", (0.03, 0.845), xycoords="axes fraction", fontsize=6,
-                      color=RAMP[0], fontweight="bold")
-    panel[8].annotate("90% of each set", (0.03, 0.765), xycoords="axes fraction", fontsize=5.2,
-                      color=DIM)
+    ours, curated = space["this work"], space["hand-curated"]
+    overlap(panel[8],
+            (ours.temperature_c, ours.yield_percent),
+            (curated.temperature_c, curated.yield_percent),
+            xlim=(140, 215), ylim=(0, 100))
+    panel[8].set_xlabel("temperature (°C)")
+    panel[8].set_ylabel("yield (%)")
+    # Above the axes, on one line, each in the colour of the region it names. Inside the panel
+    # there is nowhere to put three labels: the regions reach both the top and the bottom of the
+    # yield axis, and a top-left placement sat on the fill.
+    #
+    # Positions are measured rather than guessed. Hand-picked offsets ran the three labels into
+    # each other and into the panel letter, because how wide "hand-curated only" is at 5.2 pt is
+    # not something to estimate.
+    figure.canvas.draw()
+    renderer = figure.canvas.get_renderer()
+    left = 0.075                      # clear of the bold panel letter
+    for text, colour in (("both", RAMP[0]), ("this work only", RAMP[3]),
+                         ("hand-curated only", RAMP[2])):
+        drawn = panel[8].annotate(text, (left, 1.02), xycoords="axes fraction", fontsize=5.2,
+                                  color=colour, fontweight="bold", va="bottom")
+        box = drawn.get_window_extent(renderer)
+        edges = panel[8].transAxes.inverted().transform([(0, 0), (box.width, 0)])
+        left += edges[1][0] - edges[0][0] + 0.035
 
     legend_above(figure, panel[0])
     save(figure, "fig2_chemistry")
