@@ -60,14 +60,12 @@ def main() -> None:
     # reagent in alkaline hydrolysis and the source papers file it under catalyst. That is a
     # property of the literature rather than of the extraction, and the caption says so.
     spreads = [(3, "conversion_percent", "conversion (%)", (0, 100)),
-               (4, "catalyst wt% of PET", "catalyst (wt% of PET)", (0, 130)),
+               (4, "catalyst wt% of PET", "catalyst (wt% of PET)", (0, 100)),
                (5, "solvent per g PET", "solvent (g per g of PET)", (0, 40)),
-               (6, "PET_amount_g", "PET per batch (g)", (0, 40))]
+               (6, "PET_amount_g", "PET per batch (g)", (0, 30))]
     for index, column, label, view in spreads:
-        reported = int(frame[column].replace([float("inf"), float("-inf")], None).notna().sum())
         violin(panel[index], frame, column, split="route", palette=ROUTE, order=ROUTES,
                view=view, ylabel=label)
-        panel[index].set_xlabel(f"n={reported:,} records")
 
     # --- h: yield against conversion, an identity the data has to obey ---------------------
     # 1,423 records is a scatter, not a density. The density was here because five thousand

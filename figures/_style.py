@@ -11,6 +11,7 @@ from pathlib import Path
 import matplotlib
 import numpy as np
 from matplotlib.colors import ListedColormap
+from matplotlib.mlab import GaussianKDE
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -669,59 +670,76 @@ def ranked_bars(axis, series, *, colour=None, accent=None, xlabel="", fmt="{:,.0
     return axis
 
 
-def violin(axis, frame, column, *, split, palette=None, order=None, view=None,
-           ylabel="", labels=True):
-    """The shape of a distribution per group, as a violin with the median ruled across it.
+def violin(axis, frame, column, *, split, view, palette=None, order=None, ylabel="",
+           labels=True, axis_name=None, smooth=0.09):
+    """The shape of a distribution per group, drawn only where the axis actually reaches.
 
-    Four chart types were tried on these four panels before this one. Histograms gave a single
-    full bin beside an empty box; cumulative curves gave a step against the left-hand edge;
-    quantile rows read as abstract. All three failed for the same reason, which is that the
-    quantity is skewed and its routes differ by more than one axis can hold.
+    Four chart types were tried on these panels before this one, and all four failed the same
+    way, because the quantity is skewed and its groups differ by more than one axis can hold: a
+    histogram was one full bin beside an empty box, a cumulative curve was a step against the
+    left edge, quantile rows read as abstract. A violin answers both halves -- every group is
+    scaled to the same width, so a group of 273 records is as legible as one of 1,724, and shape
+    is a mark a reader recognises without being taught it.
 
-    A violin answers both. Each group is scaled to the same width, so a route holding 273
-    records is as legible as one holding 1,724 and no group is a flat line next to a tall one;
-    and the shape is the thing a reader recognises without being taught the mark -- fat where
-    the papers cluster, thin where they do not.
+    The density is computed here rather than by violinplot() for two reasons, both of them
+    faults that were reported:
 
-    `view` clips the *drawn* range. A kernel density needs one: the raw fields run to eight
-    tonnes of solvent, and an estimate over that support is a spike at zero. The count on the
-    axis label is over everything, so the panel never implies the clipped records do not exist.
+      It is evaluated on `view` and nowhere else. violinplot() estimates over the data's own
+      range widened by the bandwidth, so the shape ran past the frame and was sliced by it --
+      the panels looked cropped rather than bounded. On this grid the polygon cannot leave the
+      axes, and where a group piles against a real bound (conversion at 100%) the body ends in
+      a flat edge, which is the honest picture of a hard limit.
+
+      The bandwidth is a fixed fraction of the axis span rather than a fraction of each group's
+      own spread. Scott's rule gave each group a different smoothness, so one body was a broad
+      lobe and its neighbour a hairline stem, which is what "too wide and too thin in places"
+      was pointing at. Every group in every panel is now smoothed over the same visible
+      distance. 0.09 of the span was chosen by drawing 0.05, 0.09, 0.14 and 0.20 side by side:
+      it is the widest that still keeps the two hydrolysis catalyst lobes, near 10 and near 45
+      wt%, apart. Above it they merge into one mound, which is smoother and says less.
+
+    Nothing is rescaled or transformed: the values are the values, the axis is linear, and the
+    label states what share of the records the axis reaches so a clipped tail is declared rather
+    than hidden.
     """
     rows = list(order or sorted(frame[split].dropna().unique()))
-    series, kept = [], []
-    for name in rows:
+    grid = np.linspace(view[0], view[1], 256)
+    total = shown = 0
+
+    for position, name in enumerate(rows, start=1):
         values = frame.loc[frame[split] == name, column]
         values = values.replace([np.inf, -np.inf], np.nan).dropna()
-        kept.append(values)
-        inside = values if view is None else values[(values >= view[0]) & (values <= view[1])]
-        series.append(inside.to_numpy() if len(inside) > 1 else np.array([0.0, 0.0]))
-
-    parts = axis.violinplot(series, showextrema=False, showmedians=False, widths=0.84)
-    for body, name in zip(parts["bodies"], rows):
+        inside = values[(values >= view[0]) & (values <= view[1])]
+        total += len(values)
+        shown += len(inside)
         colour = (palette or {}).get(name, DATA)
-        body.set(facecolor=colour, edgecolor=colour, alpha=0.9, lw=0.5)
+        if len(inside) > 1 and inside.nunique() > 1:
+            span = view[1] - view[0]
+            spread = float(inside.std()) or span * smooth
+            density = GaussianKDE(inside.to_numpy(),
+                                  bw_method=span * smooth / spread)(grid)
+            half = 0.38 * density / density.max()
+            axis.fill_betweenx(grid, position - half, position + half, facecolor=colour,
+                               edgecolor=colour, lw=0.5, alpha=0.9, zorder=2)
+        # The median as a white rule inside the body rather than a marker on top of it: the
+        # body is filled, so a dark mark competes with the fill and a light rule reads as a
+        # level. Drawn only when it is on the axis, since a rule outside the body is a mystery.
+        if len(values) and view[0] <= float(values.median()) <= view[1]:
+            axis.plot([position - 0.26, position + 0.26], [float(values.median())] * 2,
+                      color="white", lw=1.2, solid_capstyle="butt", zorder=4)
 
-    # The median as a white rule inside the body, not a marker on top of it: the body is filled,
-    # so a dark mark on it competes with the fill and a light rule reads as a level.
-    for position, values in enumerate(kept, start=1):
-        if not len(values):
-            continue
-        middle = float(values.median())
-        if view and not view[0] <= middle <= view[1]:
-            continue
-        axis.plot([position - 0.30, position + 0.30], [middle] * 2, color="white", lw=1.2,
-                  solid_capstyle="butt", zorder=4)
-
-    if view:
-        axis.set_ylim(*view)
-    axis.set_xlim(0.45, len(rows) + 0.55)
-    # Horizontal, and on every panel rather than only the leftmost. Rotated names push the axis
-    # label down out of line with the row, and a panel a reader has to match against a legend at
-    # the top of the figure is a panel that does not read on its own.
+    # A hair of margin so the shapes sit inside the frame instead of against it
+    pad = (view[1] - view[0]) * 0.02
+    axis.set_ylim(view[0] - pad, view[1] + pad)
+    axis.set_xlim(0.42, len(rows) + 0.58)
     axis.set_xticks(range(1, len(rows) + 1),
                     [str(name) for name in rows] if labels else [""] * len(rows), fontsize=5.2)
     axis.tick_params(axis="x", length=0)
-    _finish(axis, "", ylabel)
+
+    # What the horizontal direction is. It carries no scale -- width is how many records sit at
+    # that value -- and an unlabelled axis that looks like a scale was read as one.
+    reach = "" if shown >= total * 0.995 else f", axis holds {shown / total:.0%}"
+    _finish(axis, f"{axis_name or split} \u00b7 {total:,} records{reach}", ylabel)
     return axis
 
 
