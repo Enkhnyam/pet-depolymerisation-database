@@ -5,7 +5,8 @@ the question these panels answer is what the corpus contains, not how two variab
 The exceptions are the last two panels, where the relationship is the point.
 """
 from _style import (DIM, INK, RAMP, ROUTE, ROUTES, canvas, cloud, headroom, histogram,
-                    note, save, stack_tops)
+                    legend_above, overlap, save, stack_tops)
+from curated import gao_overlap
 from database import chemistry as chem
 
 
@@ -16,25 +17,31 @@ def main() -> None:
 
     figure, panel = canvas(3, 3, height=5.73)
 
-    # (a)-(g), each with the number of records behind it. The counts differ by a factor of two
-    # across these panels and that is the answer to why: the literature reports a temperature
-    # far more often than it reports a solvent charge. Without the count on the panel a reader
-    # has to hold fig_database's completeness panel in their head to know it.
+    # (a)-(g). Three changes from the version before this one, all asked for:
     #
-    # headroom() puts the top tick at or above the tallest stack. matplotlib picks ticks to span
-    # the data rather than to sit above it, so a 631-record column under a 600 top tick is the
-    # default -- and a reader cannot then read the peak off the axis.
-    spec = [(0, "temperature_c", "temperature (°C)", False, frame),
-            (1, "reaction_time_min", "reaction time (min)", True, frame),
-            (2, "yield_percent", "yield (%)", False, frame[frame.yield_percent <= 100]),
-            (3, "conversion_percent", "conversion (%)", False, frame),
-            (4, "catalyst_amount_g", "catalyst (g)", True, frame),
-            (5, "PET_amount_g", "PET (g)", True, frame),
-            (6, "solvent_amount_g", "solvent (g)", True, frame)]
-    for index, column, label, log, source in spec:
+    #   No log x. Four of these fields span six decades -- PET runs to 2.4 tonnes against a
+    #   median of 3 g -- so a linear axis over the whole range is a spike at zero. They are
+    #   linear and truncated at the 90th percentile instead, which is stated once in the caption
+    #   rather than seven times on the panels.
+    #
+    #   The record count sits on the axis label, not on a second line: "temperature (°C), n=4,844".
+    #   The counts differ by a factor of two across these panels and that is the answer to why
+    #   temperature is in the thousands and solvent is not -- it is coverage, not a choice.
+    #
+    #   headroom() puts the top tick at or above the tallest stack, which matplotlib does not:
+    #   it picks ticks to span the data, so a 631-record column under a 600 tick is the default
+    #   and a reader cannot read the peak off the axis.
+    spec = [(0, "temperature_c", "temperature (°C)", None, frame),
+            (1, "reaction_time_min", "reaction time (min)", 0.90, frame),
+            (2, "yield_percent", "yield (%)", None, frame[frame.yield_percent <= 100]),
+            (3, "conversion_percent", "conversion (%)", None, frame),
+            (4, "catalyst_amount_g", "catalyst (g)", 0.90, frame),
+            (5, "PET_amount_g", "PET (g)", 0.90, frame),
+            (6, "solvent_amount_g", "solvent (g)", 0.90, frame)]
+    for index, column, label, clip, source in spec:
         reported = int(source[column].notna().sum())
-        histogram(panel[index], source, column, logx=log,
-                  xlabel=f"{label}\n{reported:,} records report it",
+        histogram(panel[index], source, column, clip=clip,
+                  xlabel=f"{label}, n={reported:,}",
                   ylabel="records" if index % 3 == 0 else "", **stack)
         headroom(panel[index], stack_tops(panel[index]))
 
@@ -54,34 +61,44 @@ def main() -> None:
     # and 0.35 pt of white a side is what keeps it a line rather than one more mark.
     panel[7].plot([0, 100], [0, 100], color="white", lw=1.5, zorder=3)
     panel[7].plot([0, 100], [0, 100], color=INK, lw=0.8, zorder=4)
-    # On the line, not in the caption: the panel is one argument about this one line.
-    panel[7].annotate("yield = conversion", (58, 58), rotation=45, rotation_mode="anchor",
-                      fontsize=5.5, color=DIM, ha="left", va="bottom",
-                      transform_rotates_text=True, zorder=5)
-    # Two numbers, because the panel and the caption were disagreeing. 40 marks sit above
-    # y = x; the check counts 28, because it allows one percentage point for the rounding in
-    # the source papers -- a yield of 95.2 against a conversion of 95.0 is rounding, not a
-    # violated identity. So the allowance is drawn as well as applied, and both counts are
-    # stated. Without this the panel showed 40 under a caption saying 28.
+
+    # The rounding allowance is drawn but not annotated. 40 marks sit above y = x and the check
+    # counts 28, because it allows one percentage point for the rounding in the source papers;
+    # both numbers belong in the caption, which is where they now are. The dashed line is the
+    # allowance, so the panel shows the boundary the number uses without three lines of text
+    # over the data.
     identity = result["identity"]
     slack = identity["rounding slack"]
     panel[7].plot([0, 100 - slack], [slack, 100], color=DIM, lw=0.5, ls=(0, (3, 2)), zorder=4)
-    note(panel[7], f"{identity['above the line']} above the line\n"
-                   f"{identity['yield above conversion']} beyond the {slack:g}-point\n"
-                   f"rounding allowance (dashed)", x=0.04, y=0.84)
 
-    # The ninth cell carries the route key rather than being blank. A legend above the canvas
-    # sat where the panel letters are; here it is beside the panels it explains and costs no
-    # plotting area, because removing the ninth panel is what freed the cell.
-    panel[8].axis("off")
-    panel[8].set_title("")
-    handles, labels = panel[0].get_legend_handles_labels()
-    panel[8].legend(handles, labels, loc="center left", title="route, inferred from the solvent",
-                    frameon=False, handlelength=1.2, handleheight=1.0, labelspacing=0.6,
-                    borderpad=0, alignment="left")
-    panel[8].get_legend().get_title().set_fontsize(6.5)
+    # --- i: our extraction against hand curation, on the papers both cover ------------------
+    # Restored. Two filled regions, each the smallest area holding 90% of that set's
+    # experiments, and the overlap is the claim: hand curation reaches almost nowhere the
+    # extraction does not. Restricted to the 19 papers both describe -- our whole glycolysis
+    # corpus against their 19-paper set would show a large cloud containing a small one, which
+    # would look the same if we had extracted nothing from their papers.
+    #
+    # No in-panel key and no legend: the two shapes are named on the axis label, and which is
+    # which is settled by the caption.
+    space = gao_overlap.compute()["condition space"]
+    ours, curated = space["this work"], space["hand-curated"]
+    drawn = overlap(panel[8],
+                    (ours.temperature_c, ours.yield_percent),
+                    (curated.temperature_c, curated.yield_percent),
+                    view=((140, 205), (0, 100)))
+    # the frame comes from the shapes, not from the view: a patch does not autoscale its axes,
+    # and clipping to the view cut both regions off where they ran past it
+    panel[8].set_xlim(*drawn["bounds"][0])
+    panel[8].set_ylim(*drawn["bounds"][1])
+    panel[8].set_xlabel("temperature (°C)")
+    panel[8].set_ylabel("yield (%)")
+    panel[8].set_title("i", loc="left", fontsize=9, fontweight="bold", pad=5)
 
-    save(figure, "fig_chemistry")
+    # The route key goes above the canvas with space reserved for it, which is what
+    # legend_room is for -- the ninth cell is panel i again, so there is nowhere inside the grid
+    # to put it, and dropped into a panel it would sit on the data.
+    legend_above(figure, panel[0])
+    save(figure, "fig_chemistry", legend_room=True)
 
 
 if __name__ == "__main__":

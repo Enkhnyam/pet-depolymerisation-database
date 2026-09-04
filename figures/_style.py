@@ -145,7 +145,7 @@ def headroom(axis, tallest: float, *, ticks: int = 5) -> None:
     if not tallest or tallest != tallest:                # zero or NaN: leave the autoscale
         return
     step = 10 ** np.floor(np.log10(tallest / max(ticks - 1, 1)))
-    for multiple in (1, 2, 2.5, 5, 10):
+    for multiple in (1, 1.5, 2, 2.5, 3, 4, 5, 8, 10):
         nice = step * multiple
         if nice * (ticks - 1) >= tallest:
             break
@@ -208,7 +208,7 @@ def cloud(axis, x, y, *, colour, marker="o", size=7, label=None, edge=None, zord
     return axis
 
 
-def pie(axis, series, *, colours, fmt="{:,.0f}", gap=0.26):
+def pie(axis, series, *, colours, fmt="{:,.0f}", gap=0.26, span=2.0):
     """A part-to-whole with the slices labelled outside, no legend.
 
     A pie is the wrong mark for comparing magnitudes and the right one for showing that a set
@@ -240,17 +240,17 @@ def pie(axis, series, *, colours, fmt="{:,.0f}", gap=0.26):
     for row in placed:
         axis.annotate(f"{row['name']}  {fmt.format(row['value'])} "
                       f"({row['value'] / total:.0%})",
-                      (1.05 * (1 if row["right"] else -1), row["y"]),
+                      (1.04 * (1 if row["right"] else -1), row["y"]),
                       ha="left" if row["right"] else "right", va="center",
-                      fontsize=5.2, color=INK,
+                      fontsize=5.4, color=INK,
                       # a hairline from the label back to its own slice, since a pushed label
                       # no longer points at the wedge it describes
-                      xytext=(1.28 * (1 if row["right"] else -1), row["y"]),
+                      xytext=(1.16 * (1 if row["right"] else -1), row["y"]),
                       textcoords="data",
                       arrowprops=dict(arrowstyle="-", color=RULE, lw=0.5,
                                       shrinkA=1, shrinkB=1))
-    axis.set_xlim(-3.4, 3.4)
-    axis.set_ylim(-1.45, 1.45)
+    axis.set_xlim(-span, span)
+    axis.set_ylim(-1.25, 1.25)
     axis.set_aspect("equal")
     return axis
 
@@ -456,6 +456,11 @@ STALE = []
 
 
 def save(figure, name: str, *, legend_room=False):
+    # x (and y) labels share a baseline across each row, which they do not by default: each one
+    # sits under its own tick labels, so a panel whose ticks are taller pushes its label lower
+    # than the panel beside it.
+    figure.align_xlabels()
+    figure.align_ylabels()
     figure.tight_layout(rect=(0, 0, 1, 0.955) if legend_room else None)
     out = FIGURES / f"{name}.pdf"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -479,7 +484,7 @@ def save(figure, name: str, *, legend_room=False):
     return out
 
 
-def histogram(axis, frame, column, *, bins=30, logx=False, xlabel="", ylabel="records",
+def histogram(axis, frame, column, *, bins=30, logx=False, clip=None, xlabel="", ylabel="records",
               colour=None, split=None, palette=None, order=None):
     """Distribution of one column, optionally stacked by a categorical.
 
@@ -487,6 +492,13 @@ def histogram(axis, frame, column, *, bins=30, logx=False, xlabel="", ylabel="re
     and the question here is usually what the corpus as a whole looks like.
     """
     values = frame[column].dropna()
+    if clip is not None:
+        # a linear axis over six decades is a spike at zero, so the tail is cut at a stated
+        # percentile. The count in the label stays the count of every record reporting the
+        # field; what is excluded is said once, in the caption.
+        ceiling = values.quantile(clip)
+        frame = frame[frame[column] <= ceiling]
+        values = frame[column].dropna()
     if logx:
         values = values[values > 0]
         edges = np.logspace(np.log10(values.min()), np.log10(values.max()), bins)

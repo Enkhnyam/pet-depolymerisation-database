@@ -22,8 +22,8 @@ What each panel answers, and why it is the panel it is:
       This is the comparison the section exists for, and it is the one place the two graders can
       be separated: where they agree, the record says nothing about which is better.
 """
-from _style import (BAR, CYCLE, DIM, GRADER, RAMP, bracket, canvas, grouped_bars, headroom,
-                    pie, save, sci)
+from _style import (BAR, CYCLE, DIM, GRADER, RAMP, canvas, grouped_bars, headroom,
+                    pie, save)
 from curated import extractions as extractions_check
 from curated import matrix as matrix_check
 from human import adjudicated as adjudicated_check
@@ -52,20 +52,15 @@ def main() -> None:
     spread.index = measures
     grouped_bars(panel[0], models, errors=spread, names=SHORT,
                  palette=dict(zip(models.columns, CYCLE)),
-                 ylabel="heuristic grader vs the curated answer key")
+                 ylabel="score vs answer key")
     panel[0].set_ylim(0, 1.05)
-    panel[0].annotate(f"mean of {int(scores['runs'].min())} runs, bars are 1 s.d.",
-                      (0.97, 0.97), xycoords="axes fraction", ha="right", va="top",
-                      fontsize=5.2, color=DIM)
 
     # --- b: judge against heuristic, on the pair the database ships --------------------------
-    split = {"same verdict": int(cell["agree"]),
-             "different verdict": int(cell["disagree"]),
-             "no counterpart": int(cell["no counterpart"])}
+    split = {"same": int(cell["agree"]), "differ": int(cell["disagree"]),
+             "n/a": int(cell["no counterpart"])}
     pie(panel[1], __import__("pandas").Series(split),
-        colours=[GRADER["metric"], GRADER["judge"], RAMP[3]], gap=0.42)
-    panel[1].set_xlabel(f"{int(cell['records'])} records judged by "
-                        f"{SHIPPED[0]} on the {SHIPPED[1]} extraction")
+        colours=[GRADER["metric"], GRADER["judge"], RAMP[3]], gap=0.34, span=1.7)
+    panel[1].set_xlabel(f"judge vs heuristic, of {int(cell['records'])} records")
 
     # --- c: on the disagreements, who the chemists backed ------------------------------------
     backed = [("the heuristic", mcnemar["favouring the metric"], GRADER["metric"]),
@@ -83,8 +78,6 @@ def main() -> None:
     for position, (_, value, _) in enumerate(backed):
         panel[2].annotate(f"{value}", (position, value), textcoords="offset points",
                           xytext=(0, 3), ha="center", fontsize=6.5, color=DIM)
-    bracket(panel[2], 0, 1, tallest * 1.18, f"McNemar $p = {sci(mcnemar['p'])}$")
-
     save(figure, "fig_graders")
 
 

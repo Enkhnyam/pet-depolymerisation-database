@@ -13,7 +13,7 @@ from functools import lru_cache
 import pandas as pd
 
 from _setup import DATABASE, FIELDS, records, show, sources
-from core.schema import route_of
+from core.schema import OTHER_ROUTE, route_of
 
 CATALYST_CLASSES = [
     ("none", r"^(none|no catalyst|-|nan|without catalyst)$"),
@@ -126,6 +126,11 @@ def compute() -> dict:
         "catalysts": frame.catalyst.value_counts(),
         "distinct catalysts": int(frame.catalyst.nunique()),
         "substances": by_substance(frame),
+        # what is stopping the route inference. Route is read off the solvent, so a record with
+        # no route has a solvent the rules do not recognise -- and naming those is the only way
+        # to shorten the list.
+        "unrouted solvents": (frame.loc[frame.route == OTHER_ROUTE, "solvent"]
+                              .fillna("(not reported)").value_counts()),
         "distinct substances": len(by_substance(frame)),
         "by route": frame.groupby("route").agg(
             records=("doi", "size"),

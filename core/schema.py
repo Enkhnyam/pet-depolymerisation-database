@@ -120,12 +120,19 @@ def route_of(solvent) -> str:
     Matched in order, so a mixed solvent takes the first rule that fires; release quality
     reports how many rows that affects rather than hiding it.
 
-    ponytail: matches the raw string, not canonical_solvent(). Routing the canonical name
-    instead would recover about 150 rows now filed as other/unclear purely because the paper
-    wrote DEG, MEG, TEG or CH3OH -- but it moves published route counts, so it is a decision for
-    whoever owns the numbers, not a refactor.
+    Matched against canonical_solvent(), not the raw string. Matching the raw string meant the
+    route depended on how a paper abbreviated its solvent rather than on what reaction it ran:
+    `ethylene glycol` and `EG` were glycolysis but `DEG` was not, and `water` was hydrolysis but
+    `H2O` was not. checks/release/quality.py had been reporting that as a known blind spot.
+    Taking the canonical name recovers 187 records -- DEG 109, H2O 69, DPG 7, NPG 2 -- and
+    changes no route that was already assigned, so it is strictly additive:
+
+        glycolysis    2,531 -> 2,649
+        hydrolysis    1,346 -> 1,415
+        methanolysis    577 ->   577
+        other/unclear 1,109 ->   922
     """
-    text = str(solvent or "").lower()
+    text = canonical_solvent(solvent)
     for route, pattern in ROUTE_FROM_SOLVENT:
         if re.search(pattern, text):
             return route
