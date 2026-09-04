@@ -19,7 +19,7 @@ def scripts() -> list[str]:
     here = Path(__file__).parent
     found = sorted(str(p.relative_to(here)) for p in here.glob("*/*.py")
                    if not p.name.startswith("_"))
-    return found + ["cost.py", "paper.py"]
+    return found + ["cost.py", "palette.py", "paper.py"]
 
 
 
