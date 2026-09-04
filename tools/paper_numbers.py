@@ -232,6 +232,7 @@ def collect() -> tuple[dict, dict]:
         "GaoMissed": f"{gao['split']['missed']}",
         "GaoMissedShare": f"{gao['true miss share'] * 100:.0f}",
         "GaoChartShare": f"{gao['chart share'] * 100:.0f}",
+        "GaoChart": f"{gao['split']['chart']}",
         "GaoSi": f"{gao['split']['si']}",
         "GaoRule": f"{gao['split']['rule']}",
         "GaoWorstShare": f"{gao['agreement'].share.min() * 100:.0f}",

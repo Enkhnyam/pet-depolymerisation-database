@@ -252,11 +252,24 @@ def bundles() -> dict[str, str]:
     return values
 
 
-def checks() -> list[str]:
-    """Every check the suite runs, in the order it runs them."""
+def checks() -> list[dict]:
+    """Every check the suite runs, in order, with the question it answers.
+
+    The question is the first line of the check's own docstring. Every one of them already
+    reads as a question a chemist would ask -- "Do the records point at text that exists?",
+    "Does the extracted database behave like chemistry?" -- so the page narrates the run out of
+    the code rather than out of a second set of labels that could describe something else.
+    """
     sys.path.insert(0, str(ROOT / "checks"))
     import run as check_runner
-    return check_runner.scripts()
+    found = []
+    for path in check_runner.scripts():
+        source = (ROOT / "checks" / path).read_text(encoding="utf-8")
+        doc = (ast.get_docstring(ast.parse(source)) or "").strip()
+        found.append({"path": path,
+                      "question": doc.splitlines()[0] if doc else path,
+                      "group": path.split("/")[0] if "/" in path else "paper"})
+    return found
 
 
 def figures() -> dict[str, dict]:
@@ -323,6 +336,8 @@ def main() -> None:
     for label, path in found["bundles"].items():
         print(f"  {label:16s} {path}")
     print(f"\n{len(found['checks'])} checks")
+    for row in found["checks"]:
+        print(f"  {row['path']:30s} {row['question'][:76]}")
     print(f"\n{len(found['macros'])} macros, "
           f"{sum(1 for r in found['macros'].values() if r['used'])} quoted by the manuscript")
     by_check: dict[str, int] = {}

@@ -104,6 +104,9 @@ DERIVATION = {
     "GaoChartShare":
         "Share of Gao's set read off a plotted curve rather than a table. Our prompt instructs "
         "the model to read tables and ignore figures, so this gap is a scope decision.",
+    "GaoChart":
+        "Gao records that are values read off a plotted curve. Our prompt reads tables and "
+        "ignores figures, so this is a scope decision rather than a miss.",
     "GaoSi": "Gao records sitting in Supporting Information we do not hold.",
     "GaoRule": "Gao records from response-surface design tables our scope excludes.",
     "GaoWorstShare": "Agreement on the weakest field. Every other field is above it.",
