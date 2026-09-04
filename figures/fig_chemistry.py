@@ -5,7 +5,7 @@ the question these panels answer is what the corpus contains, not how two variab
 The exceptions are the last two panels, where the relationship is the point.
 """
 from _style import (DIM, INK, RAMP, ROUTE, ROUTES, canvas, cloud, headroom, histogram,
-                    legend_above, overlap, save, stack_tops)
+                    legend_above, overlap, ranges, save, stack_tops)
 from curated import gao_overlap
 from database import chemistry as chem
 
@@ -32,19 +32,37 @@ def main() -> None:
     #   headroom() puts the top tick at or above the tallest stack, which matplotlib does not:
     #   it picks ticks to span the data, so a 631-record column under a 600 tick is the default
     #   and a reader cannot read the peak off the axis.
-    spec = [(0, "temperature_c", "temperature (°C)", None, frame),
-            (1, "reaction_time_min", "reaction time (min)", 0.90, frame),
-            (2, "yield_percent", "yield (%)", None, frame[frame.yield_percent <= 100]),
-            (3, "conversion_percent", "conversion (%)", None, frame),
-            (4, "catalyst_amount_g", "catalyst (g)", 0.90, frame),
-            (5, "PET_amount_g", "PET (g)", 0.90, frame),
-            (6, "solvent_amount_g", "solvent (g)", 0.90, frame)]
-    for index, column, label, clip, source in spec:
+    # (a)-(c) keep a histogram, because for those three the *shape* is the finding: the reflux
+    # peak at 190-200 C, the round protocol durations, and yield piling against 100%.
+    shapes = [(0, "temperature_c", "temperature (°C)", None, frame),
+              (1, "reaction_time_min", "reaction time (min)", 0.90, frame),
+              (2, "yield_percent", "yield (%)", None, frame[frame.yield_percent <= 100])]
+    for index, column, label, clip, source in shapes:
         reported = int(source[column].notna().sum())
         histogram(panel[index], source, column, clip=clip,
                   xlabel=f"{label}, n={reported:,}",
                   ylabel="records" if index % 3 == 0 else "", **stack)
         headroom(panel[index], stack_tops(panel[index]))
+
+    # (d)-(g) are quantile rows, one per route, and they got there by elimination. As
+    # histograms they were a single full bin beside an empty box; as cumulative curves they
+    # were a step against the left-hand edge with the tail cropped off the right. Both readings
+    # were reported as broken, and both are the same fact: catalyst runs from 30 mg to 60 kg,
+    # solvent to a reported eight tonnes, so no linear window holds the range and a log axis was
+    # ruled out.
+    #
+    # What survives is the summary a chemist reads off such a variable anyway -- the middle half
+    # of the records as a bar, the 10th to 90th percentile as a line, the median as a dot -- and
+    # it makes the comparison the figure is for: hydrolysis carries fourteen times the catalyst
+    # of glycolysis per record, which no shared-axis histogram of the two ever showed.
+    spreads = [(3, "conversion_percent", "conversion (%)"),
+               (4, "catalyst_amount_g", "catalyst (g)"),
+               (5, "PET_amount_g", "PET (g)"),
+               (6, "solvent_amount_g", "solvent (g)")]
+    for index, column, label in spreads:
+        reported = int(frame[column].notna().sum())
+        ranges(panel[index], frame, column, split="route", palette=ROUTE, order=ROUTES,
+               labels=index % 3 == 0, xlabel=f"{label}, n={reported:,}")
 
     # --- h: yield against conversion, an identity the data has to obey ---------------------
     # 1,423 records is a scatter, not a density. The density was here because five thousand

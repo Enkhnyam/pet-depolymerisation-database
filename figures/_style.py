@@ -669,6 +669,68 @@ def ranked_bars(axis, series, *, colour=None, accent=None, xlabel="", fmt="{:,.0
     return axis
 
 
+def _amount(value: float) -> str:
+    """A median as a chemist would write it: two significant figures, no false precision.
+
+    `{:g}` gave "65.37" beside "0.025" in adjacent panels, which reads as though the first were
+    measured four times as finely as the second. It is not; it is a quantile of a column of
+    round numbers.
+    """
+    return f"{value:,.0f}" if abs(value) >= 10 else f"{value:.2g}"
+
+
+def ranges(axis, frame, column, *, split, palette=None, order=None, xlabel="",
+           labels=True):
+    """One row per group: the middle half as a bar, the 10-90% span as a line, the median a dot.
+
+    The amount fields cannot be drawn as a distribution on a linear axis. They run over six
+    orders of magnitude -- solvent from a gram to a reported eight tonnes -- so a histogram is
+    one full bin beside an empty box, and a cumulative curve is a step against the left-hand
+    edge. Both were tried and both read as broken. A log axis would fix the geometry and lose
+    the reader, which is the thing that was asked not to happen.
+
+    So the panel stops trying to draw the whole distribution and draws the part of it a chemist
+    reads off anyway: where the middle half of the records sit, and how the three routes compare
+    there. Nothing is cropped, because the marks *are* quantiles -- the axis runs to the widest
+    90th percentile and the extreme tail is summarised rather than hidden off the edge.
+    """
+    rows = list(order or sorted(frame[split].dropna().unique()))
+    reach, marks = 0.0, []
+    for position, name in enumerate(rows):
+        values = frame.loc[frame[split] == name, column].dropna()
+        if not len(values):
+            continue
+        low, first, middle, third, high = values.quantile([0.1, 0.25, 0.5, 0.75, 0.9])
+        colour = (palette or {}).get(name, DATA)
+        y = len(rows) - 1 - position
+        axis.hlines(y, low, high, color=colour, lw=0.8, zorder=2)
+        axis.hlines(y, first, third, color=colour, lw=4.2, zorder=3)
+        # ls and color are set even though the marker is the only visible part: a plot() call
+        # that names neither draws its (empty) line from matplotlib's cycle, and the cycle
+        # colour lands in the PDF whether or not anything is painted with it. Three tab10 hues
+        # reached this figure that way before the colour audit caught them.
+        axis.plot([middle], [y], marker="o", ms=3.6, mfc="white", mec=colour, mew=1.0,
+                  ls="none", color=colour, zorder=4, clip_on=False)
+        marks.append((middle, y, colour))
+        reach = max(reach, float(high))
+    axis.set_xlim(0, reach * 1.12)
+    # The label goes over the dot, except where the dot is against the left spine and a centred
+    # label would hang off the panel -- three of these medians sit in the first percent of
+    # their axis, because that is what the comparison is.
+    for middle, y, colour in marks:
+        edge = middle < reach * 0.06
+        axis.annotate(_amount(middle), (middle, y), textcoords="offset points",
+                      xytext=(-3 if edge else 0, 7), ha="left" if edge else "center",
+                      fontsize=5.4, color=DIM, zorder=5)
+    axis.set_ylim(-0.62, len(rows) - 0.28)
+    axis.set_yticks(range(len(rows)),
+                    [str(name) for name in reversed(rows)] if labels else [""] * len(rows))
+    axis.tick_params(axis="y", length=0)
+    axis.spines["left"].set_visible(False)
+    _finish(axis, xlabel, "")
+    return axis
+
+
 def step_hist(axis, values, *, bins=30, colour=DATA, xlabel="", ylabel="records", logx=False,
               logy=False):
     """A distribution as an outline rather than a block of bars.
