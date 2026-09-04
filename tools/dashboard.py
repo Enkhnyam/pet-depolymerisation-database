@@ -286,6 +286,14 @@ section{margin-bottom:38px}
 .tile .l{font-size:12.5px;color:var(--dim);margin-top:3px}
 .tile .m{font:10.5px ui-monospace,Menlo,monospace;color:var(--faint);margin-top:7px}
 
+/* the jump bar: five sections and a long table, so the page needs a way back to the top of it */
+.jump{position:sticky;top:0;z-index:5;display:flex;gap:2px;justify-content:center;flex-wrap:wrap;
+  background:rgba(255,255,255,.93);backdrop-filter:blur(6px);border-bottom:1px solid var(--rule);
+  padding:9px 12px}
+.jump a{font-size:12.5px;color:var(--dim);text-decoration:none;padding:4px 11px;border-radius:99px}
+.jump a:hover{color:var(--ink);background:var(--panel)}
+section{scroll-margin-top:52px}
+
 /* the source list */
 .srcs{display:grid;grid-template-columns:repeat(2,1fr);gap:0 26px}
 .src{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #F0F4F3;font-size:13px}
@@ -298,7 +306,10 @@ section{margin-bottom:38px}
   border-radius:10px;padding:12px 14px;cursor:pointer;font:inherit;color:var(--ink)}
 .run:hover:not(:disabled){border-color:var(--r2);background:#FBFDFC}
 .run:disabled{opacity:.5;cursor:default}
-.run.primary{border-color:var(--r0);background:#F1F7F5}
+/* the selected state follows the run, rather than being painted on one button for ever:
+   four look-alike buttons with a permanent highlight read as tabs whose selection is stuck */
+.run.active{border-color:var(--r0);background:#F1F7F5;box-shadow:inset 0 0 0 1px var(--r0)}
+.run.active:disabled{opacity:1}
 .run b{display:block;font-size:14px;font-weight:620;margin-bottom:2px}
 .run span{font-size:12px;color:var(--dim);line-height:1.45}
 .state{margin:16px 0 0;display:flex;align-items:center;gap:9px;font-size:13px}
@@ -324,6 +335,8 @@ section{margin-bottom:38px}
 .chk.running .s{color:#7A5A12}
 details{margin-top:14px}
 summary{font-size:12.5px;color:var(--dim);cursor:pointer}
+.logwrap{margin-top:14px}
+.logwrap>b{display:block;font-size:12px;color:var(--dim);font-weight:600}
 pre{background:#0B1917;color:#DCE8E4;border-radius:9px;padding:14px 16px;margin:11px 0 0;
   font:11.5px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;max-height:300px;overflow:auto;
   white-space:pre-wrap}
@@ -449,15 +462,38 @@ DATA.charts.forEach(chart => {
 });
 
 /* --- the narrated run ----------------------------------------------------------------- */
+/* Three faults were reported here and all three were real. Only the check run showed any
+   progress, so the other three buttons looked like dead tabs; the highlight sat permanently on
+   the first button whatever you pressed, so the selection looked stuck; and every start() added
+   another poller without stopping the last, so a second run updated the page twice a tick. */
 let timer = null;
-const pill = document.getElementById('pill'), log = document.getElementById('log');
+const pill = document.getElementById('pill'), log = document.getElementById('log'),
+      logwrap = document.getElementById('logwrap'), hint = document.getElementById('hint'),
+      list = document.getElementById('checklist');
+
+function select(name){
+  document.querySelectorAll('.run').forEach(
+    b => b.classList.toggle('active', b.dataset.job === name));
+  const narrated = name === 'checks';
+  list.hidden = !narrated;              /* only the check run has per-check narration ... */
+  hint.hidden = !narrated;
+  logwrap.hidden = false;               /* ... but every run shows its output as it arrives */
+}
+
 async function start(name){
+  clearInterval(timer);
+  select(name);
   document.querySelectorAll('.run').forEach(b => b.disabled = true);
-  pill.className = 'pill busy'; pill.textContent = 'running ' + name;
-  document.getElementById('checklist').hidden = (name !== 'checks');
+  document.querySelectorAll('.chk').forEach(row => {      /* clear the last run's verdicts */
+    row.className = 'chk pending';
+    row.querySelector('.s').textContent = '';
+  });
+  log.textContent = 'starting…';
+  pill.className = 'pill busy'; pill.textContent = DATA.jobs[name] + ' — running';
   await fetch('/api/run/' + name, {method:'POST'});
   timer = setInterval(poll, 600); poll();
 }
+
 async function poll(){
   const s = await (await fetch('/api/job')).json();
   log.textContent = s.output || '(waiting)';
@@ -470,21 +506,25 @@ async function poll(){
       value === 'pending' ? '' : value === 'running' ? 'checking…' : value;
   }
   if (s.done){
-    clearInterval(timer);
+    clearInterval(timer); timer = null;
     document.querySelectorAll('.run').forEach(b => b.disabled = false);
     pill.className = 'pill ' + (s.code === 0 ? 'ok' : 'bad');
-    pill.textContent = s.code === 0 ? 'everything checks out' : 'failed — exit ' + s.code;
+    const what = DATA.jobs[s.name] || s.name;
+    pill.textContent = s.code === 0 ? what + ' — passed'
+                                    : what + ' — failed, exit ' + s.code;
   }
 }
+
 document.querySelectorAll('.run').forEach(
   b => b.addEventListener('click', () => start(b.dataset.job)));
 
 /* a reload while a run is in flight picks it back up rather than showing "not run yet" */
 if (DATA.job && DATA.job.name){
-  document.getElementById('checklist').hidden = !Object.keys(DATA.job.checks || {}).length;
+  select(DATA.job.name);
   if (!DATA.job.done){
     document.querySelectorAll('.run').forEach(b => b.disabled = true);
-    pill.className = 'pill busy'; pill.textContent = 'running ' + DATA.job.name;
+    pill.className = 'pill busy';
+    pill.textContent = (DATA.jobs[DATA.job.name] || DATA.job.name) + ' — running';
     timer = setInterval(poll, 600);
   }
   poll();
@@ -520,6 +560,7 @@ def esc(text) -> str:
 def render(state: dict) -> str:
     macros, checks = state["macros"], state["checks"]
     quoted = sum(1 for row in macros.values() if row["used"])
+    spare = len(macros) - quoted
 
     tiles = "".join(
         f'<div class="tile"><div class="v">{esc(t["value"])}</div>'
@@ -529,10 +570,16 @@ def render(state: dict) -> str:
     sources = "".join(f'<div class="src"><b>{esc(label)}</b><span>{esc(path)}</span></div>'
                       for label, path in state["bundles"].items())
 
+    running = state["job"].get("name")
     buttons = "".join(
-        f'<button class="run{" primary" if name == "checks" else ""}" data-job="{name}">'
+        f'<button class="run{" active" if name == running else ""}" data-job="{name}">'
         f'<b>{esc(job["label"])}</b><span>{esc(job["why"])}</span></button>'
         for name, job in JOBS.items())
+    # nothing has run yet in this process: no button is selected and no output pane is shown,
+    # rather than a highlight on a button that was never pressed
+    hidden_hint = "" if running in (None, "checks") else " hidden"
+    hidden_list = "" if running in (None, "checks") else " hidden"
+    hidden_log = "" if running else " hidden"
 
     checklist = "".join(
         f'<div class="chk pending" data-check="{esc(row["path"])}"><div class="dot"></div>'
@@ -613,6 +660,9 @@ def render(state: dict) -> str:
 <title>Verifying the PET depolymerisation database</title>
 <style>{STYLE}</style></head><body>
 <div id="tip"></div>
+<nav class="jump"><a href="#panels">figures</a><a href="#inputs">inputs</a>
+  <a href="#run">run the checks</a><a href="#found">findings</a>
+  <a href="#numbers">the numbers</a></nav>
 <div class="wrap">
   <h1>Every number in the paper, and the evidence behind it</h1>
   <p class="lede">Nothing here is typed in. Each figure below reads its numbers from the same
@@ -625,7 +675,7 @@ def render(state: dict) -> str:
 
   <div class="tiles">{tiles}</div>
 
-  <section>
+  <section id="panels">
     <div class="step"><div class="no">1</div><div>
       <h2>Pick a panel, see how it was computed</h2>
       <p>Every panel of every figure, the check behind it, what that check reads, and the code
@@ -633,28 +683,29 @@ def render(state: dict) -> str:
     {panelblocks}
   </section>
 
-  <section>
+  <section id="inputs">
     <div class="step"><div class="no">2</div><div>
       <h2>What the numbers were computed from</h2>
       <p>Seven inputs. Change any one and the artifact set above changes with it.</p></div></div>
     <div class="card"><div class="srcs">{sources}</div></div>
   </section>
 
-  <section>
+  <section id="run">
     <div class="step"><div class="no">3</div><div>
       <h2>Check it yourself</h2>
       <p>These run the same commands as the terminal, on this machine, now.</p></div></div>
     <div class="card">
       <div class="runbar">{buttons}</div>
       <div class="state"><span id="pill" class="pill idle">not run yet</span>
-        <span style="color:var(--dim);font-size:12.5px">each check below says what it is
-          asking</span></div>
-      <div class="checks" id="checklist"{'' if state['job']['checks'] else ' hidden'}>{checklist}</div>
-      <details><summary>raw output</summary><pre id="log">nothing yet</pre></details>
+        <span id="hint" style="color:var(--dim);font-size:12.5px"{hidden_hint}>each check below
+          says what it is asking</span></div>
+      <div class="checks" id="checklist"{hidden_list}>{checklist}</div>
+      <div class="logwrap" id="logwrap"{hidden_log}><b>output</b>
+        <pre id="log">nothing yet</pre></div>
     </div>
   </section>
 
-  <section>
+  <section id="found">
     <div class="step"><div class="no">4</div><div>
       <h2>What the checks found</h2>
       <p>Four claims a referee asks first, then the shape of the data behind them.</p></div></div>
@@ -662,16 +713,19 @@ def render(state: dict) -> str:
     <div class="grid" style="margin-top:14px">{charts}</div>
   </section>
 
-  <section>
+  <section id="numbers">
     <div class="step"><div class="no">5</div><div>
-      <h2>Every number, and the check that produced it</h2>
-      <p>Filter to what the manuscript actually quotes, or to one check's numbers.</p></div></div>
+      <h2>The numbers the manuscript quotes</h2>
+      <p>The {quoted} macros that reach the paper, each with the check that produced it. The
+        other {spare} are computed and checked too &mdash; they are available rather than dead
+        &mdash; but they are off by default, because a table of numbers nothing cites is a
+        table nobody can use.</p></div></div>
     <div class="card">
       <div class="tools">
         <input type="search" id="q" placeholder="search a macro, a value or a description">
         <select id="pick"><option value="">every check</option>{options}</select>
         <label style="font-size:12.5px;color:var(--dim)">
-          <input type="checkbox" id="only"> only what the paper quotes</label>
+          <input type="checkbox" id="only" checked> only what the paper quotes</label>
         <span class="count" id="count"></span>
       </div>
       <table id="macros"><thead><tr><th>macro</th><th>value</th><th>from</th><th></th>
@@ -679,7 +733,8 @@ def render(state: dict) -> str:
     </div>
   </section>
 </div>
-<script>window.__DATA__ = {json.dumps({"charts": state["charts"], "job": state["job"]},
+<script>window.__DATA__ = {json.dumps({"charts": state["charts"], "job": state["job"],
+                                        "jobs": {n: j["label"] for n, j in JOBS.items()}},
                                        default=str)};</script>
 <script>{SCRIPT}</script></body></html>"""
 

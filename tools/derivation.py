@@ -80,17 +80,26 @@ def render() -> str:
             out += [f"`figures/{figure}.py`, lines {span}:", "", "```python",
                     row["code"], "```", ""]
 
-    out += ["## Every macro the manuscript can quote", "",
-            f"{len(macros)} defined, {sum(1 for r in macros.values() if r['used'])} quoted by "
-            f"the manuscript today. A macro nothing quotes is still computed and still checked; "
-            f"it is available rather than dead.", "",
-            "| macro | value | computed by | quoted | what it is |",
-            "| --- | --- | --- | --- | --- |"]
-    for name, row in sorted(macros.items()):
+    quoted = {name: row for name, row in sorted(macros.items()) if row["used"]}
+    spare = sorted(name for name, row in macros.items() if not row["used"])
+
+    out += ["## The numbers the manuscript quotes", "",
+            f"{len(quoted)} of {len(macros)}. This table is the manuscript's numbers and only "
+            f"those: a reader checking a claim wants the value behind it, not a catalogue, and "
+            f"the {len(spare)} macros nothing cites were most of what the catalogue held.", "",
+            "| macro | value | computed by | what it is |",
+            "| --- | --- | --- | --- |"]
+    for name, row in quoted.items():
         reads = ", ".join(f"`{c}`" for c in row["checks"]) or "—"
-        quoted = "yes" if row["used"] else "no"
         meaning = row["derivation"].replace("|", "\\|") or "—"
-        out.append(f"| `\\{name}` | `{row['value']}` | {reads} | {quoted} | {meaning} |")
+        out.append(f"| `\\{name}` | `{row['value']}` | {reads} | {meaning} |")
+
+    out += ["", "### Computed, checked, and not currently quoted", "",
+            f"The other {len(spare)} are recomputed and re-checked on every run like the rest; "
+            f"they are simply not cited by the manuscript as it stands, so they are named here "
+            f"rather than tabulated. A number moving into the paper needs no work beyond citing "
+            f"its macro.", "",
+            ", ".join(f"`\\{name}`" for name in spare) + "."]
 
     out += ["", "## The checks, and what each one reads", ""]
     for row in state["checks"]:
