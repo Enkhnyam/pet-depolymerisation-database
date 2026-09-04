@@ -14,6 +14,20 @@ this whole mechanism exists to make easy.
 """
 DERIVATION = {
 
+    "StoichBaseRecords":
+        "Records whose catalyst field names an alkali hydroxide (NaOH, KOH, LiOH, or those "
+        "written out). In alkaline hydrolysis that base is a reagent consumed "
+        "stoichiometrically, not a catalyst recovered at the end; it sits in the catalyst "
+        "field because that is where the source papers put it. Quoted so the figure can say "
+        "why hydrolysis reads tens of wt% catalyst.",
+    "StoichBaseCatalysed":
+        "The denominator for StoichBaseRecords: records naming any catalyst. Excludes the 802 "
+        "that say none or leave the field blank, which are uncatalysed baselines rather than a "
+        "catalyst choice.",
+    "StoichBaseLoading":
+        "Median loading of those alkali-hydroxide records as a percentage of the PET mass. "
+        "Far above a catalytic loading, which is the point: it is stoichiometry.",
+
     "CorpusCandidates": "Scopus hits before any filter. The top of the funnel.",
     "CorpusFiltered":
         "Papers passing the title and abstract filter -- how many relevant papers exist. The "

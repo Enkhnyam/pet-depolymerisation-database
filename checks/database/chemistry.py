@@ -88,6 +88,14 @@ def compute() -> dict:
     frame["route"] = [route_of(s) for s in frame.solvent]
     frame["catalyst class"] = [classify(c, CATALYST_CLASSES, "other") for c in frame.catalyst]
     frame["catalyst per g PET"] = frame.catalyst_amount_g / frame.PET_amount_g
+    # The loadings, normalised. The raw masses cannot be compared across routes -- median
+    # catalyst is 0.07 g for glycolysis and 1 g for hydrolysis, a forty-fold spread that no
+    # shared axis can hold -- and they are not what a chemist reads off a recipe anyway. As a
+    # fraction of the PET they are 2% and 45%, which is comparable and is the quantity the
+    # figure draws. Computed here rather than in the figure: a panel composes, it never
+    # calculates, or the panel and the printed number can disagree.
+    frame["catalyst wt% of PET"] = 100 * frame["catalyst per g PET"]
+    frame["solvent per g PET"] = frame.solvent_amount_g / frame.PET_amount_g
 
     correlations = []
     for left, right in PAIRS:
@@ -112,6 +120,25 @@ def compute() -> dict:
         out_of_range[column] = {"reported": len(values), "above 100%": len(over),
                                 "papers": over.doi.nunique(), "highest": values.max()}
 
+    # Why hydrolysis reads 45 wt% catalyst: alkali hydroxide is a *reagent* in alkaline
+    # hydrolysis, consumed stoichiometrically, not a catalyst recovered at the end. It is in the
+    # catalyst field because that is where the source papers put it. The figure caption has to
+    # say so, and a caption may only quote a macro, so the count is computed here.
+    base = frame.catalyst.fillna("").str.lower().str.contains(
+        r"\bna\s*oh\b|\bk\s*oh\b|\bli\s*oh\b|sodium hydroxide|potassium hydroxide|"
+        r"lithium hydroxide", regex=True)
+    # The denominator is records that name a catalyst at all: 802 of them say "none" or leave
+    # the field blank, and those are the uncatalysed baselines rather than a catalyst choice.
+    named = frame.catalyst.fillna("").str.strip().str.lower().replace(
+        {"none": "", "no catalyst": "", "n/a": "", "na": "", "without catalyst": ""}).ne("")
+    stoichiometric = {
+        "records": int(base.sum()),
+        "of records naming a catalyst": int(named.sum()),
+        "median wt% of PET": float(frame.loc[base, "catalyst wt% of PET"]
+                                   .replace([float("inf"), float("-inf")], pd.NA)
+                                   .dropna().median()),
+    }
+
     labels = {"catalyst_amount_g": "catalyst g", "PET_amount_g": "PET g",
               "solvent_amount_g": "solvent g", "temperature_c": "temperature",
               "reaction_time_min": "reaction time", "yield_percent": "yield %",
@@ -132,6 +159,7 @@ def compute() -> dict:
         "unrouted solvents": (frame.loc[frame.route == OTHER_ROUTE, "solvent"]
                               .fillna("(not reported)").value_counts()),
         "distinct substances": len(by_substance(frame)),
+        "stoichiometric base": stoichiometric,
         "by route": frame.groupby("route").agg(
             records=("doi", "size"),
             papers=("doi", "nunique"),
@@ -163,6 +191,8 @@ def main() -> None:
     show("relationships, Spearman rank correlation", result["correlations"])
     show("percentages that cannot be right", result["out of range"], fmt="{:.0f}")
     show("yield vs conversion, which is an identity not a correlation", result["identity"])
+    show("alkali hydroxide in the catalyst field, which is a reagent and not a catalyst",
+         result["stoichiometric base"], fmt="{:,.1f}")
 
 
 if __name__ == "__main__":

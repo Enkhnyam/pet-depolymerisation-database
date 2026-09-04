@@ -5,7 +5,7 @@ the question these panels answer is what the corpus contains, not how two variab
 The exceptions are the last two panels, where the relationship is the point.
 """
 from _style import (DIM, INK, RAMP, ROUTE, ROUTES, canvas, cloud, headroom, histogram,
-                    legend_above, overlap, ranges, save, stack_tops)
+                    legend_above, overlap, save, stack_tops, violin)
 from curated import gao_overlap
 from database import chemistry as chem
 
@@ -44,25 +44,30 @@ def main() -> None:
                   ylabel="records" if index % 3 == 0 else "", **stack)
         headroom(panel[index], stack_tops(panel[index]))
 
-    # (d)-(g) are quantile rows, one per route, and they got there by elimination. As
-    # histograms they were a single full bin beside an empty box; as cumulative curves they
-    # were a step against the left-hand edge with the tail cropped off the right. Both readings
-    # were reported as broken, and both are the same fact: catalyst runs from 30 mg to 60 kg,
-    # solvent to a reported eight tonnes, so no linear window holds the range and a log axis was
-    # ruled out.
+    # (d)-(g) are violins, chosen from nine candidates drawn on the hardest of the four. The
+    # three types before it all failed the same way: catalyst is 0.07 g for glycolysis against
+    # 1 g for hydrolysis, a forty-fold spread, so a histogram is one full bin beside an empty
+    # box, a cumulative curve is a step against the left edge, and quantile rows read as
+    # abstract. A violin scales every route to the same width, so the 273 methanolysis records
+    # are as legible as the 1,724 glycolysis ones, and shape is a mark a reader recognises
+    # without being taught it.
     #
-    # What survives is the summary a chemist reads off such a variable anyway -- the middle half
-    # of the records as a bar, the 10th to 90th percentile as a line, the median as a dot -- and
-    # it makes the comparison the figure is for: hydrolysis carries fourteen times the catalyst
-    # of glycolysis per record, which no shared-axis histogram of the two ever showed.
-    spreads = [(3, "conversion_percent", "conversion (%)"),
-               (4, "catalyst_amount_g", "catalyst (g)"),
-               (5, "PET_amount_g", "PET (g)"),
-               (6, "solvent_amount_g", "solvent (g)")]
-    for index, column, label in spreads:
-        reported = int(frame[column].notna().sum())
-        ranges(panel[index], frame, column, split="route", palette=ROUTE, order=ROUTES,
-               labels=index % 3 == 0, xlabel=f"{label}, n={reported:,}")
+    # Two of the four are normalised, because the raw masses are not comparable between routes
+    # and are not what a recipe is read in: catalyst as a percentage of the PET, solvent as
+    # grams per gram of PET. Both columns come from the check, not from here.
+    #
+    # Hydrolysis reads tens of percent catalyst because alkali hydroxide is a stoichiometric
+    # reagent in alkaline hydrolysis and the source papers file it under catalyst. That is a
+    # property of the literature rather than of the extraction, and the caption says so.
+    spreads = [(3, "conversion_percent", "conversion (%)", (0, 100)),
+               (4, "catalyst wt% of PET", "catalyst (wt% of PET)", (0, 130)),
+               (5, "solvent per g PET", "solvent (g per g of PET)", (0, 40)),
+               (6, "PET_amount_g", "PET per batch (g)", (0, 40))]
+    for index, column, label, view in spreads:
+        reported = int(frame[column].replace([float("inf"), float("-inf")], None).notna().sum())
+        violin(panel[index], frame, column, split="route", palette=ROUTE, order=ROUTES,
+               view=view, ylabel=label)
+        panel[index].set_xlabel(f"n={reported:,} records")
 
     # --- h: yield against conversion, an identity the data has to obey ---------------------
     # 1,423 records is a scatter, not a density. The density was here because five thousand
