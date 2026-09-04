@@ -1,17 +1,63 @@
-/artifacts/data/curated_data_pdfs_by_doi/
-/artifacts/runs/
-*.aux
-.env
-*.log
-*.pdf
-__pycache__/
+# --- environment -----------------------------------------------------------------------------
 .venv/
+.env
+__pycache__/
+wandb/
 
-# latexmk droppings
+# --- LaTeX build output ----------------------------------------------------------------------
+*.aux
+*.log
 *.fls
 *.fdb_latexmk
 *.out
 *.bbl
 *.blg
 paper_rsc.pdf
-wandb/
+
+# --- office and editor junk ------------------------------------------------------------------
+# LibreOffice writes one of these beside every open spreadsheet. One of them got committed.
+.~lock.*#
+
+# --- artifacts/ ------------------------------------------------------------------------------
+# core/paths.py has always stated the rule -- "pushable source lives at the project root;
+# everything we can't push (copyrighted data + generated output) lives under artifacts/,
+# git-ignored" -- and it was never written down here. So 139 files turned up untracked on every
+# status: 143 MB of exported comparison bundles in three copies, ~20 MB of regenerable release
+# workbooks, and office lock files, with the chemists' adjudication decisions buried among them.
+#
+# What belongs in git under artifacts/ is what cannot be regenerated: the curated answer key,
+# the human decisions, the hand-built lookups, and the generated things the manuscript needs in
+# order to compile at all. Everything listed below is output or third-party data.
+#
+# No trailing comments on the patterns. gitignore only treats "#" as a comment at the start of
+# a line, so "pattern  # why" is a pattern containing spaces and a hash, and matches nothing --
+# which is exactly how the first version of this section silently ignored none of it.
+
+# run bundles: gigabytes, reproducible from the configs
+/artifacts/runs/
+# publisher PDFs
+/artifacts/data/curated_data_pdfs_by_doi/
+# exported comparison bundles, three copies of one thing, 143 MB
+/artifacts/gao_comparison_bundle*
+# written by tools/export_hf.py
+/artifacts/huggingface/
+# written by tools/paper_numbers.py
+/artifacts/paper_numbers_readable.txt
+# third-party spreadsheets and generated workbooks
+/artifacts/*.xlsx
+/artifacts/release/*.xlsx
+/artifacts/release/*.parquet
+/artifacts/release/features.csv
+/artifacts/release/pet_*.csv
+/artifacts/release/smiles_*.csv
+# hand-made backups of the answer key; git is the backup
+/artifacts/data/*.before-*.json
+# converted text for the gapfill runs, which are themselves ignored
+/artifacts/data/corpus_gapfill*/
+/artifacts/data/corpus_reconvert/
+
+# PDFs are output, or someone else's paper -- except the manuscript's own figures, without which
+# a clone cannot build it. paper_numbers.tex was tracked and the figures were not, so latexmk on
+# a fresh checkout failed at the first \includegraphics.
+*.pdf
+!/artifacts/figures/fig*.pdf
