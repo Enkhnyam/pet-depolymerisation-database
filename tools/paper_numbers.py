@@ -209,8 +209,10 @@ def collect() -> tuple[dict, dict]:
         "AdjDecidedFresh": f"{audit['decided fresh']}",
         "AdjCarriedOver": f"{audit['records'].shape[0] - audit['decided fresh']}",
         "AdjDesignAccepted": f"{int((audit['records'].design_stratum == 'both accepted it').sum())}",
-        "JudgeContextCap": "131{,}072",
-        "JudgeOverContext": "0",
+        # the window is a property of the model, so it comes from _setup where the other
+        # measurement constants live; the count over it is measured, not asserted
+        "JudgeContextCap": f"{_setup.JUDGE_CONTEXT:,}".replace(",", "{,}"),
+        "JudgeOverContext": f"{co['papers over the judge\'s context window']}",
         "LargestJudgedTokens": f"{co['largest judged tokens']:,}",
         "FunnelDroppedPolymer": f"{abs(int(funnel['dropped, no polymer named'])):,}",
         "FunnelDroppedRoute": f"{abs(int(funnel['dropped, no depolymerisation route named'])):,}",

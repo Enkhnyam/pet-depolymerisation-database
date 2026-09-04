@@ -10,7 +10,7 @@ from collections import Counter
 
 import pandas as pd
 
-from _setup import DATABASE, records, show, sources
+from _setup import DATABASE, JUDGE_CONTEXT, records, show, sources
 from core.paths import data_path
 
 ELSEVIER = "10.1016"
@@ -65,6 +65,7 @@ def compute() -> dict:
                csv.DictReader(data_path("source_format.csv").open(encoding="utf-8"))}
     by_source = Counter()
     largest_chars = 0
+    over_context = 0
 
     empty = Counter()
     processed = 0
@@ -75,6 +76,9 @@ def compute() -> dict:
             paper["doi"].replace("/", "@").lower() + ".md")
         if markdown.exists():
             largest_chars = max(largest_chars, markdown.stat().st_size)
+            # the paper claims no document was truncated against the judge's window; counted
+            # rather than asserted, because it used to be a macro hardcoded to "0"
+            over_context += markdown.stat().st_size // 4 > JUDGE_CONTEXT
         if paper["records"]:
             continue
         title = titles.get(paper["doi"].lower(), "")
@@ -101,6 +105,7 @@ def compute() -> dict:
         # roughly four characters to a token; the paper quotes this to say the judge's context
         # window was never the binding constraint
         "largest judged tokens": largest_chars // 4,
+        "papers over the judge's context window": over_context,
         "publishers": pd.Series(publishers).sort_values(ascending=False),
         "per paper": per_paper,
         "extraction": {
@@ -122,7 +127,9 @@ def main() -> None:
     show("relevant papers by publisher", result["publishers"], fmt="{:.0f}")
     show("extraction", result["extraction"], fmt="{:.0f}")
     show("how the full text was obtained", result["obtained by"], fmt="{:.0f}")
-    print(f"\nlargest paper the judge read: ~{result['largest judged tokens']:,} tokens")
+    print(f"\nlargest paper the judge read: ~{result['largest judged tokens']:,} tokens "
+          f"against a {JUDGE_CONTEXT:,}-token window; "
+          f"{result["papers over the judge\'s context window"]} over it")
 
 
 if __name__ == "__main__":

@@ -38,6 +38,11 @@ DATABASE_JUDGE = RUNS_DIR / "mass_oss_1shot/mass_oss_1shot"
 LABELLED = ARTIFACTS / "gold/source_run"
 LABELS = ARTIFACTS / "gold/golden_set.json"
 
+# The judge model's context window. A constant of the model rather than of a run, but the
+# paper claims no document was truncated against it, so the claim has to be measurable: it is
+# the cap that database/corpus.py counts papers over.
+JUDGE_CONTEXT = 131_072
+
 ACCEPT = 0.30       # a matched pair is accepted below this penalty
 CATALYST = 0.60     # catalyst names must be at least this similar to pair at all
 TOLERANCE = 0.20    # numbers agree within this fraction

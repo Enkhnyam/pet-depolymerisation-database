@@ -28,10 +28,15 @@ where a macro's value happens to equal an unrelated constant, each with the reas
 excused by value alone would hide a real one, so each entry names the macro and the context.
 """
 import re
+import sys
 
 import pandas as pd
 
 from _setup import ARTIFACTS, ROOT, show, sources
+
+# the macro -> check attribution, derived by parsing paper_numbers.py
+sys.path.insert(0, str(ROOT / "tools"))
+import provenance
 
 MACROS = ARTIFACTS / "paper_numbers.tex"
 PAPERS = ("paper_rsc.tex",)   # paper.tex and paper_rsc_si.tex were deleted, not renamed
@@ -165,6 +170,15 @@ def main() -> None:
     print(f"\n{len(result['defined'])} macros defined, body text of {len(PAPERS)} manuscripts "
           f"scanned")
     print(f"  {len(result['excused'])} known coincidence(s) excused by name in REVIEWED")
+
+    untraceable = provenance.compute()["unattributed"]
+    if untraceable:
+        print(f"\n  {len(untraceable)} macro(s) no check can be traced for:")
+        for name in untraceable:
+            print(f"    \\{name}")
+        print("\n  each is a number the manuscript may quote whose provenance is unproven.")
+        raise SystemExit(1)
+    print(f"  all {len(result['defined'])} macros trace back to a check and a bundle")
 
     if result["broken"]:
         for paper, names in result["broken"].items():
