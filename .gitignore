@@ -19,45 +19,30 @@ paper_rsc.pdf
 .~lock.*#
 
 # --- artifacts/ ------------------------------------------------------------------------------
-# core/paths.py has always stated the rule -- "pushable source lives at the project root;
-# everything we can't push (copyrighted data + generated output) lives under artifacts/,
-# git-ignored" -- and it was never written down here. So 139 files turned up untracked on every
-# status: 143 MB of exported comparison bundles in three copies, ~20 MB of regenerable release
-# workbooks, and office lock files, with the chemists' adjudication decisions buried among them.
+# One rule, replacing a page of them: nothing under artifacts/ is tracked except the backup.
 #
-# What belongs in git under artifacts/ is what cannot be regenerated: the curated answer key,
-# the human decisions, the hand-built lookups, and the generated things the manuscript needs in
-# order to compile at all. Everything listed below is output or third-party data.
+# core/paths.py always stated the policy -- "pushable source lives at the project root;
+# everything we can't push (copyrighted data + generated output) lives under artifacts/,
+# git-ignored" -- and the tree did not obey it. 118 MB was tracked, 64 MB of it converted
+# publisher full text across 1,027 files, which is not ours to redistribute. The rest was
+# output: review and adjudication HTML, release workbooks, the macro file, the figures.
+#
+# artifacts/backup/ is the exception and is built by tools/backup.py, not by hand: the LLM runs'
+# extractions and verdicts, the curated answer key, the chemists' decisions, the Scopus funnel
+# and the Gao CSVs. 43 MB, and none of it can be recomputed from what is pushed. Everything
+# else under artifacts/ either can be, or must not leave this machine.
+#
+# `backup.py --check` fails if that folder has gone stale or is missing a declared input, so
+# "the repository is enough to rebuild the paper" is tested rather than asserted.
 #
 # No trailing comments on the patterns. gitignore only treats "#" as a comment at the start of
 # a line, so "pattern  # why" is a pattern containing spaces and a hash, and matches nothing --
 # which is exactly how the first version of this section silently ignored none of it.
+/artifacts/*
+!/artifacts/backup/
 
-# run bundles: gigabytes, reproducible from the configs
-/artifacts/runs/
-# publisher PDFs
-/artifacts/data/curated_data_pdfs_by_doi/
-# exported comparison bundles, three copies of one thing, 143 MB
-/artifacts/gao_comparison_bundle*
-# written by tools/export_hf.py
-/artifacts/huggingface/
-# written by tools/paper_numbers.py
-/artifacts/paper_numbers_readable.txt
-# third-party spreadsheets and generated workbooks
-/artifacts/*.xlsx
-/artifacts/release/*.xlsx
-/artifacts/release/*.parquet
-/artifacts/release/features.csv
-/artifacts/release/pet_*.csv
-/artifacts/release/smiles_*.csv
-# hand-made backups of the answer key; git is the backup
-/artifacts/data/*.before-*.json
-# converted text for the gapfill runs, which are themselves ignored
-/artifacts/data/corpus_gapfill*/
-/artifacts/data/corpus_reconvert/
-
-# PDFs are output, or someone else's paper -- except the manuscript's own figures, without which
-# a clone cannot build it. paper_numbers.tex was tracked and the figures were not, so latexmk on
-# a fresh checkout failed at the first \includegraphics.
+# PDFs are output, or someone else's paper. The manuscript's own figures were excepted here so
+# that latexmk on a fresh checkout would not fail at the first \includegraphics; they are not
+# any more, because they are generated -- restore the backup and run scripts/paper.sh, which
+# draws them from the checks.
 *.pdf
-!/artifacts/figures/fig*.pdf
