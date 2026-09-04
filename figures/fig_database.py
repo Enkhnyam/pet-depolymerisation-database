@@ -53,8 +53,7 @@ def main() -> None:
     names = {OTHER_ROUTE: "unassigned"}
     ordered.index = [names.get(name, str(name)) for name in ordered.index]
     pie(panel[1], ordered, colours=[ROUTE[name] for name in routes.index if name in ROUTE],
-        span=2.1)
-    panel[1].set_xlabel(f"route, of {int(ordered.sum()):,} records")
+        title=f"route, of {int(ordered.sum()):,} records")
 
     # --- c: how often each field is reported at all ------------------------------------------
     ranked_bars(panel[2], chemistry["completeness"] * 100,

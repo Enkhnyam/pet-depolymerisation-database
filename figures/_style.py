@@ -208,49 +208,50 @@ def cloud(axis, x, y, *, colour, marker="o", size=7, label=None, edge=None, zord
     return axis
 
 
-def pie(axis, series, *, colours, fmt="{:,.0f}", gap=0.26, span=2.0):
-    """A part-to-whole with the slices labelled outside, no legend.
+def pie(axis, series, *, colours, fmt="{:,.0f}", title=""):
+    """A part-to-whole with a legend under it, no labels on the slices.
 
     A pie is the wrong mark for comparing magnitudes and the right one for showing that a set
-    decomposes: every curated record has exactly one reason and they sum to the whole.
+    decomposes: every record has exactly one route, and the slices sum to the database.
 
-    Labels are pushed apart vertically before they are drawn. Three of these five slices are
-    under a tenth of the circle, so their natural label positions land on top of one another --
-    which is what the first draft did.
+    The slices were labelled outside, and it was reported that the labels did not line up with
+    them. They did not. Each label was pinned to a fixed x at the side of the circle, so a slice
+    near twelve o'clock got a label out at the edge with nothing joining the two, and the leader
+    line that was supposed to join them ended on the label's own line rather than on the wedge.
+    Pushing colliding labels apart then moved a label away from the only slice that identified
+    it.
+
+    A legend cannot have that fault: the swatch *is* the identification, so there is nothing to
+    align. It also gives the circle back the width four labels were spending -- the pie having
+    been too small was the other complaint about this panel -- and it puts the name, the count
+    and the share on one line each, where they read as a small table.
     """
     total = float(series.sum())
     wedges, _ = axis.pie(series.values, colors=colours, startangle=90, counterclock=False,
+                         radius=1.0, center=(0, 0),
                          wedgeprops=dict(linewidth=0.6, edgecolor="white"))
 
-    placed = []
-    for wedge, (name, value) in zip(wedges, series.items()):
-        middle = np.deg2rad((wedge.theta1 + wedge.theta2) / 2)
-        placed.append({"name": name, "value": value,
-                       "x": np.cos(middle), "y": np.sin(middle),
-                       "right": np.cos(middle) >= 0})
+    axis.legend(wedges,
+                [f"{name}  {fmt.format(value)} ({value / total:.0%})"
+                 for name, value in series.items()],
+                loc="upper center", bbox_to_anchor=(0.5, -0.02), frameon=False,
+                fontsize=5.4, labelcolor=INK, title=title or None,
+                title_fontproperties=dict(size=6.2),
+                handlelength=0.85, handleheight=0.85, handletextpad=0.5,
+                labelspacing=0.42, borderpad=0.0, borderaxespad=0.0,
+                ncol=1 if len(series) < 4 else 2, columnspacing=1.0)
 
-    # de-collide each side independently, working outward from the middle of the circle
-    for right in (True, False):
-        side = sorted((row for row in placed if row["right"] == right),
-                      key=lambda row: row["y"])
-        for lower, upper in zip(side, side[1:]):
-            if upper["y"] - lower["y"] < gap:
-                upper["y"] = lower["y"] + gap
-
-    for row in placed:
-        axis.annotate(f"{row['name']}\n{fmt.format(row['value'])} "
-                      f"({row['value'] / total:.0%})",
-                      (1.04 * (1 if row["right"] else -1), row["y"]),
-                      ha="left" if row["right"] else "right", va="center",
-                      fontsize=5.4, color=INK,
-                      # a hairline from the label back to its own slice, since a pushed label
-                      # no longer points at the wedge it describes
-                      xytext=(1.16 * (1 if row["right"] else -1), row["y"]),
-                      textcoords="data",
-                      arrowprops=dict(arrowstyle="-", color=RULE, lw=0.5,
-                                      shrinkA=1, shrinkB=1))
-    axis.set_xlim(-span, span)
-    axis.set_ylim(-1.25, 1.25)
+    # A square aspect that leaves the axes box alone: adjustable="box" shrinks the box to
+    # satisfy the aspect, and the panel letter is anchored to the box, so the letter drifted out
+    # of line with its neighbours. Only the y limit is set -- with datalim the x limit is
+    # derived from it and the box, and setting one anyway is what printed "Ignoring fixed x
+    # limits" on every build. There is no side room to reserve now that the legend replaced the
+    # outside labels.
+    # axis.pie() fixes both limits itself, and apply_aspect() with adjustable="datalim" then
+    # has to discard one and says so on every build. Both are handed back to autoscale: the
+    # circle is centred by its own geometry, so there was nothing for a fixed limit to do, and
+    # the output is byte-identical without them.
+    axis.autoscale(enable=True)
     axis.set_aspect("equal", adjustable="datalim")
     return axis
 

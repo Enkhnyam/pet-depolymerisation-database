@@ -1,4 +1,4 @@
-"""How good the extraction is, and which grader the chemists back.
+"""How good the extraction is, and which grader manual evaluation backs.
 
 Three panels, no legend on any of them: the x ticks carry the measures, which are the same words
 in both scored panels, and colour carries the thing being compared -- three extraction models in
@@ -18,7 +18,9 @@ What each panel answers, and why it is the panel it is:
       answer key and therefore no opinion, and counting those as disagreements blames it for
       records it could not grade.
 
-  (c) On the records where the two graders do disagree, which of them the chemists sided with.
+  (c) On the records where the two graders do disagree, which of them manual evaluation
+      sided with. "Human evaluation" rather than "the chemists" on the panel itself, which
+      is the wording the manuscript's own caption already used.
       This is the comparison the section exists for, and it is the one place the two graders can
       be separated: where they agree, the record says nothing about which is better.
 """
@@ -63,10 +65,10 @@ def main() -> None:
     split = {"agree": int(cell["agree"]), "disagree": int(cell["disagree"]),
              "not gradeable": int(cell["no counterpart"])}
     pie(panel[1], __import__("pandas").Series(split),
-        colours=[GRADER["metric"], GRADER["judge"], RAMP[3]], gap=0.34, span=2.1)
-    panel[1].set_xlabel(f"judge vs heuristic, of {int(cell['records'])} records")
+        colours=[GRADER["metric"], GRADER["judge"], RAMP[3]],
+        title=f"judge vs heuristic, of {int(cell['records'])} records")
 
-    # --- c: on the disagreements, who the chemists backed ------------------------------------
+    # --- c: on the disagreements, who human evaluation backed ------------------------------------
     backed = [("the heuristic", mcnemar["favouring the metric"], GRADER["metric"]),
               ("the judge", mcnemar["favouring the judge"], GRADER["judge"])]
     tallest = max(value for _, value, _ in backed)
@@ -74,7 +76,7 @@ def main() -> None:
                  color=[colour for *_, colour in backed])
     panel[2].set_xticks(range(2), [name for name, *_ in backed])
     panel[2].tick_params(axis="x", length=0)
-    panel[2].set_xlabel("the chemists sided with")
+    panel[2].set_xlabel("human evaluation sided with")
     panel[2].set_ylabel(f"number of disagreements "
                         f"(of {mcnemar['informative pairs']})")
     headroom(panel[2], tallest * 1.3)
