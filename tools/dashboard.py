@@ -50,6 +50,9 @@ JOBS = {
     "paper": {"cmd": ["./scripts/paper.sh", "--check"],
               "label": "Is the paper current?",
               "why": "Fails if a macro, a figure or the manuscript has drifted from the checks."},
+    "derivation": {"cmd": ["./.venv/bin/python", "-u", "tools/derivation.py"],
+                   "label": "Rebuild the derivation report",
+                   "why": "Rewrites docs/derivation.md from the figure modules and the checks."},
     "figures": {"cmd": ["./scripts/figures.sh"],
                 "label": "Redraw the figures",
                 "why": "Redraws each figure from the checks and reports any that had gone stale."},
@@ -224,8 +227,12 @@ def payload() -> dict:
     with _lock:
         job = {"name": _job["name"], "done": _job["done"], "code": _job["code"],
                "checks": dict(_job["checks"])}
+    panels = provenance.panels()
+    declared = provenance.check_sources()
+    questions = {row["path"].split("/")[-1].removesuffix(".py"): row["question"]
+                 for row in state["checks"]}
     return {**state, "charts": charts, "tests": tests, "tiles": tiles, "jobs": JOBS,
-            "job": job}
+            "job": job, "panels": panels, "declared": declared, "questions": questions}
 
 
 def _field_table() -> list[dict]:
@@ -347,6 +354,22 @@ svg{display:block;width:100%;height:auto;overflow:visible}
   padding:6px 9px;border-radius:6px;opacity:0;transition:opacity .1s;z-index:9;white-space:nowrap}
 #tip b{font-weight:600}
 #tip em{font-style:normal;opacity:.7;font-family:ui-monospace,Menlo,monospace;font-size:11px}
+
+/* panels */
+.figname{font-size:13.5px;margin:0 0 12px;font-weight:640;display:flex;align-items:baseline;
+  gap:9px}
+.figname span{font-size:11.5px;color:var(--faint);font-weight:500}
+.panel{display:grid;grid-template-columns:26px 1fr;gap:11px;padding:11px 0;
+  border-top:1px solid #F1F5F4}
+.panel:first-of-type{border-top:none}
+.pl{width:23px;height:23px;border-radius:6px;background:var(--r4);color:var(--r0);
+  font-weight:700;font-size:12px;display:grid;place-items:center}
+.pq{font-size:13.5px;margin-bottom:2px}
+.pm{font-size:11.5px;color:var(--dim)}
+.pm code{background:#EEF3F2;padding:1px 5px;border-radius:4px;font-size:11px}
+.panel details{margin-top:7px}
+.panel summary{font-size:11.5px}
+pre.code{background:#0B1917;color:#DCE8E4;font-size:11px;max-height:220px}
 
 /* table */
 .tools{display:flex;gap:9px;align-items:center;margin-bottom:13px;flex-wrap:wrap}
@@ -554,6 +577,28 @@ def render(state: dict) -> str:
             f'<td class="chkname">{esc(joined or "—")}</td><td>{tag}</td>'
             f'<td class="why2">{esc(row["derivation"])}</td></tr>')
 
+    panelblocks = []
+    for figure, rows in state["panels"].items():
+        cards = []
+        for row in rows:
+            reads = ", ".join(row["reads"]) or "—"
+            asks = " ".join(state["questions"].get(name, "") for name in row["reads"]).strip()
+            purpose = row.get("purpose") or asks
+            inputs = "; ".join(sorted({item for name in row["reads"]
+                                       for item in state["declared"].get(name, [])})) or "—"
+            cards.append(
+                f'<div class="panel"><div class="pl">{esc(row["letter"])}</div>'
+                f'<div class="pb"><div class="pq">{esc(purpose) or "&mdash;"}</div>'
+                f'<div class="pm">by <code>{esc(reads)}</code>, which asks '
+                f'&ldquo;{esc(asks)}&rdquo;</div>'
+                f'<div class="pm">reading <code>{esc(inputs)}</code></div>'
+                f'<details><summary>the code that draws it</summary>'
+                f'<pre class="code">{esc(row["code"])}</pre></details></div></div>')
+        panelblocks.append(
+            f'<div class="card"><h3 class="figname">{esc(figure)}'
+            f'<span>{len(rows)} panels</span></h3>{"".join(cards)}</div>')
+    panelblocks = "".join(panelblocks)
+
     figures = " &middot; ".join(
         f'{esc(n)} <b>{"drawn" if r["drawn"] else "MISSING"}</b>'
         for n, r in state["figures"].items())
@@ -582,13 +627,21 @@ def render(state: dict) -> str:
 
   <section>
     <div class="step"><div class="no">1</div><div>
+      <h2>Pick a panel, see how it was computed</h2>
+      <p>Every panel of every figure, the check behind it, what that check reads, and the code
+        that draws it.</p></div></div>
+    {panelblocks}
+  </section>
+
+  <section>
+    <div class="step"><div class="no">2</div><div>
       <h2>What the numbers were computed from</h2>
       <p>Seven inputs. Change any one and the artifact set above changes with it.</p></div></div>
     <div class="card"><div class="srcs">{sources}</div></div>
   </section>
 
   <section>
-    <div class="step"><div class="no">2</div><div>
+    <div class="step"><div class="no">3</div><div>
       <h2>Check it yourself</h2>
       <p>These run the same commands as the terminal, on this machine, now.</p></div></div>
     <div class="card">
@@ -602,7 +655,7 @@ def render(state: dict) -> str:
   </section>
 
   <section>
-    <div class="step"><div class="no">3</div><div>
+    <div class="step"><div class="no">4</div><div>
       <h2>What the checks found</h2>
       <p>Four claims a referee asks first, then the shape of the data behind them.</p></div></div>
     <div class="claims">{claims}</div>
@@ -610,7 +663,7 @@ def render(state: dict) -> str:
   </section>
 
   <section>
-    <div class="step"><div class="no">4</div><div>
+    <div class="step"><div class="no">5</div><div>
       <h2>Every number, and the check that produced it</h2>
       <p>Filter to what the manuscript actually quotes, or to one check's numbers.</p></div></div>
     <div class="card">

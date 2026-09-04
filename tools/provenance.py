@@ -360,3 +360,220 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# ---------------------------------------------------------------------------------------------
+# Per-panel derivation: which check drew each panel, and the code that did it.
+#
+# The macro table above answers "where does this number come from" for a number quoted in the
+# text. It does not answer the question someone actually asks in front of a figure, which is
+# "where does *this panel* come from". That needs the figure modules read the same way
+# paper_numbers.py is read: find the statements that touch panel[N], and report the checks they
+# reference along with the source lines themselves.
+#
+# Showing the lines is the point. A prose summary of a calculation is a second description of it
+# that can drift; the code cannot.
+# ---------------------------------------------------------------------------------------------
+
+LETTERS = "abcdefghijklmnopqrstuvwxyz"
+
+
+def _panel_indices(node: ast.AST) -> set[int]:
+    """Every panel[N] the statement touches."""
+    found = set()
+    for inner in ast.walk(node):
+        if (isinstance(inner, ast.Subscript) and isinstance(inner.value, ast.Name)
+                and inner.value.id == "panel"
+                and isinstance(inner.slice, ast.Constant)
+                and isinstance(inner.slice.value, int)):
+            found.add(inner.slice.value)
+    return found
+
+
+def _function_locals(func: ast.FunctionDef, aliases: dict[str, str]) -> dict[str, str]:
+    """Locals in a figure's main() that hold a check's output, mapped to that check.
+
+    The same trick as locals_to_checks() for paper_numbers.py, but a figure binds its checks in
+    statements of their own -- `chemistry = chem.compute()` -- and the panel statements only
+    mention the local. Without this every panel came out reading nothing.
+    """
+    found: dict[str, str] = {}
+    for statement in func.body:
+        if not isinstance(statement, ast.Assign):
+            continue
+        names = ([e.id for e in statement.targets[0].elts if isinstance(e, ast.Name)]
+                 if isinstance(statement.targets[0], ast.Tuple)
+                 else [statement.targets[0].id]
+                 if isinstance(statement.targets[0], ast.Name) else [])
+        reads = {aliases[i.id] for i in ast.walk(statement.value)
+                 if isinstance(i, ast.Name) and i.id in aliases}
+        reads |= {found[i.id] for i in ast.walk(statement.value)
+                  if isinstance(i, ast.Name) and i.id in found}
+        for name in names:
+            if reads:
+                found[name] = sorted(reads)[0]
+    return found
+
+
+BANNER = re.compile(r"^\s*#\s*-{2,}\s*([a-z](?:\s*-\s*[a-z])?)\s*:\s*(.+?)\s*-{3,}\s*$")
+
+
+def purposes(source: str) -> dict[str, str]:
+    """Panel letter -> what that panel is for, from the module's own section banners.
+
+    The figure modules head each panel with `# --- a: how many experiments a paper reports ---`,
+    so the description is already written beside the code and cannot drift from it.
+
+    Reading it off the statement that touches panel[N] does not work: the banner sits above the
+    whole block, and the first line of that block is usually a plain assignment that mentions no
+    panel at all. The check's docstring is no substitute either -- four panels of fig_database
+    read database/chemistry.py, so all four would be labelled "Does the extracted database
+    behave like chemistry?".
+    """
+    found = {}
+    for line in source.splitlines():
+        match = BANNER.match(line)
+        if match:
+            letters = match.group(1).replace(" ", "")
+            text = match.group(2).strip()
+            found[letters] = text[0].upper() + text[1:]
+    return found
+
+
+def _dynamic_panel(node: ast.AST) -> bool:
+    """True when the statement indexes panel with anything but a literal int."""
+    for inner in ast.walk(node):
+        if (isinstance(inner, ast.Subscript) and isinstance(inner.value, ast.Name)
+                and inner.value.id == "panel"
+                and not (isinstance(inner.slice, ast.Constant)
+                         and isinstance(inner.slice.value, int))):
+            return True
+    return False
+
+
+def _spec_indices(loop: ast.For, func: ast.FunctionDef) -> list[int]:
+    """The panel indices a loop covers, when it iterates a list of tuples that lead with them.
+
+    fig_chemistry draws (a)-(g) from a `spec` list whose rows start with the panel index, so the
+    indices are in the source even though `panel[index]` is not a constant.
+    """
+    if not isinstance(loop.iter, ast.Name):
+        return []
+    for statement in func.body:
+        if (isinstance(statement, ast.Assign) and isinstance(statement.targets[0], ast.Name)
+                and statement.targets[0].id == loop.iter.id
+                and isinstance(statement.value, ast.List)):
+            found = []
+            for element in statement.value.elts:
+                if (isinstance(element, ast.Tuple) and element.elts
+                        and isinstance(element.elts[0], ast.Constant)
+                        and isinstance(element.elts[0].value, int)):
+                    found.append(element.elts[0].value)
+            return found
+    return []
+
+
+def panels() -> dict[str, list[dict]]:
+    """Per figure, per panel: the checks behind it and the source lines that draw it."""
+    found: dict[str, list[dict]] = {}
+    for name, row in figures().items():
+        module = ROOT / "figures" / f"{name}.py"
+        if not module.exists():
+            continue
+        source = module.read_text(encoding="utf-8")
+        lines = source.splitlines()
+        tree = ast.parse(source)
+        main = next((n for n in tree.body
+                     if isinstance(n, ast.FunctionDef) and n.name == "main"), None)
+        if main is None:
+            continue
+
+        aliases = {(alias.asname or alias.name): alias.name for node in tree.body
+                   if isinstance(node, ast.ImportFrom) and node.module in
+                   {"curated", "database", "human"} for alias in node.names}
+        held = _function_locals(main, aliases)
+        said = purposes(source)
+
+        by_panel: dict[int, dict] = {}
+        for statement in main.body:
+            for index in _panel_indices(statement):
+                seen = by_panel.setdefault(index, {"code": [], "reads": set(), "lines": []})
+                start, end = statement.lineno, (statement.end_lineno or statement.lineno)
+                # the comment block immediately above the statement explains the choice, so it
+                # is part of the derivation rather than decoration
+                top = start - 1
+                while top > 0 and lines[top - 1].strip().startswith("#"):
+                    top -= 1
+                seen["lines"].append((top + 1, end))
+                seen["code"].append("\n".join(lines[top:end]))
+                for inner in ast.walk(statement):
+                    if isinstance(inner, ast.Name):
+                        if inner.id in aliases:
+                            seen["reads"].add(aliases[inner.id])
+                        elif inner.id in held:
+                            seen["reads"].add(held[inner.id])
+
+        # A loop draws several panels only when it subscripts panel with something that is not
+        # a constant. Filtering on _panel_indices() instead missed fig_chemistry's spec loop
+        # entirely -- `panel[index]` has no constant to find -- and double-counted a loop that
+        # annotates one constant panel, which its own panel entry already covers.
+        loops = [s for s in main.body if isinstance(s, ast.For) and _dynamic_panel(s)]
+        found[name] = []
+        for index in sorted(by_panel):
+            entry = by_panel[index]
+            found[name].append({
+                "letter": LETTERS[index] if index < len(LETTERS) else str(index),
+                "purpose": said.get(LETTERS[index] if index < len(LETTERS)
+                                    else str(index), ""),
+                "reads": sorted(entry["reads"]),
+                "lines": entry["lines"],
+                "code": "\n\n".join(entry["code"]),
+            })
+        for loop in loops:
+            top = loop.lineno - 1
+            while top > 0 and lines[top - 1].strip().startswith("#"):
+                top -= 1
+            covered = _spec_indices(loop, main)
+            reads = sorted({aliases[i.id] if i.id in aliases else held[i.id]
+                            for i in ast.walk(loop)
+                            if isinstance(i, ast.Name) and (i.id in aliases or i.id in held)})
+            # one label, used for both the heading and the banner lookup. Computing it twice
+            # gave "a-g" in the heading and "abcdefg" as the key, so the purpose never matched.
+            if covered:
+                span = [LETTERS[i] for i in sorted(covered)]
+                label = span[0] if len(span) == 1 else f"{span[0]}-{span[-1]}"
+            else:
+                label = "several panels"
+            found[name].append({
+                "letter": label,
+                "purpose": said.get(label, ""),
+                "reads": reads,
+                "lines": [(top + 1, loop.end_lineno)],
+                "code": "\n".join(lines[top:loop.end_lineno]),
+            })
+        # A letter covered by a loop can also appear on its own, from a cosmetic line such as
+        # legend_above(figure, panel[0]). Those entries read no check and say nothing about the
+        # derivation, so they are dropped in favour of the loop that draws the panel.
+        spanned = {letter for row in found[name] if "-" in row["letter"]
+                   for letter in LETTERS[LETTERS.index(row["letter"][0]):
+                                         LETTERS.index(row["letter"][-1]) + 1]}
+        found[name] = [row for row in found[name]
+                       if row["reads"] or row["letter"] not in spanned]
+        found[name].sort(key=lambda row: row["letter"])
+    return found
+
+
+def check_sources() -> dict[str, list[str]]:
+    """Each check module, and the bundles or data files it declares by calling sources()."""
+    found = {}
+    for row in checks():
+        path = ROOT / "checks" / row["path"]
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        named = []
+        for node in ast.walk(tree):
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                    and node.func.id == "sources"):
+                for keyword in node.keywords:
+                    named.append(f"{keyword.arg} = {ast.unparse(keyword.value)}")
+        found[path.stem] = named
+    return found

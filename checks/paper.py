@@ -64,6 +64,8 @@ TYPOGRAPHY = re.compile(r"@setfontsize|\\the\\|setlength")
 # Macro values that also appear as unrelated constants. Each is a real coincidence, not a number
 # anyone should have written as a macro.
 REVIEWED = {
+    # four relationships across three routes is twelve, and the schema has twelve fields
+    ("WithinRoutePairs", "12"): "the schema's field count, unrelated",
     ("ShotsSmallestPairwise", "0.02"): "0.02 as a detectable-difference size in the power tables",
     ("ShotsComparisons", "10"): "unrelated counts of ten",
     ("AdjCarriedOver", "20"): "the 20 rescue-review prefills, and unrelated counts of 20",

@@ -17,7 +17,8 @@ def main() -> None:
 
     figure, panel = canvas(3, 3, height=5.73)
 
-    # (a)-(g). Three changes from the version before this one, all asked for:
+    # --- a-g: the conditions the corpus reports, one field per panel -----------------------
+    # Three changes from the version before this one, all asked for:
     #
     #   No log x. Four of these fields span six decades -- PET runs to 2.4 tonnes against a
     #   median of 3 g -- so a linear axis over the whole range is a spike at zero. They are
@@ -45,6 +46,7 @@ def main() -> None:
                   ylabel="records" if index % 3 == 0 else "", **stack)
         headroom(panel[index], stack_tops(panel[index]))
 
+    # --- h: yield against conversion, an identity the data has to obey ---------------------
     # 1,423 records is a scatter, not a density. The density was here because five thousand
     # points elsewhere on this page are ink rather than information -- but only the records
     # reporting both metrics land in this panel, and at that count the marks separate. It also
