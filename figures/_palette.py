@@ -114,6 +114,30 @@ def report(slots: dict[str, str], surface: str = "#FFFFFF") -> list[str]:
     return failures
 
 
+def drawn_colours(pdf: "Path") -> set[str]:
+    """Every colour a rendered figure actually paints with, read back out of the PDF.
+
+    Checking the palette definition is not the same as checking the figures. matplotlib hands a
+    colour to any artist that does not name one -- a plot() call whose marker carries the colour
+    still draws its empty line from the property cycle, and the cycle hue is written into the
+    file whether or not a pixel of it is visible. Three tab10 colours reached fig_chemistry that
+    way, past a palette check that passed, because the palette was never the thing that was
+    wrong.
+    """
+    import re
+    import zlib
+
+    raw = pdf.read_bytes()
+    body = ""
+    for match in re.finditer(rb"stream\r?\n(.*?)endstream", raw, re.S):
+        try:
+            body += zlib.decompress(match.group(1)).decode("latin-1")
+        except zlib.error:                       # an uncompressed or image stream: no operators
+            pass
+    return {"#%02X%02X%02X" % tuple(round(float(match.group(i)) * 255) for i in (1, 2, 3))
+            for match in re.finditer(r"([\d.]+) ([\d.]+) ([\d.]+) (?:rg|RG)\b", body)}
+
+
 def table(slots: dict[str, str]) -> str:
     lines = [f"{'slot':<10}{'hex':<10}{'L':>6}{'chroma':>8}{'contrast':>10}"]
     for name, colour in slots.items():
