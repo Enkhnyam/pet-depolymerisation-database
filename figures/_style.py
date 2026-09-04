@@ -21,52 +21,57 @@ from core.paths import ARTIFACTS, FIGURES
 from core.schema import OTHER_ROUTE, ROUTES
 
 # ---------------------------------------------------------------------------------------------
-# One ramp. Everything on every page is a step of it.
+# Two palettes, and a rule for which one a panel gets.
 #
-# Counting the colours actually rendered in the three figures found seventeen, in three unrelated
-# green families: route teal #0e7c6b, a separate four-step teal ramp #0b5f52..#a8d2ca for the
-# measures, and eight greens #00441b..#d4efec that matplotlib's BuGn colormap put in one
-# heatmap -- plus rose, amber, red and grey. Three families of the same colour is worse than
-# four unrelated hues, because the reader cannot tell whether the difference means anything.
+# The old one was five steps of a single green. It was consistent, and it was five shades of
+# green: asked to tell four categories apart in it, a reader could not. figures/_palette.py puts
+# a number on that -- the old ramp failed the normal-vision floor on two of its adjacent pairs,
+# at dE 14.7 and 14.1 against a floor of 15. So the complaint was not taste, it was measurable.
 #
-# So there is one ramp, five steps of one hue, and every categorical set is a slice of it. Route
-# takes three steps, a family of measures takes four, the heatmap interpolates the whole thing.
-# Rose and amber are gone.
+#   CATEGORICAL   four clearly different hues, for data whose categories are its subject.
+#                 Blue, red, yellow, purple, assigned in that fixed order and never cycled.
+#                 Chosen by search over muted candidates and validated by _palette.py against
+#                 all six checks: worst-case separation under deuteranopia, protanopia or
+#                 tritanopia is dE 11.1 against a target of 8, and every pair also separates in
+#                 greyscale. Chroma stays between 9 and 13, so none of them is bright.
 #
-# The steps are spaced 14.5 to 17.5 in L*, which is what makes this work: lightness is what
-# greyscale printing keeps and what every kind of colour blindness keeps. Two steps of this ramp
-# are distinguishable to everyone, on any output, with no hatch, no dash and no dot pattern --
-# which is why there are none. A chart that needed a hatch to be read was the wrong chart.
+#                 There is deliberately no green. Red against green is the one pair that
+#                 red-green colour blindness destroys, and every candidate set holding both
+#                 failed: the search returned 27 passing sets built on blue, red and yellow and
+#                 none built on red and green.
+#
+#   RAMP          one hue, five steps, light to dark, for data that is *ordered* -- a funnel, a
+#                 verdict split, a heatmap. Magnitude is what a ramp is for, and it is not what
+#                 the complaint was about. Anchored on CATEGORICAL blue so the two relate.
+#
+# DATA is the single-series colour: one panel counting one thing is blue, everywhere.
 # ---------------------------------------------------------------------------------------------
-RAMP = ["#0A3C34", "#14685C", "#3E9385", "#84BFB4", "#C9E1DC"]     # dark to light, L* 22..88
+CATEGORICAL = {"blue": "#25517E", "red": "#9C3F36", "yellow": "#C69A2E", "purple": "#7C68A6"}
+SLOTS = list(CATEGORICAL.values())
 
-# Non-data ink. Nothing that carries a value is drawn in any of these: a grey bar and a red bar
-# were doing exactly that, and grey read as "this panel opted out of the palette" while red read
-# as an alarm on a number that is simply the smallest one.
-INK, DIM, RULE = "#12201F", "#5D716E", "#D2DEDB"   # reference lines, tick labels, axis rules
-GUIDE = "#C9D6D3"            # connectors and frontiers
+RAMP = ["#16324E", "#25517E", "#4E7BA8", "#8AA8C6", "#C6D5E3"]     # dark to light, L* 31..87
 
-# Data ink. A series that encodes no category still gets a ramp step, not a grey.
-DATA = RAMP[1]               # the default for one series
-EMPHASIS = RAMP[0]           # the one mark in a panel worth pointing at, by weight not by hue
+INK, DIM, RULE = "#12201F", "#5D716E", "#DFE7E5"   # reference lines, tick labels, axis rules
+GUIDE = "#C9D6D3"
+DATA = CATEGORICAL["blue"]     # every panel that counts one thing
+EMPHASIS = RAMP[0]             # the one mark worth pointing at, by weight not by a new hue
 
-# Route takes the dark end, in corpus order, so the commonest route is the heaviest mark.
-ROUTE = dict(zip([*ROUTES, OTHER_ROUTE], [*RAMP[:3], RAMP[4]]))
-CYCLE = RAMP[:3]
+# Routes are three categories a chemistry reader tracks between figures, so they take the first
+# three slots in order. An unassigned route is not a category and gets the de-emphasis ink.
+ROUTE = dict(zip(ROUTES, SLOTS[:3])) | {OTHER_ROUTE: DIM}
+CYCLE = SLOTS[:3]
 
-# Four measures of one quantity -- precision, recall, F1, kappa -- are a family, not four
-# categories, and read as one across the ramp.
+# The two graders are two subjects and the comparison the whole section is about, so they take
+# the first two slots -- blue for the heuristic, red for the judge.
+GRADER = dict(zip(["metric", "judge"], SLOTS[:2]))
+
+# Several measures of one quantity -- precision, recall, F1, kappa -- are a family and not four
+# subjects, so they take the ramp rather than four hues.
 SHADES = RAMP[:4]
 
-# The heatmap interpolates the same ramp rather than importing a colormap with its own hues.
-SEQUENTIAL = ListedColormap(RAMP[::-1])   # five steps, not an interpolation of them
-
-# A solid pale wash for shading a region. Alpha over white produces a colour that is in no
-# palette, and two of them turned up in the audit; this is one exact value instead.
+SEQUENTIAL = ListedColormap(RAMP[::-1])
 WASH = RAMP[4]
 
-# Marker shape, for a scatter where two clouds overlap and lightness alone cannot separate
-# them. Not a hatch: a hatch is a texture laid over a fill and it made the page look busy.
 MARKER = ["o", "s", "^", "D"]
 
 # Placement. Every figure in this manuscript is a figure* at \textwidth, and \includegraphics
@@ -81,6 +86,13 @@ SINGLE_COLUMN = 3.474        # 8.82 cm, \columnwidth
 BAR = 0.30          # single series
 GROUP = 0.46        # total width of one cluster in grouped_bars
 
+# When each bar is named under itself rather than in a legend, the cluster has to open up: a
+# name set on the slant still needs the width of a line of type, and GROUP/3 of a unit slot is
+# narrower than that. So the bars go one unit apart with a blank gap between clusters, and the
+# tilt is what keeps a six-letter name inside one unit.
+CLUSTER_GAP = 1.5
+TILT = 45
+
 plt.rcParams.update({
     "figure.dpi": 200, "savefig.dpi": 300, "savefig.bbox": "tight",
     # Figures are written as PDF, so they scale with the page instead of being resampled to it.
@@ -94,6 +106,10 @@ plt.rcParams.update({
     "axes.spines.top": False, "axes.spines.right": False,
     "legend.frameon": False, "legend.fontsize": 6.5,
     "figure.facecolor": "white", "axes.facecolor": "white",
+    # Hatching is one panel's business -- panel i, where two regions overlap and
+    # both have to stay readable through each other. At the default 1.0 it is a
+    # scribble in a 1.5 in panel; this is a texture.
+    "hatch.linewidth": 0.3,
 })
 
 
@@ -104,7 +120,10 @@ def marker_for(colour):
     shape without saying so. This used to return a hatch as well; hatching is gone, because the
     ramp's lightness spacing already separates every step in greyscale.
     """
-    return MARKER[RAMP.index(colour)] if colour in RAMP else "o"
+    for ordered in (SLOTS, RAMP):
+        if colour in ordered:
+            return MARKER[ordered.index(colour) % len(MARKER)]
+    return "o"
 
 
 def canvas(rows: int, cols: int, width: float = DOUBLE_COLUMN, height: float = None):
@@ -114,6 +133,35 @@ def canvas(rows: int, cols: int, width: float = DOUBLE_COLUMN, height: float = N
     for letter, axis in zip("abcdefghijklmnopqrstuvwxyz", panels):
         axis.set_title(letter, loc="left", fontsize=9, fontweight="bold", pad=5)
     return figure, panels
+
+
+def headroom(axis, tallest: float, *, ticks: int = 5) -> None:
+    """Put the top tick at or above the tallest mark.
+
+    matplotlib picks ticks to span the data, not to sit above it, so a bar of 631 under a top
+    tick of 600 is the default rather than a mistake -- and it leaves a reader unable to read
+    the peak off the axis. This rounds the limit up to a round number the ticks can land on.
+    """
+    if not tallest or tallest != tallest:                # zero or NaN: leave the autoscale
+        return
+    step = 10 ** np.floor(np.log10(tallest / max(ticks - 1, 1)))
+    for multiple in (1, 2, 2.5, 5, 10):
+        nice = step * multiple
+        if nice * (ticks - 1) >= tallest:
+            break
+    top = nice * np.ceil(tallest / nice)
+    axis.set_ylim(0, top)
+    axis.set_yticks(np.arange(0, top + nice / 2, nice))
+
+
+def stack_tops(axis) -> float:
+    """The tallest *stack* in a bar axis, which is what a reader sees on a stacked histogram.
+
+    Individual patch heights understate it: matplotlib stacks by giving each segment its own
+    bottom, so the visible top of a column is bottom + height of its last segment.
+    """
+    tops = [p.get_y() + p.get_height() for p in axis.patches if hasattr(p, "get_height")]
+    return max(tops) if tops else 0.0
 
 
 def _finish(axis, xlabel, ylabel, title=None, logx=False, logy=False, ylim=None):
@@ -207,55 +255,84 @@ def pie(axis, series, *, colours, fmt="{:,.0f}", gap=0.26):
     return axis
 
 
-def overlap(axis, first, second, *, enclose=0.9, grid=220, xlim, ylim, pad=0.10):
+def overlap(axis, first, second, *, enclose=0.9, grid=220, view, pad=0.10):
     """Where two 2-D distributions sit, and where they sit on top of each other.
 
-    Both sets get a filled region -- an earlier version gave the first a blob and the second an
-    outline, which made two symmetric datasets look like a measurement and a reference. Two
-    opaque fills cannot overlap, and opacity would blend two palette colours into a third that
-    is in no palette, so the overlap is drawn as its own region instead: three solid colours,
-    "only the first", "only the second", and "both".
+    Two shapes, both drawn whole and both see-through, so the reader can follow either one
+    where the other crosses it. The first is a pale wash in the page's own teal, the second is
+    hatched over the top of it -- lay a hatch on a wash and both layers are still legible
+    underneath, which is the one thing a pair of solid fills can never do. The hatch is what
+    tells the two apart, which is why they can share a hue: an accent colour was carried here
+    for a while, and it was the only mark in the manuscript that was not a step of the ramp.
 
-    Each region is the smallest area enclosing `enclose` of that set's own observations, taken
+    Cutting the two distributions into three solid patches -- "only the first", "only the
+    second", "both" -- was the version before this one, and it hid what it was drawn to show:
+    neither shape is ever actually drawn, so the reader has to reassemble two distributions
+    from three pieces and there is nothing on the page to follow where one runs on beneath
+    the other.
+
+    Each shape is the smallest area enclosing `enclose` of that set's own observations, taken
     from the kernel density evaluated at the real points rather than from a share of peak
     density, so the same fraction means the same thing for both however differently they spread.
 
-    The grid runs `pad` beyond the visible axes so a region closes instead of being cut off at
-    the frame; the caller still sets the limits a reader sees.
+    `view` is the range the data occupies, not the axis limits. The grid runs past it and keeps
+    widening until every ring closes: a kernel-smoothed 90% region reaches well beyond its own
+    observations, and a fixed margin left the lower boundary running off the bottom of the grid,
+    where the ring came back as an open line whose stroke simply stopped in mid-air. The frame
+    the caller should set is handed back as "bounds", for the same reason -- how far a smoothed
+    region reaches is not a thing to guess at twice.
     """
     from scipy.stats import gaussian_kde
+    from contourpy import contour_generator
+    from matplotlib.patches import PathPatch
+    from matplotlib.path import Path
 
-    width, height = xlim[1] - xlim[0], ylim[1] - ylim[0]
-    span_x = (xlim[0] - pad * width, xlim[1] + pad * width)
-    span_y = (ylim[0] - pad * height, ylim[1] + pad * height)
-    mesh_x, mesh_y = np.meshgrid(np.linspace(*span_x, grid), np.linspace(*span_y, grid))
-    flat = np.vstack([mesh_x.ravel(), mesh_y.ravel()])
-
-    # A signed field per set -- density minus the level -- rather than a boolean mask. Filling
-    # a mask draws its staircase: contourf can only follow grid cells, and the edges came out
-    # visibly blocky. Filling where a smooth field crosses zero gives a smooth boundary.
-    fields = []
+    kernels = []
     for values_x, values_y in (first, second):
         sample = np.vstack([np.asarray(values_x, float), np.asarray(values_y, float)])
         kernel = gaussian_kde(sample)
-        surface = kernel(flat).reshape(mesh_x.shape)
-        level = np.percentile(kernel(sample), 100 * (1 - enclose))
-        fields.append(surface - level)
+        kernels.append((kernel, np.percentile(kernel(sample), 100 * (1 - enclose))))
 
-    inside_first, inside_second = fields
-    regions = (("only first", np.minimum(inside_first, -inside_second), RAMP[3]),
-               ("only second", np.minimum(inside_second, -inside_first), RAMP[2]),
-               ("both", np.minimum(inside_first, inside_second), RAMP[0]))
-    covered = {}
-    for name, field, colour in regions:
-        covered[name] = int((field > 0).sum())
-        if covered[name]:
-            axis.contourf(mesh_x, mesh_y, field, levels=[0.0, field.max()],
-                          colors=[colour], zorder=1)
+    (view_x, view_y) = view
+    width, height = view_x[1] - view_x[0], view_y[1] - view_y[0]
+    for reach in (pad, 0.25, 0.45, 0.75):
+        mesh_x, mesh_y = np.meshgrid(
+            np.linspace(view_x[0] - reach * width, view_x[1] + reach * width, grid),
+            np.linspace(view_y[0] - reach * height, view_y[1] + reach * height, grid))
+        flat = np.vstack([mesh_x.ravel(), mesh_y.ravel()])
+        fields = [kernel(flat).reshape(mesh_x.shape) - level for kernel, level in kernels]
+        # contourpy rather than axis.contour(): the rings are wanted before anything is drawn,
+        # and a ring cut by the edge of the grid comes back with its ends apart, which is the
+        # test. Drawing first and looking afterwards is how the open one reached the page.
+        rings = [contour_generator(mesh_x, mesh_y, field, line_type="Separate").lines(0.0)
+                 for field in fields]
+        if all(np.allclose(ring[0], ring[-1]) for shape in rings for ring in shape):
+            break
+    else:
+        raise AssertionError("a region still runs off the grid at three quarters of the view")
 
-    axis.set_xlim(*xlim)
-    axis.set_ylim(*ylim)
-    return covered
+    # The boundary is drawn by hand as a patch: contourf() will hatch a region but gives no say
+    # over the hatch's colour or weight, and its default is a black scribble at the full
+    # linewidth that buries a panel this size.
+    styles = (dict(facecolor=RAMP[4], edgecolor=RAMP[2], hatch=None, zorder=1),
+              dict(facecolor="none", edgecolor=RAMP[0], hatch="//////", zorder=2))
+    for shape, style in zip(rings, styles):
+        for ring in shape:
+            axis.add_patch(PathPatch(Path(ring), linewidth=0.9, **style))
+
+    corners = np.vstack([ring for shape in rings for ring in shape])
+    low, high = corners.min(axis=0), corners.max(axis=0)
+    margin = (high - low) * 0.03
+    bounds = ((low[0] - margin[0], high[0] + margin[0]),
+              (low[1] - margin[1], high[1] + margin[1]))
+
+    seen = ((mesh_x >= bounds[0][0]) & (mesh_x <= bounds[0][1])
+            & (mesh_y >= bounds[1][0]) & (mesh_y <= bounds[1][1]))
+    alone = lambda mine, theirs: (mesh_x[(mine > 0) & (theirs < 0) & seen],
+                                  mesh_y[(mine > 0) & (theirs < 0) & seen])
+    return {"bounds": bounds,
+            "first alone": alone(*fields),
+            "second alone": alone(fields[1], fields[0])}
 
 
 def points(axis, frame, x, y, *, colour_by=None, palette=None, order=None, xlabel="", ylabel="",
@@ -444,29 +521,97 @@ def caption(template: str, **values) -> str:
     return text
 
 
-def grouped_bars(axis, frame, *, xlabel="", ylabel="", palette=None, rotate=0, errors=None):
+def grouped_bars(axis, frame, *, xlabel="", ylabel="", palette=None, rotate=0, errors=None,
+                 names=None):
     """One cluster per row of `frame`, one bar per column -- for comparing a few measures across
     a few models, where a heatmap would be overkill and a line would imply an ordering.
+
+    `names` replaces the legend with a label under every bar: pass a dict abbreviating each row,
+    and each bar is named for its row and its series at once -- "P luna", "R luna" -- on the
+    slant, one line, no second row of labels and no key. A legend above a cluster chart asks the
+    reader to hold three or four swatches of one hue in their head and match them across the
+    panel, which is the one thing this ramp is not built to support; a name under the bar is
+    read where the eye already is and survives greyscale, a bad printer and any kind of colour
+    blindness. Without `names` the panel falls back to a legend, since an unnamed series has to
+    be identified somehow.
 
     `errors` is an optional frame of the same shape. Pass it whenever the numbers are means over
     repeats: four runs of one model at identical settings span 0.05 in F1 here, wider than the
     gap between two of the models, and a bare bar asserts a precision the data does not have.
     """
-    names, measures = list(frame.index), list(frame.columns)
-    width = GROUP / len(measures)
+    rows, measures = list(frame.index), list(frame.columns)
+    pitch = len(measures) + CLUSTER_GAP
+    width = 0.84 if names else GROUP / len(measures)
     for offset, measure in enumerate(measures):
-        positions = [i + offset * width - GROUP / 2 + width / 2 for i in range(len(names))]
+        positions = [i * pitch + offset for i in range(len(rows))] if names else \
+            [i + offset * width - GROUP / 2 + width / 2 for i in range(len(rows))]
         colour = (palette or {}).get(measure, SHADES[offset % len(SHADES)])
         axis.bar(positions, frame[measure].values, width=width, label=str(measure),
                  color=colour, edgecolor="white", linewidth=0.25)
         if errors is not None and measure in errors:
             axis.errorbar(positions, frame[measure].values, yerr=errors[measure].values,
-                          fmt="none", ecolor=INK, elinewidth=0.7, capsize=1.8, zorder=4)
-    axis.set_xticks(range(len(names)), [str(n) for n in names])
+                          # fmt="none" still creates the data line, and with no colour given
+                          # it takes the default cycle -- which put matplotlib's tab10 blue
+                          # into the PDF's colour stream and off the palette. Named explicitly.
+                          fmt="none", color=INK, ecolor=INK, elinewidth=0.7,
+                          capsize=1.8, capthick=0.7, zorder=4)
+
+    if names:
+        _named_axis(axis, rows, measures, names)
+    else:
+        axis.set_xticks(range(len(rows)), [str(n) for n in rows])
+        axis.legend(frameon=False, fontsize=6)
     if rotate:
         axis.tick_params(axis="x", labelrotation=rotate)
-    axis.legend(frameon=False, fontsize=6)
     _finish(axis, xlabel, ylabel)
+    return axis
+
+
+def _named_axis(axis, rows, measures, short, *, size=5.5):
+    """One tilted label under each bar, naming its row and its series: "P luna", "F1 terra".
+
+    The row's abbreviation rides on every label rather than sitting on a second row of ticks
+    underneath, so the axis is one line deep and a reader never has to carry a bar up to a
+    cluster heading to find out which measure it belongs to. The caption glosses the letters.
+
+    The labels are drawn rather than hung on the minor ticks, because matplotlib drops a minor
+    tick that lands on a major one -- and the middle bar of a three-bar cluster lands exactly on
+    the cluster centre, which silently cost the middle series its name. No tick marks either:
+    nine tick marks under nine bars is a row of ink saying what the bars already say.
+    """
+    pitch = len(measures) + CLUSTER_GAP
+    labels = {(row, measure): f"{short.get(name, name)} {measure}"
+              for row, name in enumerate(rows) for measure in measures}
+    for (row, measure), label in labels.items():
+        axis.annotate(label, (row * pitch + measures.index(measure), 0),
+                      xycoords=axis.get_xaxis_transform(), textcoords="offset points",
+                      xytext=(0, -3), rotation=TILT, rotation_mode="anchor", ha="right",
+                      va="top", fontsize=size, color=DIM, annotation_clip=False)
+
+    # Tilted labels hang down and to the left, and tight_layout does not know they are there,
+    # so the left margin is opened by however far the longest of them reaches: without this the
+    # first bar's label runs out under the y axis and lands on its bottom tick label.
+    span = (len(rows) - 1) * pitch + len(measures) - 1
+    wide = axis.get_position().width * axis.figure.get_figwidth() * 72      # axes width, points
+    reach = max(len(label) for label in labels.values()) * size * 0.62
+    axis.set_xticks([])
+    axis.set_xlim(-max(0.9, reach * np.cos(np.radians(TILT)) / (wide / (span + 1.8))),
+                  span + 0.9)
+    return axis
+
+
+def bracket(axis, left, right, y, text, *, drop=0.035, colour=DIM, size=5.8):
+    """A significance bracket spanning two bars, with the p-value on it.
+
+    The conventional mark for a paired test, and the only place in the panel where a p-value
+    points at the comparison it is about. It used to be a line of grey text across the top of
+    the panel, where it read as a title and belonged to nothing.
+    """
+    tick = drop * (axis.get_ylim()[1] - axis.get_ylim()[0])
+    axis.plot([left, left, right, right], [y - tick, y, y, y - tick], color=colour, lw=0.6,
+              solid_joinstyle="miter", zorder=4)
+    axis.annotate(text, ((left + right) / 2, y), textcoords="offset points", xytext=(0, 2),
+                  ha="center", va="bottom", fontsize=size, color=colour)
     return axis
 
 
@@ -542,23 +687,31 @@ def _lightness(hexc: str) -> float:
 
 
 if __name__ == "__main__":
-    # The palette rule, asserted rather than described.
-    assert ROUTE == dict(zip([*ROUTES, OTHER_ROUTE], [*RAMP[:3], RAMP[4]]))
-    assert SHADES == RAMP[:4] and CYCLE == RAMP[:3], "every set is a slice of one ramp"
-    # no grey and no red carries a value: every data ink is a step of the ramp
-    assert {DATA, EMPHASIS, *ROUTE.values(), *SHADES} <= set(RAMP), "a data ink left the ramp"
+    # The palette rule, asserted rather than described. Separability is not asserted here --
+    # _palette.py computes it, and this defers to that rather than restating a threshold.
+    from _palette import oklab, report
 
-    # This is what replaced hatching: adjacent steps far enough apart in lightness that they
-    # separate in greyscale and under any colour vision. Below about 13 they do not.
-    levels = [_lightness(c) for c in RAMP]
+    problems = report(CATEGORICAL)
+    assert not problems, "CATEGORICAL fails _palette.py:\n  " + "\n  ".join(problems)
+
+    assert list(CATEGORICAL) == ["blue", "red", "yellow", "purple"], "slot order is fixed"
+    assert DATA == CATEGORICAL["blue"], "one series is blue, everywhere"
+    assert ROUTE == dict(zip(ROUTES, SLOTS[:3])) | {OTHER_ROUTE: DIM}
+    assert SHADES == RAMP[:4] and CYCLE == SLOTS[:3]
+    assert EMPHASIS in RAMP, "emphasis is weight within the ramp, not a new hue"
+
+    # a ramp is for ordered data, so it has to run one way and be readable step to step
+    levels = [oklab(colour)[0] for colour in RAMP]
     gaps = [b - a for a, b in zip(levels, levels[1:])]
-    assert all(gap >= 13 for gap in gaps), f"ramp steps too close in lightness: {gaps}"
     assert levels == sorted(levels), "the ramp must run dark to light"
+    assert min(gaps) >= 10, f"ramp steps too close in lightness: {[round(g, 1) for g in gaps]}"
 
-    assert marker_for(DIM) == "o" and marker_for(RULE) == "o", "non-data ink gets no shape"
-    assert len({marker_for(c) for c in RAMP[:3]}) == 3, "two routes share a marker"
+    # nothing that encodes no category carries a marker shape
+    assert marker_for(DIM) == "o" and marker_for(RULE) == "o"
+    assert len({marker_for(c) for c in SLOTS[:3]}) == 3, "two routes share a marker"
 
     # drawn at the width it is printed at, so nothing is scaled
     assert canvas(1, 1)[0].get_figwidth() == DOUBLE_COLUMN
     plt.close("all")
-    print(f"_style self-check ok  (ramp L* gaps {[round(g, 1) for g in gaps]})")
+    print(f"_style self-check ok  (4 categorical hues pass _palette.py; "
+          f"ramp L* gaps {[round(g, 1) for g in gaps]})")

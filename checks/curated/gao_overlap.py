@@ -96,6 +96,130 @@ def canonical_name(name) -> str:
     return text.replace("(ac)", "(oac)").replace("ac", "oac").replace("ooac", "oac")
 
 
+# ---------------------------------------------------------------------------------------------
+# The other direction: the 91 records we hold on these papers that Gao does not.
+#
+# Gao's side of the gap has been sorted into reasons since this check was written; ours was a
+# single bucket labelled "ours only", which is not an answer to the question a referee actually
+# asks -- if the extraction found more, more of *what*?
+# ---------------------------------------------------------------------------------------------
+
+# Notation for one substance that canonical_name() does not reach. Case, brackets and the Ac/OAc
+# alias it handles; these are the four kinds left, and each was settled by reading the paper.
+#
+#   dimim/dmim, m-O/O   two spellings of dimethylimidazolium and of a mu-oxo bridge.
+#   spelled out         the paper's own name against Gao's abbreviation.
+#   components/product  we name what was mixed, Gao names what came out. 10.1016/
+#                       j.polymdegradstab.2021.109601 mixes [TMG]Cl with ZnCl2 1:1 and confirms
+#                       ZnCl3- by ESI-MS; 10.1016/j.polymdegradstab.2014.10.005 mixes equimolar
+#                       Cu(OAc)2 with [Bmim][OAc] and confirms the Cu-O bond by Raman. One
+#                       substance each, on the papers' own evidence. agreement() above still
+#                       declines to make this call, and is right to: it is a fact about two
+#                       named papers, not a string operation.
+SAME_SUBSTANCE = {"1,3-dimethylimidazolium acetate": "[DMIM]Ac",
+                  "[TMG]Cl/ZnCl2": "[TMG]ZnCl3",
+                  "[C6 TMG]Cl/2ZnCl2": "[C6TMG](ZnCl3)2",
+                  "Cu(OAc)2-[Bmim][OAc]": "[BMIM]Cu(Ac)3",
+                  "Zn(OAc)2-[Bmim][OAc]": "[BMIM]Zn(Ac)3"}
+
+NOT_IONIC = {"none", "FeCl3"}          # Gao's set is ionic liquids; a blank or a bare salt is not
+
+CONDITIONS = ["temperature_c", "reaction_time_min", "catalyst_amount_g",
+              "PET_amount_g", "solvent_amount_g"]
+CONDITION_SLACK = 0.02                 # same run, allowing for each side's rounding
+
+# Two of our rows carrying identical numbers are either one experiment recorded twice or two real
+# experiments that came out the same, and our schema cannot tell which: it has no field for
+# "which recycle cycle" or "which table of the paper". Settled by reading the five papers where
+# it happens, and each entry is a table reference that can be checked.
+IDENTICAL_ROWS_ARE = {
+    "10.1002/app.38706": "repeat",              # Table III, seven recycle cycles at 80.1-80.7
+    "10.1021/sc5007522": "repeat",              # the recycling table, cycle 0 at 81.1
+    "10.1039/c8nj06090h": "tabulated twice",    # Table 3 restates Table 1 entries 1 and 2
+    "10.1016/j.polymdegradstab.2021.109601": "tabulated twice",   # a summary table and a
+                                                # literature comparison both restate 84.5 / 92.7
+    "10.1021/acssuschemeng.0c04108": "tabulated twice",   # no second table found; counted
+                                                # against us rather than explained away
+}
+
+OURS_ONLY_REASONS = ["a catalyst Gao did not curate", "a condition Gao did not curate",
+                     "a repeat of a run Gao curated once", "the same run tabulated twice",
+                     "not an ionic liquid", "the same run, our matcher missed it"]
+
+
+def substance(name) -> str:
+    """A catalyst name reduced far enough that the two datasets' spellings of one liquid meet."""
+    if not isinstance(name, str):
+        return ""
+    text = canonical_name(SAME_SUBSTANCE.get(name.strip(), name))
+    return text.translate(str.maketrans("", "", "()")).replace("dimim", "dmim").replace("m-o", "o")
+
+
+def _same(left, right, left_side, right_side, fields, slack=CONDITION_SLACK) -> bool:
+    """Every field both rows report agrees. A blank on either side is missing data, not a clash.
+
+    `slack` of zero means byte-identical, which is the test for one of our rows duplicating
+    another: an extractor that reads a table twice writes the same digits twice, while a
+    recycling series differs in the third. At one shared tolerance the two questions are the
+    same question, and asking it that way filed a whole recycling table as duplication.
+    """
+    shared = [f for f in fields
+              if pd.notna(left[left_side + f]) and pd.notna(right[right_side + f])]
+    return bool(shared) and all(
+        abs(left[left_side + f] - right[right_side + f])
+        <= slack * max(abs(left[left_side + f]), abs(right[right_side + f]), 1e-9)
+        for f in shared)
+
+
+def ours_only(frame: pd.DataFrame) -> pd.DataFrame:
+    """Each record we hold and Gao does not, with the reason it is not in their table."""
+    mine = frame[frame.category == "ours"]
+    theirs = frame[frame.category != "ours"]
+    everything = CONDITIONS + OUTCOMES
+    rows = []
+    for position, record in mine.iterrows():
+        ours_here = frame[frame.category.isin(["both", "ours"]) & (frame.doi == record.doi)
+                          & (frame.index != position)]
+        twins = theirs[(theirs.doi == record.doi)
+                       & (theirs.gao_catalyst.map(substance) == substance(record.ours_catalyst))]
+        # Identical on every field, including which fields are blank: comparing only the fields
+        # both rows fill made a row that omits a yield a duplicate of every row that has one.
+        identical = any(
+            substance(other.ours_catalyst) == substance(record.ours_catalyst)
+            and [f for f in everything if pd.isna(other["ours_" + f])]
+                == [f for f in everything if pd.isna(record["ours_" + f])]
+            and _same(other, record, "ours_", "ours_", everything, slack=0.0)
+            for _, other in ours_here.iterrows())
+        curated_run = [g for _, g in twins.iterrows()
+                       if _same(g, record, "gao_", "ours_", CONDITIONS)]
+        # Same conditions, same outcomes, and yet Gao's row is filed as one of theirs alone.
+        # Both sides describe one experiment and the pair fell outside the matcher: the catalyst
+        # is written two ways, and Gao's numbers are round -- 40.0, 45.0, 42.0 against our 39.8,
+        # 45.6, 42.7 -- which is what reading a figure looks like beside reading the table. The
+        # chart label on their row is right; what is wrong is calling ours a record they lack.
+        gao_lists_it = [g for g in curated_run
+                        if g.category != "both" and _same(g, record, "gao_", "ours_", OUTCOMES)]
+
+        if str(record.ours_catalyst) in NOT_IONIC:
+            reason = "not an ionic liquid"
+        elif identical:
+            reason = ("a repeat of a run Gao curated once"
+                      if IDENTICAL_ROWS_ARE.get(record.doi) == "repeat"
+                      else "the same run tabulated twice")
+        elif not len(twins):
+            reason = "a catalyst Gao did not curate"
+        elif gao_lists_it:
+            reason = "the same run, our matcher missed it"
+        elif curated_run:
+            # Gao's row at these settings is already matched to a different record of ours, so
+            # this is a further measurement at the same settings -- a recycle cycle, a replicate.
+            reason = "a repeat of a run Gao curated once"
+        else:
+            reason = "a condition Gao did not curate"
+        rows.append({"doi": record.doi, "catalyst": record.ours_catalyst, "reason": reason})
+    return pd.DataFrame(rows)
+
+
 # The three outcome fields share a 0-100 axis, so they can be compared on one parity panel
 # without normalising anything.
 OUTCOMES = ["yield_percent", "conversion_percent", "selectivity_percent"]
@@ -133,21 +257,51 @@ def identical(frame: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).set_index("field")
 
 
-def condition_space(frame: pd.DataFrame) -> dict:
-    """Temperature against yield, ours and the hand curation's, on the papers both cover.
+# Two quantities a chemist compares that neither dataset stores: loading and dilution are
+# ratios, and a raw mass says nothing without the PET it was charged against.
+DERIVED = {
+    "catalyst_loading_wt": ("catalyst_amount_g", "PET_amount_g", 100.0),
+    "solvent_ratio": ("solvent_amount_g", "PET_amount_g", 1.0),
+}
 
-    Both sets come from the same 19 papers, which is the whole point. Our full glycolysis
-    corpus against Gao's 19-paper set shows a large cloud containing a small one, and would look
-    the same if we had extracted nothing from their papers at all.
+# Which axes span decades. A kernel density on raw grams is decided by whichever record used a
+# kilogram of PET; on log grams it describes the bulk.
+LOG_AXES = {"reaction_time_min", "catalyst_amount_g", "PET_amount_g", "solvent_amount_g",
+            "catalyst_loading_wt", "solvent_ratio"}
+
+
+def _column(frame: pd.DataFrame, prefix: str, field: str) -> pd.Series:
+    """One field for one side of the comparison, deriving it if it is a ratio."""
+    if field in DERIVED:
+        top, bottom, scale = DERIVED[field]
+        return scale * frame[f"{prefix}{top}"] / frame[f"{prefix}{bottom}"].replace(0, pd.NA)
+    return frame[f"{prefix}{field}"]
+
+
+def condition_space(frame: pd.DataFrame, x: str = "temperature_c",
+                    y: str = "yield_percent") -> dict:
+    """Two fields, ours and the hand curation's, on the papers both cover.
+
+    Both sets come from the same 19 papers, which is the whole point. Our full glycolysis corpus
+    against Gao's 19-paper set shows a large cloud containing a small one, and would look the
+    same if we had extracted nothing from their papers at all.
+
+    Log axes are taken here rather than in the figure, so the density is estimated on the scale
+    it is drawn on. Estimating on grams and then plotting the log of the result would describe a
+    different distribution from the one on the page.
     """
-    ours = frame[frame.category.isin(["both", "ours"])]
-    curated = frame[frame.category != "ours"]
-    return {
-        "this work": ours[["ours_temperature_c", "ours_yield_percent"]].dropna()
-                         .set_axis(["temperature_c", "yield_percent"], axis=1),
-        "hand-curated": curated[["gao_temperature_c", "gao_yield_percent"]].dropna()
-                         .set_axis(["temperature_c", "yield_percent"], axis=1),
-    }
+    sides = {"this work": ("ours_", frame[frame.category.isin(["both", "ours"])]),
+             "hand-curated": ("gao_", frame[frame.category != "ours"])}
+    found = {}
+    for label, (prefix, part) in sides.items():
+        pair = pd.DataFrame({x: _column(part, prefix, x), y: _column(part, prefix, y)})
+        pair = pair.apply(pd.to_numeric, errors="coerce").dropna()
+        for field in (x, y):
+            if field in LOG_AXES:
+                pair = pair[pair[field] > 0]
+                pair[field] = pair[field].apply(lambda v: __import__("math").log10(v))
+        found[label] = pair
+    return found
 
 
 def compute() -> dict:
@@ -166,6 +320,8 @@ def compute() -> dict:
         "parity": parity(frame),
         "condition space": condition_space(frame),
         "identical": identical(frame),
+        "ours only": ours_only(frame).reason.value_counts()
+                     .reindex(OURS_ONLY_REASONS).fillna(0).astype(int),
         "counts": {
             "Gao records": len(gao),
             "Gao papers": int(gao.doi.nunique()),
@@ -200,6 +356,9 @@ def main() -> None:
     print(f"  {result['true miss']} records ({result['true miss share']:.1%}) are the real "
           f"extraction shortfall")
     print(f"  {result['reclassified']} of the automatic reasons were overruled by a chemist")
+
+    show("every record we hold and Gao does not, by why they have no counterpart",
+         result["ours only"], fmt="{:.0f}")
 
     show("agreement on the records both datasets hold", result["agreement"])
     print("\n  glycolysis only: Gao curated no hydrolysis or methanolysis, so nothing here "

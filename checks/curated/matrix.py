@@ -51,6 +51,16 @@ def compute() -> pd.DataFrame:
             "agreement": (both.metric == both.judge).mean(),
             "evaluable": len(evaluable),
             "agreement, evaluable": (evaluable.metric == evaluable.judge).mean(),
+            # The three-way split a part-to-whole panel needs. Collapsing the last two into
+            # "disagree" makes the heuristic look wrong on records it could not judge at all:
+            # without a counterpart in the answer key it has no opinion to be right about.
+            # counted on the evaluable subset, like "disagree" is, so the three sum to
+            # `records`. Taken over all of `both` it came to 231 and the split summed to 286,
+            # because one record with no counterpart happens to have both graders saying
+            # "incorrect" -- an agreement about nothing.
+            "agree": int((evaluable.metric == evaluable.judge).sum()),
+            "disagree": int((evaluable.metric != evaluable.judge).sum()),
+            "no counterpart": int(len(both) - len(evaluable)),
         })
 
     return pd.DataFrame(rows)

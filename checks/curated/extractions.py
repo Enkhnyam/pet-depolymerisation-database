@@ -63,7 +63,10 @@ def arms(shots: int | None = None) -> pd.DataFrame:
             frame = frame[frame.n_shots == repeats.idxmax()]
     grouped = frame.groupby("model")
     table = grouped[["precision", "recall", "f1"]].mean()
-    table["f1 sd"] = grouped.f1.std().fillna(0.0)
+    # a spread per measure, not only for f1: the panel draws error bars on all three, and three
+    # runs of one model at identical settings span more than the gap between two models
+    for measure in ("precision", "recall", "f1"):
+        table[f"{measure} sd"] = grouped[measure].std().fillna(0.0)
     table["runs"] = grouped.size()
     table["n_shots"] = grouped.n_shots.first()
     return table

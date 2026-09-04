@@ -8,6 +8,7 @@ The classification helpers live here rather than in the figure, because a route 
 only exists inside a plot is a number nobody can audit.
 """
 import re
+from functools import lru_cache
 
 import pandas as pd
 
@@ -40,6 +41,45 @@ def classify(value: object, rules: list, default: str) -> str:
         if re.search(pattern, text):
             return label
     return default
+
+
+@lru_cache(maxsize=1)
+def _resolved() -> dict:
+    """Every distinct catalyst name in the database, mapped to a structure.
+
+    core.smiles.resolve() carries the curated name lookup, so this reuses it rather than
+    inventing a second alias table. Names it cannot place keep themselves as their own group.
+    """
+    from core import smiles
+    found = {}
+    for name in records(DATABASE).catalyst.dropna().unique():
+        try:
+            structure, _ = smiles.resolve(name, "catalyst")
+        except Exception:
+            structure = None
+        found[name] = structure or f"unmapped:{smiles.normalise(name)}"
+    return found
+
+
+def by_substance(frame: pd.DataFrame) -> pd.Series:
+    """Catalyst records counted by substance rather than by spelling.
+
+    frame.catalyst.value_counts() counts strings, and the literature writes one substance many
+    ways: zinc acetate is `zinc acetate`, `Zn(OAc)2`, `ZnAc`, `Zn(Ac)2` and
+    `zinc acetate dihydrate`, which between them hold more records than sodium hydroxide does
+    while each spelling holds fewer. Ranking the strings therefore put the wrong catalyst first.
+
+    Groups share a resolved structure and are labelled with the commonest name in the group, so
+    the label is a name a chemist recognises rather than a SMILES string.
+    """
+    resolved = _resolved()
+    names = frame.catalyst.dropna()
+    grouped = names.groupby(names.map(resolved)).value_counts()
+    out = {}
+    for structure in grouped.index.get_level_values(0).unique():
+        counts = grouped[structure]
+        out[str(counts.index[0])] = int(counts.sum())
+    return pd.Series(out).sort_values(ascending=False)
 
 
 def compute() -> dict:
@@ -85,6 +125,8 @@ def compute() -> dict:
         "completeness": completeness,
         "catalysts": frame.catalyst.value_counts(),
         "distinct catalysts": int(frame.catalyst.nunique()),
+        "substances": by_substance(frame),
+        "distinct substances": len(by_substance(frame)),
         "by route": frame.groupby("route").agg(
             records=("doi", "size"),
             papers=("doi", "nunique"),
@@ -96,6 +138,10 @@ def compute() -> dict:
         "correlations": pd.DataFrame(correlations).set_index(["x", "y"]),
         "out of range": pd.DataFrame(out_of_range).T,
         "identity": {"pairs with both": len(both),
+                     # both counts, because a panel drawing the bare line y = x shows the first
+                     # while the caption quotes the second, and 40 against 28 reads as an error
+                     "above the line": int((both.yield_percent > both.conversion_percent).sum()),
+                     "rounding slack": IDENTITY_SLACK,
                      "yield above conversion": int(impossible),
                      "share impossible": impossible / len(both) if len(both) else 0},
     }
