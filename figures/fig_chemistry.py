@@ -5,7 +5,7 @@ the question these panels answer is what the corpus contains, not how two variab
 The exceptions are the last two panels, where the relationship is the point.
 """
 from _style import (DIM, INK, RAMP, ROUTE, ROUTES, canvas, cloud, headroom, histogram,
-                    legend_above, overlap, save, stack_tops, violin)
+                    legend_above, overlap, save, stack_tops)
 from curated import gao_overlap
 from database import chemistry as chem
 
@@ -32,40 +32,24 @@ def main() -> None:
     #   headroom() puts the top tick at or above the tallest stack, which matplotlib does not:
     #   it picks ticks to span the data, so a 631-record column under a 600 tick is the default
     #   and a reader cannot read the peak off the axis.
-    # (a)-(c) keep a histogram, because for those three the *shape* is the finding: the reflux
-    # peak at 190-200 C, the round protocol durations, and yield piling against 100%.
+    # All seven are histograms, and they are histograms after three other chart types were
+    # drawn and rejected here -- cumulative curves, quantile rows, violins. The shape is what a
+    # reader of these panels wants, and the four skewed fields are handled the way (b) already
+    # was: the tail is cut at a stated percentile rather than transformed. No log axis anywhere.
     shapes = [(0, "temperature_c", "temperature (°C)", None, frame),
               (1, "reaction_time_min", "reaction time (min)", 0.90, frame),
-              (2, "yield_percent", "yield (%)", None, frame[frame.yield_percent <= 100])]
+              (2, "yield_percent", "yield (%)", None, frame[frame.yield_percent <= 100]),
+              (3, "conversion_percent", "conversion (%)", None,
+               frame[frame.conversion_percent <= 100]),
+              (4, "catalyst_amount_g", "catalyst (g)", 0.90, frame),
+              (5, "PET_amount_g", "PET (g)", 0.90, frame),
+              (6, "solvent_amount_g", "solvent (g)", 0.90, frame)]
     for index, column, label, clip, source in shapes:
         reported = int(source[column].notna().sum())
         histogram(panel[index], source, column, clip=clip,
                   xlabel=f"{label}, n={reported:,}",
                   ylabel="records" if index % 3 == 0 else "", **stack)
         headroom(panel[index], stack_tops(panel[index]))
-
-    # (d)-(g) are violins, chosen from nine candidates drawn on the hardest of the four. The
-    # three types before it all failed the same way: catalyst is 0.07 g for glycolysis against
-    # 1 g for hydrolysis, a forty-fold spread, so a histogram is one full bin beside an empty
-    # box, a cumulative curve is a step against the left edge, and quantile rows read as
-    # abstract. A violin scales every route to the same width, so the 273 methanolysis records
-    # are as legible as the 1,724 glycolysis ones, and shape is a mark a reader recognises
-    # without being taught it.
-    #
-    # Two of the four are normalised, because the raw masses are not comparable between routes
-    # and are not what a recipe is read in: catalyst as a percentage of the PET, solvent as
-    # grams per gram of PET. Both columns come from the check, not from here.
-    #
-    # Hydrolysis reads tens of percent catalyst because alkali hydroxide is a stoichiometric
-    # reagent in alkaline hydrolysis and the source papers file it under catalyst. That is a
-    # property of the literature rather than of the extraction, and the caption says so.
-    spreads = [(3, "conversion_percent", "conversion (%)", (0, 100)),
-               (4, "catalyst wt% of PET", "catalyst (wt% of PET)", (0, 100)),
-               (5, "solvent per g PET", "solvent (g per g of PET)", (0, 40)),
-               (6, "PET_amount_g", "PET per batch (g)", (0, 30))]
-    for index, column, label, view in spreads:
-        violin(panel[index], frame, column, split="route", palette=ROUTE, order=ROUTES,
-               view=view, ylabel=label)
 
     # --- h: yield against conversion, an identity the data has to obey ---------------------
     # 1,423 records is a scatter, not a density. The density was here because five thousand
