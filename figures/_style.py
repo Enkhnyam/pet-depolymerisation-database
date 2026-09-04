@@ -238,7 +238,7 @@ def pie(axis, series, *, colours, fmt="{:,.0f}", gap=0.26, span=2.0):
                 upper["y"] = lower["y"] + gap
 
     for row in placed:
-        axis.annotate(f"{row['name']}  {fmt.format(row['value'])} "
+        axis.annotate(f"{row['name']}\n{fmt.format(row['value'])} "
                       f"({row['value'] / total:.0%})",
                       (1.04 * (1 if row["right"] else -1), row["y"]),
                       ha="left" if row["right"] else "right", va="center",
@@ -251,7 +251,7 @@ def pie(axis, series, *, colours, fmt="{:,.0f}", gap=0.26, span=2.0):
                                       shrinkA=1, shrinkB=1))
     axis.set_xlim(-span, span)
     axis.set_ylim(-1.25, 1.25)
-    axis.set_aspect("equal")
+    axis.set_aspect("equal", adjustable="datalim")
     return axis
 
 

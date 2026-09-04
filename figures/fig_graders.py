@@ -56,10 +56,14 @@ def main() -> None:
     panel[0].set_ylim(0, 1.05)
 
     # --- b: judge against heuristic, on the pair the database ships --------------------------
-    split = {"same": int(cell["agree"]), "differ": int(cell["disagree"]),
-             "n/a": int(cell["no counterpart"])}
+    # Named in full rather than same/differ/n-a. The third slice is the one that needed the
+    # room: "n/a" says nothing, and what it means -- the heuristic had no answer-key counterpart
+    # to grade against, so it holds no opinion rather than a wrong one -- is the reason the
+    # slice is drawn at all.
+    split = {"agree": int(cell["agree"]), "disagree": int(cell["disagree"]),
+             "not gradeable": int(cell["no counterpart"])}
     pie(panel[1], __import__("pandas").Series(split),
-        colours=[GRADER["metric"], GRADER["judge"], RAMP[3]], gap=0.34, span=1.7)
+        colours=[GRADER["metric"], GRADER["judge"], RAMP[3]], gap=0.34, span=2.1)
     panel[1].set_xlabel(f"judge vs heuristic, of {int(cell['records'])} records")
 
     # --- c: on the disagreements, who the chemists backed ------------------------------------

@@ -46,13 +46,14 @@ def main() -> None:
     # solvent written unusually lands in "other" rather than being dropped.
     routes = chemistry["by route"]["records"]
     ordered = routes.reindex([name for name in ROUTE if name in routes.index]).dropna()
-    # Three-letter slice labels. The full words were what forced the frame out to 3.4 units and
-    # left the circle small; the caption glosses them, which is where a legend's words belong.
-    short = {"glycolysis": "gly", "hydrolysis": "hyd", "methanolysis": "met",
-             OTHER_ROUTE: "none"}
-    ordered.index = [short.get(name, str(name)) for name in ordered.index]
-    pie(panel[1], ordered, colours=[ROUTE[name] for name in routes.index if name in short],
-        span=1.7)
+    # The routes are named in full. They were abbreviated to gly/hyd/met to buy back the width
+    # the labels cost, and "met" is not a word a reader of a chemistry paper should have to
+    # decode; the count and the share moved to a second line instead, which is where the width
+    # actually was.
+    names = {OTHER_ROUTE: "unassigned"}
+    ordered.index = [names.get(name, str(name)) for name in ordered.index]
+    pie(panel[1], ordered, colours=[ROUTE[name] for name in routes.index if name in ROUTE],
+        span=2.1)
     panel[1].set_xlabel(f"route, of {int(ordered.sum()):,} records")
 
     # --- c: how often each field is reported at all ------------------------------------------
