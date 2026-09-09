@@ -18,8 +18,10 @@ exceed conversion, so a mark above the line is an error and each one should be c
 smallest area holding 90% of its experiments, one filled and one hatched so both stay readable
 where they coincide. Every other field pair of the same comparison is in the SI.
 """
+from matplotlib.patches import Patch
+
 from _style import (DIM, INK, RAMP, ROUTE, ROUTES, canvas, cloud, kde,
-                    legend_above, overlap, save)
+                    overlap, save)
 from curated import gao_overlap
 from database import chemistry as chem
 
@@ -80,10 +82,13 @@ def main() -> None:
     panel[8].set_xlabel("temperature (°C)")
     panel[8].set_ylabel("yield (%)")
 
-    # Nine panels leaves no spare cell for the route key, so it goes above the canvas with
-    # room reserved for it -- dropped into a panel it sits on the data, which is where the
-    # first attempt put it.
-    legend_above(figure, panel[0])
+    # Nine panels leaves no spare cell for the route key, so it goes above the canvas with room
+    # reserved for it. The handles are built here rather than read off an axes: kde() draws with
+    # legend=False, so there is nothing labelled for legend_above() to find, and the key came
+    # out empty -- the same way it did in fig_intervals.
+    figure.legend([Patch(facecolor=ROUTE[name], edgecolor=ROUTE[name]) for name in ROUTES],
+                  list(ROUTES), loc="upper center", ncol=len(ROUTES), frameon=False,
+                  handletextpad=0.4, columnspacing=1.8, bbox_to_anchor=(0.5, 1.012))
     save(figure, "fig_chemistry_v2", legend_room=True)
 
 

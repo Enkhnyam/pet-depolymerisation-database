@@ -101,6 +101,9 @@ REVIEWED = {
     ("GaoMissed", "12"): "the schema's 12 fields per record",
     ("WithinRouteTotal", "12"): "the schema's 12 fields per record",
     ("JudgeDropped", "95"): "the 95% of a confidence interval, in the SI",
+    ("GaoPapersTheyLead", "12"):
+        "the schema's 12 fields, and the 12 benchmark papers inside the mass corpus",
+    ("GaoTopGapOurs", "15"): "the 15 longest papers, re-run to rule out a context limit",
     ("RouteMethanolysisShare", "10"):
         "the ten schema fields the heuristic scores, and the 1/10 in its mean-penalty equation",
     ("ShotsComparisons", "10"): "the same ten fields",

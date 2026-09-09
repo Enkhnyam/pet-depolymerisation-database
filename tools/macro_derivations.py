@@ -14,6 +14,16 @@ this whole mechanism exists to make easy.
 """
 DERIVATION = {
 
+    "GaoPapersTheyLead": "Papers where the hand curation holds more records than this work.",
+    "GaoPapersWeLead": "Papers where this work holds more. The size difference runs both ways.",
+    "GaoTopGapTheirs":
+        "Records the hand curation holds on the paper where it leads by most. Most of that "
+        "paper's data is plotted rather than tabulated, which is why.",
+    "GaoTopGapOurs": "Records this work holds on that same paper.",
+    "GaoOursLeadTheirs": "Records the hand curation holds on the paper where this work leads "
+                         "by most.",
+    "GaoOursLeadOurs": "Records this work holds on that same paper.",
+
     "GaoSI": "Gao records sitting in Supporting Information this project does not hold.",
     "GaoRule": "Gao records in response-surface design tables our scope rules skip.",
 

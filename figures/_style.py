@@ -158,7 +158,12 @@ def kde(axis, frame, x, *, hue=None, palette=None, order=None, fill=True, common
         data = data[data[x].between(*clip)]
     sns.kdeplot(data=data, x=x, hue=hue, ax=axis, fill=fill, common_norm=common_norm,
                 multiple=multiple, palette=palette, hue_order=order, clip=clip,
-                linewidth=0.9, alpha=0.30 if multiple == "layer" else 0.9,
+                # A thin line under a pale fill reads as faint, which is what "it looks weak"
+                # was about. Four weights were drawn side by side: a heavier line with a
+                # *lighter* fill is the one that gains presence without the three overlaps
+                # turning to mud, because the line carries the shape and the fill only says
+                # which curve owns which area.
+                linewidth=1.6, alpha=0.22 if multiple == "layer" else 0.9,
                 legend=legend, warn_singular=False, **kw)
     # No numbers on the density axis. Each curve is normalised to itself, so the height carries
     # no unit a reader can act on -- only the shapes are being compared, and printing 0.023

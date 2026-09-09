@@ -110,6 +110,8 @@ def collect() -> tuple[dict, dict]:
     within_lead = route_trends_table.loc["hotter gives more"]
     growth_rows = growth.compute()
     gao = gao_overlap.compute()
+    by_paper = gao["per paper"]
+    paper_gap = by_paper["hand-curated"] - by_paper["this work"]
     route_trends = withinpaper.by_route()
     constraints_table = integ["constraints"]
     database_meta = json.loads((_setup.DATABASE / "run_meta.json").read_text())
@@ -327,6 +329,15 @@ def collect() -> tuple[dict, dict]:
         # How much of a record each side fills in. The SI's third comparison, beside size and
         # agreement, and the one that says where hand curation is still richer.
         # The two middling reasons in the record accounting, which the caption now names.
+        # The per-paper extremes the SI caption names. The size difference is concentrated in
+        # two papers and runs both ways, which is the panel's whole point, so the counts that
+        # make it are macros like any other.
+        "GaoPapersTheyLead": f"{int((paper_gap > 0).sum())}",
+        "GaoPapersWeLead": f"{int((paper_gap < 0).sum())}",
+        "GaoTopGapTheirs": f"{int(by_paper.loc[paper_gap.idxmax(), 'hand-curated'])}",
+        "GaoTopGapOurs": f"{int(by_paper.loc[paper_gap.idxmax(), 'this work'])}",
+        "GaoOursLeadTheirs": f"{int(by_paper.loc[paper_gap.idxmin(), 'hand-curated'])}",
+        "GaoOursLeadOurs": f"{int(by_paper.loc[paper_gap.idxmin(), 'this work'])}",
         "GaoSI": f"{int(gao['split']['si'])}",
         "GaoRule": f"{int(gao['split']['rule'])}",
         "GaoFillLow": f"{100 * gao['completeness']['this work'].loc[CONDITION_FIELDS].min():.0f}",

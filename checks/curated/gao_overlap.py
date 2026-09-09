@@ -278,6 +278,19 @@ def _column(frame: pd.DataFrame, prefix: str, field: str) -> pd.Series:
     return frame[f"{prefix}{field}"]
 
 
+def per_paper(frame: pd.DataFrame) -> pd.DataFrame:
+    """Records each side holds, paper by paper.
+
+    The size difference is reported as one total and as five reasons, and neither says whether
+    it is spread across the corpus or concentrated in a few papers. It matters: 173 records read
+    off a chart are one kind of problem if they come from every paper and another kind if two
+    papers plotted everything they did.
+    """
+    gao = frame[frame.category != "ours"].groupby("doi").size().rename("hand-curated")
+    ours = frame[frame.category.isin(["both", "ours"])].groupby("doi").size().rename("this work")
+    return pd.concat([gao, ours], axis=1).fillna(0).astype(int)
+
+
 def completeness(frame: pd.DataFrame) -> pd.DataFrame:
     """How often each side fills each field, on its own records.
 
@@ -341,6 +354,7 @@ def compute() -> dict:
         "parity": parity(frame),
         "condition space": condition_space(frame),
         "completeness": completeness(frame),
+        "per paper": per_paper(frame),
         "identical": identical(frame),
         "ours only": ours_only(frame).reason.value_counts()
                      .reindex(OURS_ONLY_REASONS).fillna(0).astype(int),

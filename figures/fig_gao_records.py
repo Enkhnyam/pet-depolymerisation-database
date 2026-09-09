@@ -24,10 +24,10 @@ from curated import gao_overlap
 
 # Why a record sits in one dataset and not the other, largest first, coloured by whose count it
 # raises: the blue ramp for Gao's reasons, red for the one that is our error, blue for ours.
-REASONS = [("chart", "Gao read it off a plotted curve", RAMP[1]),
-           ("si", "in Supporting Information we do not hold", RAMP[2]),
-           ("rule", "a design table our scope rules skip", RAMP[3]),
-           ("missed", "our extraction missed it", CATEGORICAL["red"])]
+REASONS = [("chart", "read off a chart", RAMP[1]),
+           ("si", "in SI we lack", RAMP[2]),
+           ("rule", "design table", RAMP[3]),
+           ("missed", "we missed it", CATEGORICAL["red"])]
 
 
 def main() -> None:
@@ -40,7 +40,7 @@ def main() -> None:
     axis = panel[0]
     shared, ours_only = int(counts["both"]), int(counts["ours"])
     rows = [(label, -int(counts[key]), colour) for key, label, colour in REASONS]
-    rows.append(("we hold it and Gao does not", ours_only, CATEGORICAL["blue"]))
+    rows.append(("ours alone", ours_only, CATEGORICAL["blue"]))
     for position, (label, value, colour) in enumerate(rows):
         y = len(rows) - 1 - position
         axis.barh(y, value, height=0.62, color=colour)
@@ -53,7 +53,7 @@ def main() -> None:
                          else ("right" if value < 0 else "left"),
                       va="center", fontsize=6, color="white" if inside else DIM)
     axis.axvline(0, color=INK, lw=0.8)
-    axis.set_yticks(range(len(rows)), [label for label, *_ in reversed(rows)], fontsize=5.4)
+    axis.set_yticks(range(len(rows)), [label for label, *_ in reversed(rows)], fontsize=6)
     axis.tick_params(axis="y", length=0)
     axis.spines["left"].set_visible(False)
     axis.set_xlim(-215, 150)
@@ -78,31 +78,32 @@ def main() -> None:
     axis.set_xticks([0, 50, 100])
     axis.set_xlabel("shared records agreeing, per field")
 
-    # --- c: how much of a record each side fills in -------------------------------------------
+    # --- c: paper by paper, who holds more ----------------------------------------------------
+    # The totals in (a) say the two sets differ by 142 records and why; they cannot say whether
+    # that is spread across the corpus or concentrated. It is concentrated, and it runs both
+    # ways: five of the nineteen papers give us more records than the hand curation has, and one
+    # gives us none at all.
     axis = panel[2]
-    full = result["completeness"] * 100
-    order = full.mean(axis=1).sort_values().index
-    positions = range(len(order))
-    axis.barh([p + 0.19 for p in positions], full.loc[order, "hand-curated"], height=0.36,
-              color=CATEGORICAL["red"], label="hand-curated")
-    axis.barh([p - 0.19 for p in positions], full.loc[order, "this work"], height=0.36,
-              color=CATEGORICAL["blue"], label="this work")
-    for position, field in enumerate(order):
-        gap = full.loc[field, "hand-curated"] - full.loc[field, "this work"]
-        if gap >= 5:
-            axis.annotate(f"$-${gap:.0f}", (full.loc[field, "hand-curated"], position),
-                          xytext=(3, 0), textcoords="offset points", va="center",
-                          fontsize=5.4, color=DIM)
-    axis.set_yticks(list(positions),
-                    [str(name).replace("_", " ") for name in order], fontsize=5.4)
-    axis.tick_params(axis="y", length=0)
-    axis.spines["left"].set_visible(False)
-    axis.set_xlim(0, 124)
-    axis.set_xticks([0, 50, 100])
-    axis.set_xlabel("field reported (%)")
-    # No legend. Above the bars it sat on the panel letter and hid it; among them it sat on the
-    # short bars and their gap labels. Two colours already named in the caption do not need a
-    # third place to be named.
+    counts_by_paper = result["per paper"]
+    gao_side = counts_by_paper["hand-curated"]
+    our_side = counts_by_paper["this work"]
+    top = max(gao_side.max(), our_side.max()) * 1.12
+
+    axis.plot([0, top], [0, top], color="white", lw=1.6, zorder=1)
+    axis.plot([0, top], [0, top], color=INK, lw=0.7, zorder=2)
+    ahead = our_side > gao_side
+    for mask, colour, label in ((~ahead, CATEGORICAL["red"], "Gao holds more"),
+                                (ahead, CATEGORICAL["blue"], "we hold more")):
+        axis.scatter(gao_side[mask], our_side[mask], s=13, color=colour, alpha=0.85,
+                     linewidths=0.4, edgecolors="white", zorder=3, label=label)
+    # No labels on the outliers: a truncated DOI is unreadable at this size and both of these
+    # truncate to the same sixteen characters. The caption names them.
+    axis.set_xlim(0, top)
+    axis.set_ylim(0, top)
+    axis.set_xlabel("records Gao holds, per paper")
+    axis.set_ylabel("records we hold")
+    axis.legend(loc="upper left", frameon=False, fontsize=5.4, handletextpad=0.15,
+                borderpad=0.0, labelspacing=0.25, markerscale=1.1)
 
     save(figure, "fig_gao_records")
 

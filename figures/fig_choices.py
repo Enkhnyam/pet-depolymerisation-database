@@ -21,6 +21,7 @@ The free judge is drawn at $0.01 so it has somewhere to sit.
 """
 import numpy as np
 import seaborn as sns
+from matplotlib.lines import Line2D
 
 from _style import CATEGORICAL, DIM, EMPHASIS, INK, RAMP, RULE, canvas, save
 from curated import extractions, shots, source_tracking, thresholds
@@ -49,17 +50,12 @@ def main() -> None:
         axis.plot([shipped], [frame.f1.loc[shipped]], marker="D", ms=4.2, color=EMPHASIS,
                   markeredgecolor="white", markeredgewidth=0.6, zorder=6)
         gap = frame.f1.max() - frame.f1.loc[shipped]
-        # Placed on whichever side of the marker has room, judged against the swept range
-        # rather than against the curve: pointing it at the peak sent it off the left edge and
-        # into the tick labels whenever the peak was the first value swept.
-        span_x = frame.index.max() - frame.index.min()
-        room = shipped < frame.index.min() + span_x * 0.55
-        axis.annotate(f"shipped {shipped:g}\n{gap:+.3f} to the peak",
-                      (shipped, frame.f1.loc[shipped]),
-                      xytext=(6, -13) if room else (-6, -13),
-                      ha="left" if room else "right",
-                      textcoords="offset points", fontsize=5.4, color=DIM)
-        axis.set_xlabel(label)
+        # The numbers go on the axis label, not into the plot. Any in-plot position that has
+        # room on one sweep sits on the curve in the next -- these three curves rise, fall and
+        # rise again -- and an annotation touching the line it describes is the one thing a
+        # panel this small cannot afford.
+        axis.set_xlabel(f"{label}\nshipped {shipped:g} · peak {best:g} · "
+                        f"{gap:+.3f} $F_1$")
         axis.set_ylabel("$F_1$ on the benchmark" if index == 0 else "")
         span = frame.f1.max() - frame.f1.min()
         axis.set_ylim(frame.f1.min() - span * 0.35, frame.f1.max() + span * 0.22)
@@ -80,9 +76,8 @@ def main() -> None:
     shipped = int(_setup.DATABASE_SHOTS) if hasattr(_setup, "DATABASE_SHOTS") else 1
     axis.plot([list(means.index).index(shipped)], [means.loc[shipped]], marker="D", ms=4.2,
               color=EMPHASIS, markeredgecolor="white", markeredgewidth=0.6, zorder=6)
-    axis.annotate(f"shipped: {shipped}", (list(means.index).index(shipped), means.loc[shipped]),
-                  xytext=(5, 4), textcoords="offset points", fontsize=5.4, color=DIM)
-    axis.set_xlabel("worked examples in the prompt")
+    axis.set_xlabel(f"worked examples in the prompt\nshipped {shipped} · "
+                    f"every repeat plotted")
     axis.set_ylabel("$F_1$ on the benchmark")
 
     # --- e: source tracking on and off --------------------------------------------------------
@@ -106,28 +101,49 @@ def main() -> None:
     axis.set_xlabel("")
     axis.set_ylabel("$F_1$, mean of three repeats")
 
-    # --- f: what each model costs against what it scores ---------------------------------------
+    # --- f: what each model scores, and what it cost -----------------------------------------
+    # This was a scatter on a logarithmic cost axis, with the free judge parked at $0.01 so it
+    # had somewhere to sit and a grey rule at the best score that explained itself to nobody.
+    # Two quantities about three models do not need a log scale: the score is the bar, the cost
+    # is written on the end of it, and the reader can compare both by reading down the column.
     axis = panel[5]
-    scores = extractions.compute()
-    COSTS = {"luna": 0.18, "terra": 1.23, "oss": 0.01}
-    for name in scores.index:
+    scores = extractions.compute().sort_values("f1")
+    COSTS = {"luna": "\\$0.18", "terra": "\\$1.23", "oss": "free, unmetered"}
+    best = scores.f1.idxmax()
+    # Dots rather than bars. On a zero-based axis three scores between 0.754 and 0.805 are
+    # three bars of the same length, and the 0.051 that separates the cheapest model from the
+    # best one disappears. A dot carries no zero baseline to honour, so the axis can show the
+    # range the models actually occupy.
+    for position, name in enumerate(scores.index):
         row = scores.loc[name]
-        colour = EMPHASIS if name == "luna" else RAMP[2]
-        axis.errorbar(COSTS[str(name)], row["f1"], yerr=row["f1 sd"], fmt="none", ecolor=INK,
-                      elinewidth=0.7, capsize=2.0, zorder=3)
-        axis.plot([COSTS[str(name)]], [row["f1"]], marker="o", ms=5.0, color=colour,
-                  markeredgecolor="white", markeredgewidth=0.7, zorder=4)
-        axis.annotate(f"{name}\n{row['f1']:.3f}", (COSTS[str(name)], row["f1"]),
-                      xytext=(6, -1), textcoords="offset points", fontsize=5.6, color=DIM)
-    axis.set_xscale("log")
-    axis.set_xlim(0.006, 9)
-    # Dollars, not powers of ten: the axis is a price and 10^-1 is not how one is written.
-    axis.set_xticks([0.01, 0.1, 1], ["\\$0.01", "\\$0.10", "\\$1"])
-    axis.set_xlabel("cost to extract the benchmark (log scale)")
-    axis.set_ylabel("$F_1$ on the benchmark")
-    axis.axhline(scores.f1.max(), color=RULE, lw=0.7, zorder=0)
+        axis.errorbar(row["f1"], position, xerr=row["f1 sd"], fmt="none", ecolor=INK,
+                      elinewidth=0.7, capsize=2.2, zorder=3)
+        axis.plot([row["f1"]], [position], marker="o", ms=5.4,
+                  color=EMPHASIS if name == best else RAMP[2], markeredgecolor="white",
+                  markeredgewidth=0.7, zorder=4)
+        axis.annotate(f"{row['f1']:.3f}  ·  {COSTS[str(name)]}",
+                      (row["f1"] + row["f1 sd"], position), xytext=(6, 0),
+                      textcoords="offset points", va="center", fontsize=5.6, color=DIM)
+    axis.set_yticks(range(len(scores)), [str(n) for n in scores.index], fontsize=6.5)
+    axis.tick_params(axis="y", length=0)
+    axis.spines["left"].set_visible(False)
+    axis.set_xlim(0.68, 0.90)
+    axis.set_xticks([0.70, 0.75, 0.80, 0.85])
+    axis.set_ylim(-0.6, len(scores) - 0.4)
+    axis.set_xlabel("$F_1$ and the cost of one run\nmean of three repeats, bar the spread")
 
-    save(figure, "fig_choices")
+    # What the two marks in (a)-(d) mean. Without this a reader has a yellow dot and a dark
+    # diamond on four panels and no way to tell which is the setting and which is the optimum.
+    figure.legend(handles=[
+        Line2D([], [], marker="D", ms=4.2, color=EMPHASIS, ls="none",
+               markeredgecolor="white", markeredgewidth=0.6,
+               label="the value the database ships"),
+        Line2D([], [], marker="o", ms=4.2, color=CATEGORICAL["yellow"], ls="none",
+               markeredgecolor="white", markeredgewidth=0.6,
+               label="the best value on this sweep"),
+    ], loc="upper center", ncol=2, frameon=False, bbox_to_anchor=(0.5, 1.015),
+        handletextpad=0.3, columnspacing=1.8)
+    save(figure, "fig_choices", legend_room=True)
 
 
 if __name__ == "__main__":
