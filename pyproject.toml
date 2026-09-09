@@ -27,6 +27,7 @@ dependencies = [
     "pydantic>=2.0",         # the extraction schema
     "rdkit>=2026.3.5",
     "scipy>=1.18.0",         # every t-test, ANOVA, Wilcoxon and binomial in checks/
+    "seaborn>=0.13.2",
     "tqdm>=4.67.0",
 ]
 
