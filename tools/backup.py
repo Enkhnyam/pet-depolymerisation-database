@@ -48,6 +48,9 @@ KEEP = [
     "data/curated_table_final.json", "data/curated_data_markdown_by_doi/*",
     # --- the chemists' work: decisions only, not the HTML they were made in ---
     "gold/decisions/*", "gold/*.json", "gold/README.md",
+    # the correction-review draw, and whatever decisions come back from it: a sample that cannot
+    # be redrawn without changing it, and answers a person gave
+    "gold/corrections/*.json",
     "gold/source_run/labels.json", "gold/source_run/eval.json",
     "gold/source_run/config.json", "gold/source_run/extractions/*.json",
     # --- the funnel, and the third-party set we are compared against ---
