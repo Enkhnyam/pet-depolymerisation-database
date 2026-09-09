@@ -14,6 +14,46 @@ this whole mechanism exists to make easy.
 """
 DERIVATION = {
 
+    "WithinPooledMax":
+        "The largest absolute pooled correlation among the four relationships chemistry "
+        "predicts the sign of. Small: pooling across studies destroys all four, which is the "
+        "point the within-paper figures are contrasted against.",
+
+    "GrowthMetricBefore": "Metric-grader agreement with the chemists against the curated key.",
+    "GrowthMetricAfter":
+        "The same after the judge-accepted records are promoted into the key. Lower: the "
+        "enlarged key is a worse reference, not a better one.",
+    "GrowthMetricDelta": "The change between those two, which is negative.",
+    "GrowthMetricLow": "Bootstrap 95% lower bound on that change.",
+    "GrowthMetricHigh": "Upper bound. Excludes zero, so the fall is not sampling noise.",
+    "GrowthMetricMoved":
+        "Verdicts that move when the key grows. None of them move toward the chemists.",
+    "FormatElsevierYield": "Share of Elsevier XML papers yielding at least one record.",
+    "FormatEuropePmcYield": "The same for Europe PMC JATS deposits.",
+    "FormatPdfYield":
+        "The same for converted PDFs. Close to the other two, which is the answer to whether a "
+        "PDF is read worse than a markup format.",
+    "MatrixAllLow": "Lowest all-record agreement of the nine judge-extractor cells.",
+    "MatrixAllHigh": "Highest.",
+    "GaoOursOnPapers":
+        "Records this work holds on the papers Gao et al. also describe. The denominator for "
+        "our side of that comparison.",
+
+    "WithinLongerPapers":
+        "Papers with enough records to correlate reaction time against yield. The denominator "
+        "of the one predicted relationship the data does not support.",
+    "WithinLongerShare":
+        "Share of those papers whose correlation runs the predicted way. Near half, which is "
+        "what a coin would reach, and reported for that reason.",
+    "WithinLongerP":
+        "Wilcoxon signed-rank p for that relationship against zero. Above 0.05: longer reaction "
+        "times do not give more product once each paper is compared with itself.",
+
+    "ConstraintOverConversion":
+        "Records whose yield exceeds their conversion, which is an identity rather than a "
+        "correlation, so every one of them is wrong without anyone labelling it. The "
+        "denominator for the share of them the judge caught.",
+
     "ThresholdAccept":
         "The accept threshold: a matched pair counts as a true positive below this mean record "
         "penalty. Frozen at 0.30 and read straight from checks/_setup.py.",

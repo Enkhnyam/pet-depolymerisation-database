@@ -20,7 +20,8 @@ set -u; cd "$(dirname "$0")/.."
 
 STALE=0
 
-for figure in $(grep -o 'artifacts/figures/[a-z0-9_]*\.pdf' paper_rsc.tex \
+# Every manuscript, so a figure only the SI includes is still drawn and still checked.
+for figure in $(grep -ho 'artifacts/figures/[a-z0-9_]*\.pdf' paper_rsc.tex paper_rsc_v2.tex paper_si.tex \
                 | sed 's|.*/||; s|\.pdf$||' | sort -u); do
   [ -f "figures/${figure}.py" ] || continue      # hand-drawn, nothing to run
   out=$(./.venv/bin/python -W ignore "figures/${figure}.py" 2>&1) || { echo "!!! ${figure} failed"; echo "$out"; exit 1; }

@@ -39,7 +39,11 @@ sys.path.insert(0, str(ROOT / "tools"))
 import provenance
 
 MACROS = ARTIFACTS / "paper_numbers.tex"
-PAPERS = ("paper_rsc.tex",)   # paper.tex and paper_rsc_si.tex were deleted, not renamed
+# All three manuscripts, because a macro file shared between them is exactly where a number
+# diverges: paper_rsc.tex is the version in review, paper_rsc_v2.tex the figure rebuild, and
+# paper_si.tex the Supporting Information. Each is scanned for literals that duplicate a
+# computed value and for macros it cites that nothing defines.
+PAPERS = ("paper_rsc.tex", "paper_rsc_v2.tex", "paper_si.tex")
 # The released-dataset macros carry a trailing "  % derivation" comment, which the original
 # "\}\s*$" refused to match -- so all 36 of them counted as undefined, and \ReleaseRecords and
 # \ReleasePapers, the two numbers in the abstract, sat outside every guard in this file.
@@ -96,6 +100,7 @@ REVIEWED = {
     ("WithinRoutePairs", "11"): "also the 11 papers excluded as reviews without protocols",
     ("GaoMissed", "12"): "the schema's 12 fields per record",
     ("WithinRouteTotal", "12"): "the schema's 12 fields per record",
+    ("JudgeDropped", "95"): "the 95% of a confidence interval, in the SI",
     ("RouteMethanolysisShare", "10"):
         "the ten schema fields the heuristic scores, and the 1/10 in its mean-penalty equation",
     ("ShotsComparisons", "10"): "the same ten fields",

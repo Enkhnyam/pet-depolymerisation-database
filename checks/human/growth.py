@@ -67,6 +67,49 @@ def compute() -> pd.DataFrame:
     return pd.DataFrame(rows).set_index("answer key")
 
 
+def tracking() -> pd.DataFrame:
+    """What growing the answer key does to the grader, not just to the score.
+
+    This was computed inside main() and printed. The SI quotes all six of its numbers -- the
+    agreement before and after, the change, its bootstrap interval and how many verdicts moved
+    -- and with the computation buried in main() the only way to quote them was to type them,
+    which is how the manuscript came to carry four numbers no check could move.
+    """
+    both = scored(run=LABELLED).merge(judged(), on=["doi", "index"])
+    unpaired = both.query("situation == @UNMATCHED")
+    base = {paper["doi"]: paper for paper in json.loads(data_path(CURATED).read_text())}
+    extraction = {doi: [record.model_dump(by_alias=True) for record in rows]
+                  for doi, rows in experiments(LABELLED).items()}
+    rescues = [(row.doi, row.index) for row in unpaired.itertuples() if row.judge == "correct"]
+    everything = [(row.doi, row.index) for row in unpaired.itertuples()]
+
+    human = golden()[["doi", "index", "human"]]
+    before = human.merge(verdicts_with(reference_with(base, extraction, [])),
+                         on=["doi", "index"])
+    generator = np.random.default_rng(0)
+
+    rows = []
+    for name, additions in (("+ judge-vouched", rescues), ("+ every unmatched", everything)):
+        after = before.merge(verdicts_with(reference_with(base, extraction, additions)),
+                             on=["doi", "index"], suffixes=("_before", "_after"))
+        changed = after[after.m_before != after.m_after]
+
+        shifts = []
+        for _ in range(RESAMPLES):
+            sample = after.iloc[generator.integers(0, len(after), len(after))]
+            shifts.append((sample.m_after == sample.human).mean()
+                          - (sample.m_before == sample.human).mean())
+        low, high = np.percentile(shifts, [2.5, 97.5])
+
+        rows.append({"policy": name,
+                     "labels changed": len(changed),
+                     "toward the chemists": int((changed.m_after == changed.human).sum()),
+                     "agreement before": (after.m_before == after.human).mean(),
+                     "agreement after": (after.m_after == after.human).mean(),
+                     "95% low": low, "95% high": high})
+    return pd.DataFrame(rows).set_index("policy")
+
+
 def main() -> None:
     sources(labels=LABELS, labelled_run=LABELLED, answer_key=CURATED, judge=JUDGE)
     both = scored(run=LABELLED).merge(judged(), on=["doi", "index"])
@@ -94,31 +137,7 @@ def main() -> None:
                      "f1": result["f1"]})
     show("the extraction's own score as the answer key grows", compute())
 
-    human = golden()[["doi", "index", "human"]]
-    before = human.merge(verdicts_with(reference_with(base, extraction, [])), on=["doi", "index"])
-    generator = np.random.default_rng(0)
-
-    rows = []
-    for name, additions in policies[1:]:
-        after = before.merge(verdicts_with(reference_with(base, extraction, additions)),
-                             on=["doi", "index"], suffixes=("_before", "_after"))
-        changed = after[after.m_before != after.m_after]
-
-        shifts = []
-        for _ in range(RESAMPLES):
-            sample = after.iloc[generator.integers(0, len(after), len(after))]
-            shifts.append((sample.m_after == sample.human).mean()
-                          - (sample.m_before == sample.human).mean())
-        low, high = np.percentile(shifts, [2.5, 97.5])
-
-        rows.append({"policy": name,
-                     "labels changed": len(changed),
-                     "toward the chemists": (changed.m_after == changed.human).sum(),
-                     "agreement before": (after.m_before == after.human).mean(),
-                     "agreement after": (after.m_after == after.human).mean(),
-                     "95% low": low, "95% high": high})
-    show("how well the metric still tracks the chemists afterwards",
-         pd.DataFrame(rows).set_index("policy"))
+    show("how well the metric still tracks the chemists afterwards", tracking())
 
 
 if __name__ == "__main__":

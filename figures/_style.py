@@ -14,6 +14,7 @@ from matplotlib.colors import ListedColormap
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "checks"))          # checks import each other by bare name
@@ -111,6 +112,111 @@ plt.rcParams.update({
     # scribble in a 1.5 in panel; this is a texture.
     "hatch.linewidth": 0.3,
 })
+
+# ---------------------------------------------------------------------------------------------
+# seaborn draws the panels now. It is matplotlib underneath -- the rcParams above still govern
+# type, spines and the PDF writer, and save() and the colour audit are unchanged -- so this is a
+# change of drawing API, not of renderer.
+#
+# What it buys: forms that took a custom primitive here and got them wrong twice. A univariate
+# kdeplot with common_norm=False normalises each group separately, so a route holding 273
+# records reads as clearly as one holding 1,724 -- the exact failure that defeated histograms,
+# cumulative curves, quantile rows and violins in turn. A bivariate kdeplot with hue and fill
+# replaces overlap(), which hand-rolled contour extraction and needed an assertion to catch
+# regions running off the grid.
+#
+# set_theme is called with the house rcParams re-applied over it, because seaborn's own theme
+# would otherwise overwrite the type sizes and the axis colours. The palette is the validated
+# one and nothing else: seaborn's defaults are its own ten hues, and checks/palette.py reads
+# the drawn PDFs, so a seaborn default reaching a figure fails the suite rather than the page.
+# ---------------------------------------------------------------------------------------------
+_HOUSE = dict(plt.rcParams)
+sns.set_theme(style="ticks", context="paper")
+plt.rcParams.update(_HOUSE)
+sns.set_palette(SLOTS)
+
+
+def kde(axis, frame, x, *, hue=None, palette=None, order=None, fill=True, common_norm=False,
+        multiple="layer", clip=None, xlabel="", ylabel="density", legend=False, **kw):
+    """A distribution by group, each group normalised to itself unless told otherwise.
+
+    common_norm=False is the whole reason this is a kde and not a histogram. Under it each
+    group's curve integrates to one, so shape is comparable between groups of wildly different
+    size; the shared-axis histogram this replaces made methanolysis, at a sixth of glycolysis,
+    a flat line beside a tall one.
+
+    `clip` does two jobs and only one of them is seaborn's. It bounds where the curve is drawn,
+    which is what stops a density over a percentage spilling past 100. It does *not* bound what
+    the bandwidth is fitted to -- seaborn estimates that from the whole column -- and for the
+    amount fields the whole column runs to eight tonnes of solvent, so Scott's rule returned a
+    bandwidth wider than the window and drew three flat rectangles. The window is therefore
+    applied to the data as well: what each curve shows is the distribution of the records inside
+    it, which is what the axis label's "in view" share already declares.
+    """
+    data = frame if hue is None else frame[frame[hue].notna()]
+    if clip is not None:
+        data = data[data[x].between(*clip)]
+    sns.kdeplot(data=data, x=x, hue=hue, ax=axis, fill=fill, common_norm=common_norm,
+                multiple=multiple, palette=palette, hue_order=order, clip=clip,
+                linewidth=0.9, alpha=0.30 if multiple == "layer" else 0.9,
+                legend=legend, warn_singular=False, **kw)
+    # No numbers on the density axis. Each curve is normalised to itself, so the height carries
+    # no unit a reader can act on -- only the shapes are being compared, and printing 0.023
+    # beside them invites reading it as a quantity.
+    if multiple == "layer":
+        axis.set_yticks([])
+    _finish(axis, xlabel or x, ylabel)
+    return axis
+
+
+def route_key(axis, palette: dict, order, *, title="") -> None:
+    """A legend given an axes of its own, for a grid with a cell to spare.
+
+    legend_above() put this over the canvas at 6.5 pt, competing with the caption for the
+    reader's first glance. A spare cell in the grid is a better home: the swatches can be large
+    enough to read and the key sits inside the figure's own frame.
+    """
+    axis.set_axis_off()
+    for position, name in enumerate(order):
+        y = 0.78 - position * 0.16
+        axis.add_patch(plt.Rectangle((0.06, y - 0.035), 0.10, 0.075, transform=axis.transAxes,
+                                     facecolor=palette[name], edgecolor="none", clip_on=False))
+        axis.text(0.21, y, str(name), transform=axis.transAxes, fontsize=7, color=INK,
+                  va="center")
+    if title:
+        axis.text(0.06, 0.94, title, transform=axis.transAxes, fontsize=6.2, color=DIM,
+                  va="center")
+
+
+def kde2d(axis, frame, x, y, *, hue, palette=None, order=None, levels=4, xlabel="", ylabel="",
+          legend=False, clip=None):
+    """Two bivariate densities as nested contours, one palette colour each.
+
+    Replaces a primitive that extracted contour paths by hand, ran a Gaussian filter to close
+    rings the grid had cut, and carried an assertion because regions still escaped the frame.
+    seaborn does that job in a call.
+
+    Contour lines rather than filled bands, and the reason is the colour audit rather than
+    taste. A filled bivariate density needs at least two contour levels -- matplotlib refuses
+    one -- and seaborn colours the bands from a ramp built off the hue, which both lightens and
+    *saturates* it: fig_gao came out painting six colours that are in no palette, one of them
+    within 1.2 degrees of matplotlib's tab10 red. There is no rule that admits those and still
+    rejects tab10, because a saturated tint of our red and tab10's red are the same colour. So
+    the panel draws lines in the two hues exactly, checks/palette.py stays strict with nothing
+    relaxed, and nesting carries the density gradation that the bands would have.
+
+    `clip` matters as much here as in the univariate case and is easier to forget: a density
+    over yield spreads past 0 and 100%, and the first draft of this panel drew probability at
+    -20% yield.
+    """
+    names = order or sorted(frame[hue].dropna().unique())
+    for name in names:
+        part = frame[frame[hue] == name]
+        sns.kdeplot(data=part, x=x, y=y, ax=axis, fill=False, levels=levels, thresh=0.12,
+                    color=(palette or {}).get(name, DATA), linewidths=0.7, alpha=0.9,
+                    common_norm=False, legend=False, warn_singular=False, clip=clip)
+    _finish(axis, xlabel or x, ylabel or y)
+    return axis
 
 
 def marker_for(colour):

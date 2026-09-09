@@ -38,7 +38,7 @@ from macro_derivations import DERIVATION
 import _setup
 import cost
 from curated import extractions, gao_overlap, matrix, shots, source_tracking, thresholds
-from database import chemistry, corpus, provenance, verdicts, withinpaper
+from database import chemistry, corpus, formats, provenance, verdicts, withinpaper
 from human import adjudicated, growth, integrity, worklist
 
 OUT = ARTIFACTS / "paper_numbers.tex"
@@ -94,7 +94,10 @@ def collect() -> tuple[dict, dict]:
     integ = integrity.compute()
     mx = matrix.compute()
     mx_ship = mx[(mx.judge == "oss") & (mx.extraction == "luna")].iloc[0]
-    within_lead = withinpaper.compute()["table"].loc["hotter gives more"]
+    tracking = growth.tracking()
+    reach = formats.compute()["reach"]
+    route_trends_table = withinpaper.compute()["table"]
+    within_lead = route_trends_table.loc["hotter gives more"]
     growth_rows = growth.compute()
     gao = gao_overlap.compute()
     route_trends = withinpaper.by_route()
@@ -274,10 +277,39 @@ def collect() -> tuple[dict, dict]:
         "WithinRouteTotal": f"{len(withinpaper.PAIRS) * len(ROUTES)}",
         "WithinPaperRho": f"{within_lead['within']:.2f}",
         "WithinPaperP": sci(within_lead['p']),
+        # The relationship that does not hold. fig_trends shows all four and says so, which
+        # means the caption needs the failing one's numbers as macros like any other.
+        # The bound the caption states on how close every pooled coefficient sits to zero.
+        # Typed as "0.06", which is both a rounding of the real 0.053 and the same digits as
+        # WithinLongerP, a different quantity entirely.
+        "WithinPooledMax": f"{route_trends_table['pooled'].abs().max():.3f}",
+        "WithinLongerPapers": f"{int(route_trends_table.loc['longer gives more', 'papers'])}",
+        "WithinLongerShare":
+            f"{100 * route_trends_table.loc['longer gives more', 'as predicted']:.0f}",
+        "WithinLongerP": f"{route_trends_table.loc['longer gives more', 'p']:.2f}",
         # the pooled figure the within-paper one is contrasted against; the contrast is
         # the point, so both halves of it must come from the same computation
         "WithinPooledRho": f"{within_lead['pooled']:+.3f}",
         "WithinPooledN": f"{int(within_lead['pooled n']):,}",
+        # What growing the key does to the *grader*, not just to the score. The SI quotes the
+        # agreement before and after, the change and its bootstrap interval; they were typed in.
+        "GrowthMetricBefore": f"{tracking['agreement before'].iloc[0]:.2f}",
+        "GrowthMetricAfter": f"{tracking['agreement after'].iloc[0]:.2f}",
+        "GrowthMetricDelta":
+            f"{tracking['agreement after'].iloc[0] - tracking['agreement before'].iloc[0]:+.2f}",
+        "GrowthMetricLow": f"{tracking['95% low'].iloc[0]:+.2f}",
+        "GrowthMetricHigh": f"{tracking['95% high'].iloc[0]:+.2f}",
+        "GrowthMetricMoved": f"{int(tracking['labels changed'].iloc[0])}",
+        # Yield rate by the format a paper arrived in: the SI's answer to whether the reader
+        # should worry that a PDF is read worse than an XML.
+        "FormatElsevierYield": f"{reach.loc['Elsevier XML', '% yielding']:.0f}",
+        "FormatEuropePmcYield": f"{reach.loc['Europe PMC JATS', '% yielding']:.0f}",
+        "FormatPdfYield": f"{reach.loc['PDF', '% yielding']:.0f}",
+        # The all-records half of the agreement matrix, which the SI now reports beside the
+        # evaluable half so a reader can see how much of the headline is the restriction.
+        "MatrixAllLow": f"{mx['agreement'].min():.3f}",
+        "MatrixAllHigh": f"{mx['agreement'].max():.3f}",
+        "GaoOursOnPapers": f"{gao['counts']['records we hold on those papers']:,}",
         "GrowthAllExperiments": f"{int(growth_rows['experiments'].iloc[2]):,}",
         "GrowthAllAdded": f"{int(growth_rows['added'].iloc[2]):,}",
         "GrowthAllPrecision": f"{growth_rows['precision'].iloc[2]:.3f}",
@@ -301,6 +333,7 @@ def collect() -> tuple[dict, dict]:
         "ConstraintRecords": f"{int(constraints_table.records.sum()):,}",
         "ConstraintFlagged": f"{int(constraints_table.flagged.sum()):,}",
         "ConstraintCaught": f"{100 * constraints_table.flagged.sum() / constraints_table.records.sum():.0f}",
+        "ConstraintOverConversion": f"{int(constraints_table.loc['yield above conversion', 'records']):,}",
         "ConstraintOverHundredCaught": f"{100 * constraints_table.loc['yield above 100%', 'judge caught']:.0f}",
         "ConstraintOverConversionCaught": f"{100 * constraints_table.loc['yield above conversion', 'judge caught']:.0f}",
         "AdjNowDisagree": f"{int((audit['records'].stratum == 'graders disagree').sum())}"
