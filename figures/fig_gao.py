@@ -18,25 +18,24 @@ Fields the check logs before estimating are labelled as logged, because the dens
 on the scale it is drawn on: estimating on grams and plotting the log of the result would
 describe a different distribution from the one on the page.
 """
-import matplotlib.pyplot as plt
 import pandas as pd
 
-from _style import CATEGORICAL, DIM, INK, RAMP, RAMP_RED, canvas, kde2d, save
+from _style import CATEGORICAL, DIM, INK, RAMP, SLOTS, canvas, kde2d, save
 from curated import gao_overlap
 
 # Six pairs, the first being the main text's.
 PAIRS = [("temperature_c", "yield_percent", "temperature (°C)", "yield (%)",
-          ((140, 210), (0, 100))),
+          ((132, 218), (0, 100))),
          ("temperature_c", "conversion_percent", "temperature (°C)", "conversion (%)",
-          ((140, 210), (0, 100))),
+          ((132, 218), (0, 100))),
          ("conversion_percent", "yield_percent", "conversion (%)", "yield (%)",
           ((0, 100), (0, 100))),
          ("temperature_c", "selectivity_percent", "temperature (°C)", "selectivity (%)",
-          ((140, 210), (0, 100))),
+          ((132, 218), (0, 100))),
          ("PET_amount_g", "yield_percent", "PET (g, $\\log_{10}$)", "yield (%)",
-          ((-2.2, 1.6), (0, 100))),
+          ((-2.8, 2.2), (0, 100))),
          ("catalyst_amount_g", "yield_percent", "catalyst (g, $\\log_{10}$)", "yield (%)",
-          ((-3.2, 0.8), (0, 100)))]
+          ((-3.8, 1.4), (0, 100)))]
 
 # Why a record sits in one dataset and not the other, largest first, coloured by whose count it
 # raises: the blue ramp for Gao's reasons, red for the one that is our error, blue for ours.
@@ -61,8 +60,13 @@ def main() -> None:
               # Every panel labels its own y: the pairs vary across a row, so the leftmost
               # label would have claimed panel b's conversion axis was a yield axis.
               clip=view, xlabel=xlabel, ylabel=ylabel, label=False)
-        panel[index].set_xlim(*view[0])
-        panel[index].set_ylim(*view[1])
+        # A margin outside the estimate, so nothing is drawn against the frame. Where a field
+        # has a real bound the density is cut at it, and the cut belongs inside white space
+        # where it reads as a bound rather than as a figure running off its own edge.
+        pad_x = (view[0][1] - view[0][0]) * 0.03
+        pad_y = (view[1][1] - view[1][0]) * 0.04
+        panel[index].set_xlim(view[0][0] - pad_x, view[0][1] + pad_x)
+        panel[index].set_ylim(view[1][0] - pad_y, view[1][1] + pad_y)
         # Above the frame, not inside it: at the bottom right the fill reaches the corner and
         # the count was printed underneath a density.
         panel[index].annotate(f"n={len(space['this work'])} / {len(space['hand-curated'])}",
@@ -111,22 +115,28 @@ def main() -> None:
     axis.set_xticks([0, 50, 100])
     axis.set_xlabel("shared records agreeing, per field")
 
-    # --- i: the key, in the cell the grid leaves over -----------------------------------------
+    # --- i: the shared records, value against value ------------------------------------------
+    # A key was here, and a key is not worth a ninth of a figure. This is the comparison the
+    # section is actually about, one point per shared value rather than a share per field: on
+    # the three percentage fields, every one of the 239 values both datasets report falls within
+    # GaoParitySlack points of the other. A scatter that is a clean diagonal is the strongest
+    # form that claim has, and it also shows there is no systematic offset between the two.
     axis = panel[8]
-    axis.set_axis_off()
-    axis.text(0.02, 0.93, "each panel above: two filled densities,", transform=axis.transAxes,
-              fontsize=6, color=DIM)
-    axis.text(0.02, 0.85, "light at the edge, dark at the core", transform=axis.transAxes,
-              fontsize=6, color=DIM)
-    for row, (name, ramp) in enumerate((("this work", RAMP), ("Gao et al.", RAMP_RED))):
-        for step, colour in enumerate(ramp[:4][::-1]):
-            axis.add_patch(plt.Rectangle((0.04 + step * 0.08, 0.60 - row * 0.17), 0.08, 0.09,
-                                         transform=axis.transAxes, facecolor=colour,
-                                         edgecolor="none", clip_on=False))
-        axis.text(0.40, 0.645 - row * 0.17, name, transform=axis.transAxes, fontsize=6.5,
-                  color=ramp[1], fontweight="bold", va="center")
-    axis.text(0.02, 0.24, "n = this work / Gao, the records\neach side reports for that pair",
-              transform=axis.transAxes, fontsize=6, color=DIM)
+    parity = result["parity"]
+    pct = parity[parity.field.str.endswith("_percent")]
+    fields = list(dict.fromkeys(pct.field))
+    for name, colour in zip(fields, SLOTS):
+        part = pct[pct.field == name]
+        axis.scatter(part.gao, part.ours, s=5.0, color=colour, alpha=0.75, linewidths=0,
+                     label=str(name).replace("_percent", " %").replace("_", " "))
+    axis.plot([0, 100], [0, 100], color="white", lw=1.6, zorder=1)
+    axis.plot([0, 100], [0, 100], color=INK, lw=0.7, zorder=2)
+    axis.set_xlim(-4, 104)
+    axis.set_ylim(-4, 104)
+    axis.set_xlabel(f"Gao et al. (%), {len(pct)} values")
+    axis.set_ylabel("this work (%)")
+    axis.legend(loc="lower right", frameon=False, fontsize=5.2, handletextpad=0.15,
+                borderpad=0.0, labelspacing=0.25, markerscale=1.3)
 
     save(figure, "fig_gao")
 

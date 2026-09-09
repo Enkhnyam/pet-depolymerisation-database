@@ -62,7 +62,17 @@ RAMP = ["#16324E", "#25517E", "#4E7BA8", "#8AA8C6", "#C6D5E3"]     # dark to lig
 # in no palette, one within 1.2 degrees of matplotlib's tab10 red. Declaring the ramp instead
 # means every colour a fill can paint is a palette member, so checks/palette.py stays strict.
 RAMP_RED = ["#4B241E", "#783933", "#A5635A", "#C39993", "#E1CCC9"]  # L* 31..86, hue 28
-FILL_RAMPS = {"blue": RAMP, "red": RAMP_RED}
+
+# Six rungs each, for the filled bivariate densities. Five bands read as five bands and eight
+# pale ones read as fog: the count and the opacity were settled by drawing six combinations of
+# them side by side, and six rungs at alpha 0.75 is the one where the depth is smooth and the
+# two hues are still each other's opposite where they do not overlap. Every rung is a colour
+# this file names, because the audit reads the rendered PDF and has nothing else to check
+# against. The ladders run L* 30 to 75 with chroma tapering as they lighten, rung for rung the
+# same in both hues, so neither density looks nearer than the other.
+FILL_BLUE = ["#002D5A", "#1E4872", "#3F6084", "#5D7B9C", "#7E96B1", "#9CB1C9"]
+FILL_RED = ["#54150F", "#6C302A", "#814E48", "#996963", "#AE8781", "#C6A59F"]
+FILL_RAMPS = {"blue": FILL_BLUE, "red": FILL_RED}
 
 INK, DIM, RULE = "#12201F", "#5D716E", "#DFE7E5"   # reference lines, tick labels, axis rules
 GUIDE = "#C9D6D3"
@@ -200,20 +210,27 @@ def route_key(axis, palette: dict, order, *, title="") -> None:
                   va="center")
 
 
-def kde2d(axis, frame, x, y, *, hue, ramps=("blue", "red"), order=None, levels=5,
-          xlabel=None, ylabel=None, clip=None, label=True):
+def kde2d(axis, frame, x, y, *, hue, ramps=("blue", "red"), order=None, levels=6,
+          xlabel=None, ylabel=None, clip=None, label=True, outline=True):
     """Two filled bivariate densities layered over each other, light at the edge, dark at the core.
 
     Replaces a primitive that extracted contour paths by hand, ran a Gaussian filter to close
     rings the grid had cut, and carried an assertion because regions still escaped the frame.
 
-    The fill is drawn from a declared ramp rather than from a colormap seaborn builds off the
-    hue. That is not a stylistic preference: a filled bivariate density needs at least two
-    contour levels, matplotlib refuses one, and seaborn's derived ramp both lightens *and*
-    saturates the hue -- fig_gao's first version painted six colours that are in no palette, one
-    of them within 1.2 degrees of matplotlib's tab10 red. Passing a ListedColormap of exactly
-    the ramp's own steps means contourf paints those steps and nothing else, so every colour on
-    the panel is a palette member and checks/palette.py needs no exception.
+    Six bands and one outline each. The first version drew five bands and outlined every one of
+    them, which is twenty contour lines over each other and reads as a tangle rather than as
+    depth; the next drew eight pale ones and the two densities became one brown fog. The
+    gradation has to be fine enough that no single edge is conspicuous and opaque enough that
+    each hue survives the other. The one outline is the outermost contour only: without it two
+    overlapping densities lose their boundaries in each other, and with one on every band they
+    lose them in their own lines.
+
+    The fill is drawn from a declared ramp rather than a colormap seaborn builds off the hue.
+    That is not a stylistic preference: a filled bivariate density needs at least two contour
+    levels, matplotlib refuses one, and seaborn's derived ramp both lightens *and* saturates the
+    hue -- an early version painted six colours in no palette, one within 1.2 degrees of
+    matplotlib's tab10 red. A ListedColormap of exactly the ramp's rungs means contourf paints
+    those rungs and nothing else, so checks/palette.py needs no exception.
 
     `clip` matters as much here as in the univariate case and is easier to forget: a density
     over yield spreads past 0 and 100%, and the first draft of this panel drew probability at
@@ -222,20 +239,19 @@ def kde2d(axis, frame, x, y, *, hue, ramps=("blue", "red"), order=None, levels=5
     names = order or sorted(frame[hue].dropna().unique())
     for name, key in zip(names, ramps):
         part = frame[frame[hue] == name]
-        steps = FILL_RAMPS[key][:levels][::-1]          # light at the outside, dark at the core
-        sns.kdeplot(data=part, x=x, y=y, ax=axis, fill=True, levels=len(steps) + 1, thresh=0.10,
-                    cmap=ListedColormap(steps), common_norm=False, legend=False,
-                    warn_singular=False, clip=clip, alpha=0.62)
-        # The same contours again, unfilled, in the ramp's own dark step. The seaborn example
-        # this follows has two clusters that barely meet; these two sit on top of each other,
-        # and without an outline whichever is drawn second simply hides the first.
-        sns.kdeplot(data=part, x=x, y=y, ax=axis, fill=False, levels=len(steps) + 1,
-                    thresh=0.10, color=FILL_RAMPS[key][1], linewidths=0.45, alpha=0.85,
-                    common_norm=False, legend=False, warn_singular=False, clip=clip)
+        rungs = FILL_RAMPS[key][:levels][::-1]      # light at the outside, dark at the core
+        sns.kdeplot(data=part, x=x, y=y, ax=axis, fill=True, levels=len(rungs) + 1, thresh=0.08,
+                    cmap=ListedColormap(rungs), common_norm=False, legend=False,
+                    warn_singular=False, clip=clip, alpha=0.75)
+        if outline:
+            sns.kdeplot(data=part, x=x, y=y, ax=axis, fill=False, levels=[0.08, 1.0],
+                        thresh=0.08, color=FILL_RAMPS[key][0], linewidths=0.6, alpha=0.9,
+                        common_norm=False, legend=False, warn_singular=False, clip=clip)
         if label:
             axis.annotate(str(name), (0.04, 0.95 - names.index(name) * 0.085),
                           xycoords="axes fraction", fontsize=6,
-                          color=FILL_RAMPS[key][1], fontweight="bold")
+                          color=FILL_RAMPS[key][0], fontweight="bold")
+
     # None means "no label given, fall back to the column"; an empty string means "deliberately
     # blank", which is what a panel in the middle of a row wants. Conflating the two printed
     # "conversion_percent" down the middle of the SI grid.
