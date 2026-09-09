@@ -74,7 +74,11 @@ def main() -> None:
     kde2d(panel[8], long, "temperature_c", "yield_percent", hue="dataset",
           order=["this work", "Gao et al."], clip=((140, 210), (0, 100)),
           xlabel="temperature (°C)", ylabel="yield (%)")
-    panel[8].set_ylim(0, 100)
+    # Yield is populated across its whole range, so the density is nonzero at both bounds and
+    # ran edge to edge with no white anywhere around it. The margin is what makes the cut at 0
+    # and 100% read as the bound it is rather than as a shape leaving its frame.
+    panel[8].set_xlim(136, 214)
+    panel[8].set_ylim(-10, 110)
 
     # Nine panels leaves no spare cell for the route key, so it goes above the canvas with
     # room reserved for it -- dropped into a panel it sits on the data, which is where the

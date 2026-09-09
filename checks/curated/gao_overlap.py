@@ -278,6 +278,27 @@ def _column(frame: pd.DataFrame, prefix: str, field: str) -> pd.Series:
     return frame[f"{prefix}{field}"]
 
 
+def completeness(frame: pd.DataFrame) -> pd.DataFrame:
+    """How often each side fills each field, on its own records.
+
+    The section compares where the two datasets agree and why they differ in size. It never
+    asked the third question, which is whether an extraction reports as much per record as a
+    person does: hand curation fills every condition field on every record, and this extraction
+    fills 84 to 97% of them. Selectivity is the widest gap and the least surprising one, since
+    it is the field the source papers report least consistently.
+    """
+    gao = frame[frame.category != "ours"]
+    ours = frame[frame.category.isin(["both", "ours"])]
+    rows = []
+    for field in NUMERIC + TEXT:
+        rows.append({
+            "field": field,
+            "hand-curated": _column(gao, "gao_", field).notna().mean(),
+            "this work": _column(ours, "ours_", field).notna().mean(),
+        })
+    return pd.DataFrame(rows).set_index("field")
+
+
 def condition_space(frame: pd.DataFrame, x: str = "temperature_c",
                     y: str = "yield_percent") -> dict:
     """Two fields, ours and the hand curation's, on the papers both cover.
@@ -319,6 +340,7 @@ def compute() -> dict:
         "agreement": agreement(frame),
         "parity": parity(frame),
         "condition space": condition_space(frame),
+        "completeness": completeness(frame),
         "identical": identical(frame),
         "ours only": ours_only(frame).reason.value_counts()
                      .reindex(OURS_ONLY_REASONS).fillna(0).astype(int),

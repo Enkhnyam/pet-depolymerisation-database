@@ -14,6 +14,15 @@ this whole mechanism exists to make easy.
 """
 DERIVATION = {
 
+    "GaoFillLow":
+        "The lowest share of records this extraction fills a condition field on, over the five "
+        "condition fields. Hand curation fills all five on every record, so this is the gap the "
+        "SI's completeness panel is about.",
+    "GaoFillHigh": "The highest of the same five.",
+    "GaoSelectivityGap":
+        "Percentage points by which hand curation out-reports this extraction on selectivity, "
+        "the widest of the ten gaps and the field the source papers report least consistently.",
+
     "IntervalHydrolysisHeavy":
         "Share of hydrolysis records charging 2 g of catalyst or more. Large, because alkaline "
         "hydrolysis consumes its base stoichiometrically; the counted-interval figure shows it "

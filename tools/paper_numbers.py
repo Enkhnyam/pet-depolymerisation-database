@@ -34,6 +34,12 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 from core.paths import ARTIFACTS
 from core.schema import OTHER_ROUTE, ROUTES
+
+# The five condition fields, for the Gao completeness range. The outcome fields are reported
+# inconsistently by the source papers themselves, so a range over all ten would describe the
+# literature rather than the extraction.
+CONDITION_FIELDS = ["temperature_c", "reaction_time_min", "catalyst_amount_g",
+                    "PET_amount_g", "solvent_amount_g"]
 from macro_derivations import DERIVATION
 import _setup
 import cost
@@ -318,6 +324,13 @@ def collect() -> tuple[dict, dict]:
         "MatrixAllLow": f"{mx['agreement'].min():.3f}",
         "MatrixAllHigh": f"{mx['agreement'].max():.3f}",
         "GaoOursOnPapers": f"{gao['counts']['records we hold on those papers']:,}",
+        # How much of a record each side fills in. The SI's third comparison, beside size and
+        # agreement, and the one that says where hand curation is still richer.
+        "GaoFillLow": f"{100 * gao['completeness']['this work'].loc[CONDITION_FIELDS].min():.0f}",
+        "GaoFillHigh": f"{100 * gao['completeness']['this work'].loc[CONDITION_FIELDS].max():.0f}",
+        "GaoSelectivityGap":
+            f"{100 * (gao['completeness'].loc['selectivity_percent', 'hand-curated']
+                      - gao['completeness'].loc['selectivity_percent', 'this work']):.0f}",
         "GrowthAllExperiments": f"{int(growth_rows['experiments'].iloc[2]):,}",
         "GrowthAllAdded": f"{int(growth_rows['added'].iloc[2]):,}",
         "GrowthAllPrecision": f"{growth_rows['precision'].iloc[2]:.3f}",
