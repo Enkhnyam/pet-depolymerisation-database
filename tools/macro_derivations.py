@@ -14,6 +14,12 @@ this whole mechanism exists to make easy.
 """
 DERIVATION = {
 
+    "IntervalHydrolysisHeavy":
+        "Share of hydrolysis records charging 2 g of catalyst or more. Large, because alkaline "
+        "hydrolysis consumes its base stoichiometrically; the counted-interval figure shows it "
+        "directly where a smoothed density does not.",
+    "IntervalGlycolysisHeavy": "The same share for glycolysis, which is small.",
+
     "WithinPooledMax":
         "The largest absolute pooled correlation among the four relationships chemistry "
         "predicts the sign of. Small: pooling across studies destroys all four, which is the "

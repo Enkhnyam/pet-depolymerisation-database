@@ -69,6 +69,10 @@ def main() -> None:
     # the honest mark at this sample size, and the line joins the arm means.
     axis = panel[3]
     arms = shots.compute()
+    # stripplot's jitter draws from numpy's global RNG, so the panel came out different on every
+    # run and FIGURES_CHECK reported the figure stale forever. Seeded here: a figure that cannot
+    # be reproduced byte for byte cannot be checked against the data that made it.
+    np.random.seed(0)
     sns.stripplot(data=arms, x="n_shots", y="f1", ax=axis, size=2.8, color=RAMP[2],
                   alpha=0.8, jitter=0.12, legend=False)
     means = arms.groupby("n_shots").f1.mean()

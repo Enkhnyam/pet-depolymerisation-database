@@ -79,6 +79,10 @@ def collect() -> tuple[dict, dict]:
     co, ch, ve, pr = corpus.compute(), chemistry.compute(), verdicts.compute(), provenance.compute()
     base = ch["stoichiometric base"]
     empty = co["empty papers"]
+    # Share of each route's records charging 2 g of catalyst or more, the interval the counted
+    # figure makes the alkaline-hydrolysis story visible in.
+    heavy = (ch["records"].dropna(subset=["catalyst_amount_g"])
+             .groupby("route").catalyst_amount_g.apply(lambda s: s.ge(2).mean()))
     ex = extractions.arms()
     sh = shots.compute()
     contrast = shots.contrast(sh)
@@ -145,6 +149,10 @@ def collect() -> tuple[dict, dict]:
         "YieldOverHundred": f"{int(ch['out of range'].loc['yield_percent', 'above 100%']):,}",
         "IdentityPairs": f"{int(identity['pairs with both']):,}",
         "IdentityImpossible": f"{int(identity['yield above conversion']):,}",
+        # The interval figure's headline: the stoichiometric-base story as a share, which is
+        # what a counted interval shows and a smoothed density smooths away.
+        "IntervalHydrolysisHeavy": f"{100 * heavy['hydrolysis']:.0f}",
+        "IntervalGlycolysisHeavy": f"{100 * heavy['glycolysis']:.0f}",
         "StoichBaseRecords": f"{base['records']:,}",
         "StoichBaseCatalysed": f"{base['of records naming a catalyst']:,}",
         "StoichBaseLoading": f"{base['median wt% of PET']:.0f}",
