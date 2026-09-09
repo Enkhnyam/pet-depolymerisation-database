@@ -212,8 +212,30 @@ def compute(path: Path) -> dict:
     # detected had it gone the other way.
     power = {rate: power_at(pairs, rate) for rate in POWER_RATES} if pairs else {}
 
+    # How often each grader's verdict matches the chemists', which is not the same question as
+    # McNemar's and was being answered with McNemar's number. The abstract claimed the judge
+    # "agreed with human assessment on 84% of manually evaluated records"; 84% is the judge's
+    # win rate on the 51 records where the two graders *disagreed* (43 of 51), a different
+    # quantity over a different denominator. Both are computed here so neither has to be
+    # inferred from the other again.
+    #
+    # Two versions, because the sample is not a simple random one. Disagreements were reviewed
+    # exhaustively and mutual acceptances sub-sampled, so the reviewed set is deliberately
+    # enriched for disagreement: the raw rate understates agreement over the benchmark, and the
+    # stratum-weighted rate is the estimate for it. A sentence about "manually evaluated
+    # records" is about the reviewed set and wants the raw one.
+    agreement = {}
+    for name in ("judge", "metric"):
+        matches = merged[name].eq("incorrect") == merged.wrong.astype(bool)
+        agreement[name] = {
+            "reviewed": int(len(merged)),
+            "agreeing": int(matches.sum()),
+            "raw": float(matches.mean()),
+            "weighted": float(merged.weight[matches].sum() / merged.weight.sum()),
+        }
+
     return {"table": table, "records": merged, "simulated": simulated, "path": path,
-            "decided fresh": decided_fresh(path),
+            "decided fresh": decided_fresh(path), "agreement": agreement,
             "mcnemar": mcnemar, "power": power, "pool": payload_pool(path),
             "prior_pairs": prior_pairs()}
 
@@ -249,6 +271,10 @@ def main() -> None:
         wrong=("wrong", "sum"),
         stands_for=("weight", lambda s: round(float(s.sum()), 1))))
 
+    show("how often each grader's verdict matches the chemists', over the reviewed records",
+         {f"{name} agrees on": f"{row['agreeing']} of {row['reviewed']}"
+          f" = {row['raw']:.1%} raw, {row['weighted']:.1%} stratum-weighted"
+          for name, row in result["agreement"].items()})
     show("each grader against the chemists (recall, F1 and kappa are weighted)",
          result["table"].round(3))
 

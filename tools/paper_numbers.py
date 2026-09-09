@@ -33,7 +33,7 @@ sys.path.insert(0, str(ROOT / "checks"))
 sys.path.insert(0, str(ROOT / "tools"))
 
 from core.paths import ARTIFACTS
-from core.schema import ROUTES
+from core.schema import OTHER_ROUTE, ROUTES
 from macro_derivations import DERIVATION
 import _setup
 import cost
@@ -78,6 +78,7 @@ def collect() -> tuple[dict, dict]:
     """
     co, ch, ve, pr = corpus.compute(), chemistry.compute(), verdicts.compute(), provenance.compute()
     base = ch["stoichiometric base"]
+    empty = co["empty papers"]
     ex = extractions.arms()
     sh = shots.compute()
     contrast = shots.contrast(sh)
@@ -123,6 +124,13 @@ def collect() -> tuple[dict, dict]:
         "JudgeFieldFixes": f"{int(ve['fields'].sum()):,}",
         "JudgeDroppedShare": f"{counts['rejected outright'] / counts['records judged'] * 100:.1f}",
         # --- provenance ------------------------------------------------------
+        # Why the papers that produced nothing produced nothing. The funnel table's own total
+        # did not include the fourth way full text was obtained, and these four reasons were
+        # typed into the body.
+        "EmptyUnclassified": f"{int(empty['unclassified']):,}",
+        "EmptyBiological": f"{int(empty['enzymatic or biological']):,}",
+        "EmptyOffTarget": f"{int(empty['other route or material']):,}",
+        "EmptyReview": f"{int(empty['review article']):,}",
         "CitationsTotal": f"{pr['counts']['total']:,}",
         "CitationsResolved": f"{pr['counts'][RESOLVED_KEY]:,}",
         "CitationsTraceable": f"{pr['traceable'] * 100:.1f}",
@@ -140,6 +148,13 @@ def collect() -> tuple[dict, dict]:
         "ConversionCoverage": f"{ch['completeness']['conversion %'] * 100:.0f}",
         "SelectivityCoverage": f"{ch['completeness']['selectivity %'] * 100:.0f}",
         "RouteRatio": f"{routes['glycolysis'] / routes.reindex(ROUTES[1:]).sum():.1f}",
+        # Route shares. The manuscript quoted 48/25/10 as literals in both a caption and the
+        # body; they are right, and they were three numbers that would not have moved when the
+        # route rules did.
+        "RouteGlycolysisShare": f"{100 * routes['glycolysis'] / routes.sum():.0f}",
+        "RouteHydrolysisShare": f"{100 * routes['hydrolysis'] / routes.sum():.0f}",
+        "RouteMethanolysisShare": f"{100 * routes['methanolysis'] / routes.sum():.0f}",
+        "RouteOtherShare": f"{100 * routes[OTHER_ROUTE] / routes.sum():.0f}",
         # --- the curated benchmark -------------------------------------------
         "CuratedExperiments": f"{len(curated_rows):,}",
         "CuratedPapers": f"{curated_rows.doi.nunique():,}",
@@ -159,7 +174,14 @@ def collect() -> tuple[dict, dict]:
         "AdjFavourJudge": f"{mcnemar['favouring the judge']:,}",
         "AdjFavourMetric": f"{mcnemar['favouring the metric']:,}",
         "AdjMcNemarP": sci(mcnemar["p"]),
+        # AdjJudgeWinRate is the judge's share of the records the two graders disagree on. It
+        # is NOT how often the judge agrees with the chemists, and the abstract quoted it as if
+        # it were. AdjJudgeAgrees is that second quantity, over the reviewed records; the
+        # weighted variant is the estimate over the benchmark the reviewed set was drawn from.
         "AdjJudgeWinRate": f"{mcnemar['favouring the judge'] / mcnemar['informative pairs'] * 100:.0f}",
+        "AdjJudgeAgrees": f"{audit['agreement']['judge']['raw'] * 100:.0f}",
+        "AdjJudgeAgreesWeighted": f"{audit['agreement']['judge']['weighted'] * 100:.0f}",
+        "AdjMetricAgrees": f"{audit['agreement']['metric']['raw'] * 100:.0f}",
         "AdjAcceptedPool": f"{audit['pool']['accepted_frame']:,}",
         "AdjAcceptedAnswered": f"{audit['pool']['sampled']:,}",
         "AdjAcceptedWeight": f"{audit['pool']['weight']:.2f}",
@@ -201,6 +223,7 @@ def collect() -> tuple[dict, dict]:
         "BenchShots": f"{int(ex['n_shots'].iloc[0])}",
         "BenchRepeats": f"{int(ex['runs'].min())}",
         "DatabaseShots": f"{database_shots}",
+        "MatrixRecords": f"{int(mx_ship['records']):,}",
         "MatrixShippedAll": f"{mx_ship['agreement']:.3f}",
         "MatrixShippedEvaluable": f"{mx_ship['agreement, evaluable']:.3f}",
         "MatrixEvaluableLow": f"{mx['agreement, evaluable'].min():.3f}",
@@ -282,10 +305,23 @@ def collect() -> tuple[dict, dict]:
         "ConstraintOverConversionCaught": f"{100 * constraints_table.loc['yield above conversion', 'judge caught']:.0f}",
         "AdjNowDisagree": f"{int((audit['records'].stratum == 'graders disagree').sum())}"
             if "stratum" in audit["records"] else "n/a",
+        # The three frozen settings every score in the manuscript is computed with. They had no
+        # macros, so the Methodology typed them out -- and stated the catalyst gate as 0.80
+        # where checks/_setup.py has held 0.60 throughout, which is the value that produced
+        # every F1 in the paper.
+        "ThresholdAccept": f"{_setup.ACCEPT:.2f}",
+        "ThresholdCatalyst": f"{_setup.CATALYST:.2f}",
+        "ThresholdCatalystPercent": f"{_setup.CATALYST * 100:.0f}",
+        "ThresholdTolerance": f"{_setup.TOLERANCE:.2f}",
+        "ThresholdTolerancePercent": f"{_setup.TOLERANCE * 100:.0f}",
     }
+    # the settings in use, not a second copy of them: this dict was written out here as
+    # {'accept': 0.30, 'catalyst': 0.60, 'tolerance': 0.20}
+    FROZEN = {"accept": _setup.ACCEPT, "catalyst": _setup.CATALYST,
+              "tolerance": _setup.TOLERANCE}
     for name, frame in sweeps.items():
         values[f"Threshold{name.capitalize()}Gap"] = (
-            f"{frame['f1'].max() - frame['f1'].loc[{'accept': 0.30, 'catalyst': 0.60, 'tolerance': 0.20}[name]]:.3f}")
+            f"{frame['f1'].max() - frame['f1'].loc[FROZEN[name]]:.3f}")
         values[f"Threshold{name.capitalize()}Best"] = f"{frame['f1'].idxmax():g}"
     for model in ex.index:
         key = str(model).capitalize()

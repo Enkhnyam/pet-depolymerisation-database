@@ -14,6 +14,48 @@ this whole mechanism exists to make easy.
 """
 DERIVATION = {
 
+    "ThresholdAccept":
+        "The accept threshold: a matched pair counts as a true positive below this mean record "
+        "penalty. Frozen at 0.30 and read straight from checks/_setup.py.",
+    "ThresholdCatalyst":
+        "The catalyst gate: two catalyst names must be at least this similar (SequenceMatcher "
+        "ratio) for a pair to match at all. The Methodology stated 0.80; the value used to "
+        "compute every score in the manuscript is this one.",
+    "ThresholdCatalystPercent": "ThresholdCatalyst as a percentage, for prose.",
+    "ThresholdTolerance":
+        "The numeric tolerance: a number's penalty scales with relative error and saturates at "
+        "this fraction.",
+    "ThresholdTolerancePercent": "ThresholdTolerance as a percentage, for prose.",
+
+    "RouteGlycolysisShare": "Glycolysis records as a percentage of the database.",
+    "RouteHydrolysisShare": "Hydrolysis records as a percentage of the database.",
+    "RouteMethanolysisShare": "Methanolysis records as a percentage of the database.",
+    "RouteOtherShare":
+        "Records whose solvent names no route, as a percentage of the database. The share the "
+        "three named routes do not account for.",
+    "EmptyUnclassified":
+        "Papers that yielded no records and whose titles did not say why. The residual of the "
+        "three named reasons.",
+    "EmptyBiological": "Papers yielding nothing because they concern enzymatic or biological "
+                       "degradation, which is out of scope.",
+    "EmptyOffTarget": "Papers yielding nothing because they follow another route or use PET "
+                      "only as a material.",
+    "EmptyReview": "Papers yielding nothing because they are reviews without protocols.",
+    "MatrixRecords":
+        "Benchmark records each judge-extractor pair was scored over. The denominator of the "
+        "agreement figures and of the agreement pie in fig_graders.",
+    "AdjJudgeAgrees":
+        "How often the judge's verdict matches the chemists', over the reviewed records. Not "
+        "AdjJudgeWinRate, which is its share of the records the two graders disagree on: that "
+        "is a different question over a different denominator, and the abstract quoted it for "
+        "this one.",
+    "AdjJudgeAgreesWeighted":
+        "The same, weighted by sampling stratum. Disagreements were reviewed exhaustively and "
+        "mutual acceptances sub-sampled, so the reviewed set is enriched for disagreement and "
+        "the raw rate understates agreement over the benchmark; this is the estimate for it.",
+    "AdjMetricAgrees": "How often the heuristic's verdict matches the chemists', over the same "
+                       "reviewed records. For contrast with AdjJudgeAgrees.",
+
     "StoichBaseRecords":
         "Records whose catalyst field names an alkali hydroxide (NaOH, KOH, LiOH, or those "
         "written out). In alkaline hydrolysis that base is a reagent consumed "

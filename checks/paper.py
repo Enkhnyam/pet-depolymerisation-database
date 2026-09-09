@@ -96,13 +96,23 @@ REVIEWED = {
     ("WithinRoutePairs", "11"): "also the 11 papers excluded as reviews without protocols",
     ("GaoMissed", "12"): "the schema's 12 fields per record",
     ("WithinRouteTotal", "12"): "the schema's 12 fields per record",
+    ("RouteMethanolysisShare", "10"):
+        "the ten schema fields the heuristic scores, and the 1/10 in its mean-penalty equation",
+    ("ShotsComparisons", "10"): "the same ten fields",
 }
 
 
 def body(text: str) -> str:
-    """The manuscript without its preamble or its comments. Captions included."""
+    """The manuscript without its preamble or its comments. Captions included.
+
+    LaTeX thin spaces are folded into commas first. This check reads a macro's value as the
+    macro file writes it -- "2,777" -- and looked for that string in the body, so "2\\,777",
+    which is how a typesetter groups digits, matched nothing. \\CorpusCandidates and
+    \\CorpusFiltered sat typed out in the funnel table through every run of this check.
+    """
     start = text.find("\\begin{document}")
     text = text[start:] if start >= 0 else text
+    text = re.sub(r"(\d)\\[,.]\s*(\d)", r"\1,\2", text)
     return "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("%"))
 
 
@@ -115,8 +125,14 @@ def informative(value: str) -> bool:
 
 
 def hits(text: str, value: str) -> list[str]:
-    """Each place `value` appears as a bare number rather than through a macro."""
-    pattern = re.compile(rf"(?<![\d.\\]){re.escape(value)}(?![\d.])")
+    """Each place `value` appears as a bare number rather than through a macro.
+
+    Both groupings are searched: the macro file writes "2,777" and a manuscript may type it
+    without the separator.
+    """
+    forms = {value, value.replace(",", "")}
+    pattern = re.compile("|".join(rf"(?<![\d.\\]){re.escape(f)}(?![\d.])"
+                                  for f in sorted(forms, key=len, reverse=True)))
     found = []
     for match in pattern.finditer(text):
         tail = text[match.end():match.end() + 14]
