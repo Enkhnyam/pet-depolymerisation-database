@@ -20,7 +20,7 @@ _style.py for why the ramp is declared rather than derived. Every other field pa
 comparison is in the SI.
 """
 from _style import (DIM, INK, RAMP, ROUTE, ROUTES, canvas, cloud, kde, kde2d,
-                    legend_above, save)
+                    legend_above, save, walled)
 from curated import gao_overlap
 from database import chemistry as chem
 
@@ -74,11 +74,13 @@ def main() -> None:
     kde2d(panel[8], long, "temperature_c", "yield_percent", hue="dataset",
           order=["this work", "Gao et al."], clip=((140, 210), (0, 100)),
           xlabel="temperature (°C)", ylabel="yield (%)")
-    # Yield is populated across its whole range, so the density is nonzero at both bounds and
-    # ran edge to edge with no white anywhere around it. The margin is what makes the cut at 0
-    # and 100% read as the bound it is rather than as a shape leaving its frame.
-    panel[8].set_xlim(136, 214)
-    panel[8].set_ylim(-10, 110)
+    # Yield is populated across its whole range, so the outer contour ends in a flat cut along
+    # 0 and 100% instead of closing. Padding the axis to 110% was the wrong answer to that: it
+    # left the cut floating ten points below the top of the panel with no line under it, which
+    # is what read as a density spilling out of its frame. The limit goes on the bound instead
+    # and the box closes round it. Temperature is unbounded and the density does close in it,
+    # so x keeps its margin.
+    walled(panel[8], (136, 214), (0, 100))
 
     # Nine panels leaves no spare cell for the route key, so it goes above the canvas with
     # room reserved for it -- dropped into a panel it sits on the data, which is where the

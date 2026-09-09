@@ -326,6 +326,9 @@ def collect() -> tuple[dict, dict]:
         "GaoOursOnPapers": f"{gao['counts']['records we hold on those papers']:,}",
         # How much of a record each side fills in. The SI's third comparison, beside size and
         # agreement, and the one that says where hand curation is still richer.
+        # The two middling reasons in the record accounting, which the caption now names.
+        "GaoSI": f"{int(gao['split']['si'])}",
+        "GaoRule": f"{int(gao['split']['rule'])}",
         "GaoFillLow": f"{100 * gao['completeness']['this work'].loc[CONDITION_FIELDS].min():.0f}",
         "GaoFillHigh": f"{100 * gao['completeness']['this work'].loc[CONDITION_FIELDS].max():.0f}",
         "GaoSelectivityGap":

@@ -1,158 +1,134 @@
-"""SI -- the comparison against Gao et al., on every field pair rather than the one in the paper.
+"""SI -- this extraction against Gao et al.'s hand curation, over every field pair worth asking.
 
-The main text shows temperature against yield, which is one slice of a comparison that can be
-taken in ten. This is the rest of it: the same two datasets, the same 19 papers, the same
-declared ramps, over six pairs of fields. Panel (a) reproduces the main text's so the section can
-be read on its own, and (b)-(f) are the pairs it does not show.
+A port of tools/overlap_grid.py, which had this right and which I should have read three attempts
+ago. Same nine pairs in the same three thematic groups, same frame logic, same tick logic; the
+style is the new one, two filled bivariate densities in place of a solid region and a hatched one.
 
-The last two panels answer the two questions a density cannot. (g) why the sets differ in size at
-all, and (h) whether they agree where both hold a record -- which is the section's real claim and
-was one sentence of prose.
+Three things that diagnostic does and my own attempts did not:
 
-(g) is not two pie charts. A pie cannot show that the sets overlap -- two circles side by side say
-nothing about their intersection -- and the reasons are signed: four raise Gao's count, one raises
-ours. A diverging bar reads left for "only Gao" and right for "only this work" against a single
-axis of records.
+  The frame is a percentile view, not the data range. The 2nd to 98th percentile of the two
+  datasets pooled, with a pad, so one record charged in kilograms cannot decide where the axis
+  ends -- and the density then sits in the middle of its box instead of filling it corner to
+  corner. That is what "the graphs overflow" was, and no amount of margin added to a frame drawn
+  at the data range was ever going to fix it.
 
-Fields the check logs before estimating are labelled as logged, because the density is estimated
-on the scale it is drawn on: estimating on grams and plotting the log of the result would
-describe a different distribution from the one on the page.
+  A log axis is labelled in the units a chemist reads. gao_overlap takes the log before
+  estimating the density, so the values are log10, but the ticks belong at the integers labelled
+  1, 10, 100 -- not at -2, 0, 2, which is what mine printed.
+
+  An outcome axis is always 0-100. Cropping yield to the range it happens to occupy overstates a
+  difference, and 60-95 does not read as different from 0-100 at a glance.
+
+The nine pairs come in three groups, in the order the questions come: did the two datasets sample
+the same reactions at all, do they agree on what those reactions produced, and are the outcomes
+internally consistent on both sides. The record accounting, the per-field agreement and the
+per-field completeness are the next figure; they are bar charts and do not belong in a grid of
+densities.
 """
+import numpy as np
 import pandas as pd
+from matplotlib.patches import Rectangle
 
-from _style import CATEGORICAL, DIM, INK, RAMP, SLOTS, canvas, kde2d, save
+from _style import DIM, FILL_BLUE, FILL_RED, canvas, kde2d, save
 from curated import gao_overlap
 
-# Six pairs in two rows, and each row shares its y field. That is what makes the panels wide
-# enough to read: with three different y fields in a row, every panel carries its own tick
-# labels and its own axis label, and the plot boxes end up tall narrow slots with the density
-# filling them from edge to edge. One y per row means one set of tick labels per row.
-ROWS = [("yield_percent", "yield (%)",
-         [("temperature_c", "temperature (°C)", (132, 218)),
-          ("conversion_percent", "conversion (%)", (0, 100)),
-          ("PET_amount_g", "PET (g, $\\log_{10}$)", (-2.8, 2.2))]),
-        ("selectivity_percent", "selectivity (%)",
-         [("temperature_c", "temperature (°C)", (132, 218)),
-          ("reaction_time_min", "reaction time (min, $\\log_{10}$)", (0.4, 3.6)),
-          ("catalyst_amount_g", "catalyst (g, $\\log_{10}$)", (-3.8, 1.4))])]
+PAIRS = [
+    ("temperature_c", "reaction_time_min", "temperature (°C)", "time (min, log)"),
+    ("PET_amount_g", "solvent_amount_g", "PET (g, log)", "solvent (g, log)"),
+    ("catalyst_loading_wt", "solvent_ratio", "catalyst (wt%, log)", "solvent : PET (log)"),
 
-# Why a record sits in one dataset and not the other, largest first, coloured by whose count it
-# raises: the blue ramp for Gao's reasons, red for the one that is our error, blue for ours.
-REASONS = [("chart", "Gao read it off a plotted curve", RAMP[1]),
-           ("si", "in Supporting Information we do not hold", RAMP[2]),
-           ("rule", "a design table our scope rules skip", RAMP[3]),
-           ("missed", "our extraction missed it", CATEGORICAL["red"])]
+    ("temperature_c", "yield_percent", "temperature (°C)", "yield (%)"),
+    ("reaction_time_min", "yield_percent", "time (min, log)", "yield (%)"),
+    ("catalyst_loading_wt", "yield_percent", "catalyst (wt%, log)", "yield (%)"),
+
+    ("temperature_c", "conversion_percent", "temperature (°C)", "conversion (%)"),
+    ("conversion_percent", "yield_percent", "conversion (%)", "yield (%)"),
+    ("conversion_percent", "selectivity_percent", "conversion (%)", "selectivity (%)"),
+]
+
+OUTCOMES = {"yield_percent", "conversion_percent", "selectivity_percent"}
+LOG_AXES = gao_overlap.LOG_AXES
+
+
+def frame_for(sets: dict, x: str, y: str) -> tuple:
+    """The view for a panel: percentile bounds, except outcomes, which are always 0-100."""
+    view = []
+    for field in (x, y):
+        pooled = np.concatenate([part[field].to_numpy() for part in sets.values()])
+        if field in OUTCOMES:
+            view.append((0.0, 100.0))
+        else:
+            low, high = np.percentile(pooled, [2, 98])
+            pad = (high - low) * 0.08 or 1.0
+            view.append((low - pad, high + pad))
+    return tuple(view)
+
+
+def ticks(axis, field: str, which: str, bounds: tuple) -> None:
+    """Physical ticks, whatever the view is: 1, 10, 100 g rather than -0.3 to 2.1."""
+    setter = axis.set_xticks if which == "x" else axis.set_yticks
+    if field in OUTCOMES:
+        setter([v for v in (0, 25, 50, 75, 100) if bounds[0] <= v <= bounds[1]])
+    elif field in LOG_AXES:
+        powers = [p for p in range(-4, 8) if bounds[0] <= p <= bounds[1]]
+        setter(powers, [f"{10.0 ** p:g}" for p in powers])
 
 
 def main() -> None:
-    result = gao_overlap.compute()
-    frame = gao_overlap.records()
-    counts = frame.category.value_counts()
+    records = gao_overlap.records()
+    figure, panels = canvas(3, 3, height=6.9)
 
-    # 5.6 in, not 6.4. At 6.4 the plot boxes came out 1.23 x 1.49 in -- portrait
-    # slots for landscape data, which is half of why the panels read as too small
-    # for what is in them. This puts them at roughly square.
-    figure, panel = canvas(3, 3, height=5.6)
+    drawn = skipped = 0
+    for axis, (x, y, xlabel, ylabel) in zip(panels, PAIRS):
+        sets = gao_overlap.condition_space(records, x, y)
+        ours, curated = sets["this work"], sets["hand-curated"]
 
-    for row, (y, ylabel, columns) in enumerate(ROWS):
-        for column, (x, xlabel, xview) in enumerate(columns):
-            index = row * 3 + column
-            axis = panel[index]
-            space = gao_overlap.condition_space(frame, x, y)
-            long = pd.concat([space["this work"].assign(dataset="this work"),
-                              space["hand-curated"].assign(dataset="Gao et al.")])
+        # A 2-D kernel density needs points and genuine variation on both axes. A panel that
+        # cannot have one says so rather than drawing a shape that means nothing.
+        if min(len(ours), len(curated)) < 20 or min(ours.nunique().min(),
+                                                    curated.nunique().min()) < 3:
+            axis.text(0.5, 0.5, f"too few records\n({len(ours)} ours, {len(curated)} curated)",
+                      ha="center", va="center", fontsize=6, color=DIM, transform=axis.transAxes)
+            axis.set_xticks([])
+            axis.set_yticks([])
+            skipped += 1
+        else:
+            view = frame_for(sets, x, y)
+            long = pd.concat([ours.assign(dataset="this work"),
+                              curated.assign(dataset="Gao et al.")])
             kde2d(axis, long, x, y, hue="dataset", order=["this work", "Gao et al."],
-                  clip=(xview, (0, 100)), xlabel=xlabel,
-                  ylabel=ylabel if column == 0 else "", label=False)
+                  clip=view, xlabel="", ylabel="", label=False)
+            # The frame is the view, widened. The view is already a percentile of the pooled
+            # data, so the density sits inside it; the extra keeps it off the spines.
+            for setter, (low, high) in ((axis.set_xlim, view[0]), (axis.set_ylim, view[1])):
+                pad = (high - low) * 0.09
+                setter(low - pad, high + pad)
+            ticks(axis, x, "x", axis.get_xlim())
+            ticks(axis, y, "y", axis.get_ylim())
+            axis.annotate(f"{len(ours)} / {len(curated)}", (1.0, 1.02),
+                          xycoords="axes fraction", ha="right", va="bottom", fontsize=5.4,
+                          color=DIM)
+            drawn += 1
 
-            # A tenth of the range as margin, not a twentieth. Yield and selectivity are
-            # populated across their whole range, so the density is nonzero at both bounds and
-            # a thin margin left it drawn hard against the frame -- which is what "the graphs
-            # overflow" was: not paths outside the axes, but no white anywhere around them.
-            pad_x = (xview[1] - xview[0]) * 0.05
-            axis.set_xlim(xview[0] - pad_x, xview[1] + pad_x)
-            axis.set_ylim(-10, 110)
-            if column:
-                axis.tick_params(axis="y", labelleft=False)
-            axis.annotate(f"n={len(space['this work'])} / {len(space['hand-curated'])}",
-                          (1.0, 1.02), xycoords="axes fraction", ha="right", va="bottom",
-                          fontsize=5.4, color=DIM)
+        axis.set_xlabel(xlabel)
+        axis.set_ylabel(ylabel)
 
-    # --- g: why the two sets differ in size ---------------------------------------------------
-    axis = panel[6]
-    shared, ours_only = int(counts["both"]), int(counts["ours"])
-    rows = [(label, -int(counts[key]), colour) for key, label, colour in REASONS]
-    rows.append(("we hold it and Gao does not", ours_only, CATEGORICAL["blue"]))
-    for position, (label, value, colour) in enumerate(rows):
-        y = len(rows) - 1 - position
-        axis.barh(y, value, height=0.62, color=colour)
-        inside = abs(value) > 60
-        axis.annotate(f"{abs(value)}", (value, y),
-                      xytext=((5 if value < 0 else -5) if inside
-                              else (-4 if value < 0 else 4), 0),
-                      textcoords="offset points",
-                      ha=("left" if value < 0 else "right") if inside
-                         else ("right" if value < 0 else "left"),
-                      va="center", fontsize=6, color="white" if inside else DIM)
-    axis.axvline(0, color=INK, lw=0.8)
-    axis.set_yticks(range(len(rows)), [label for label, *_ in reversed(rows)], fontsize=5.2)
-    axis.tick_params(axis="y", length=0)
-    axis.spines["left"].set_visible(False)
-    axis.set_xlim(-215, 150)
-    ticks = [-200, -100, 0, 100]
-    axis.set_xticks(ticks, [str(abs(v)) for v in ticks])
-    axis.set_xlabel(f"records, {shared} shared")
+    # The key goes above the grid. Inside panel a its swatches sat a millimetre from a real
+    # region at 155 degrees and read as part of the data.
+    for left, ramp, label in ((0.335, FILL_BLUE, "this work"),
+                              (0.520, FILL_RED, "Gao et al.")):
+        for step, colour in enumerate(ramp[:4][::-1]):
+            figure.add_artist(Rectangle((left + step * 0.013, 0.977), 0.013, 0.014,
+                                        transform=figure.transFigure, facecolor=colour,
+                                        edgecolor="none"))
+        figure.text(left + 0.060, 0.984, label, fontsize=6.2, va="center", color=ramp[0])
+    figure.text(0.5, 0.954,
+                "two filled kernel densities per panel, light at the edge and dark at the core, "
+                "on the 19 papers both datasets describe",
+                ha="center", fontsize=5.8, color=DIM)
 
-    # --- h: on the records both hold, do they agree -------------------------------------------
-    axis = panel[7]
-    agree = result["agreement"].sort_values("share")
-    for position, (field, row) in enumerate(agree.iterrows()):
-        axis.barh(position, row["share"] * 100, height=0.62,
-                  color=CATEGORICAL["blue"] if row["share"] >= 0.9 else CATEGORICAL["red"])
-        axis.annotate(f"{row['share']:.0%} of {int(row['both report it'])}",
-                      (row["share"] * 100, position), xytext=(3, 0),
-                      textcoords="offset points", va="center", fontsize=5.2, color=DIM)
-    axis.set_yticks(range(len(agree)),
-                    [str(name).replace("_", " ") for name in agree.index], fontsize=5.2)
-    axis.tick_params(axis="y", length=0)
-    axis.spines["left"].set_visible(False)
-    axis.set_xlim(0, 142)
-    axis.set_xticks([0, 50, 100])
-    axis.set_xlabel("shared records agreeing, per field")
-
-    # --- i: how much of a record each side fills in ------------------------------------------
-    # The third question the section never asked. (g) says why the two sets differ in size and
-    # (h) says whether they agree where they meet; neither says whether an extraction reports
-    # as much per record as a person does. Hand curation fills every condition field on every
-    # record; this extraction fills 84 to 97% of them, and selectivity is the one real gap.
-    axis = panel[8]
-    full = result["completeness"] * 100
-    order = full.mean(axis=1).sort_values().index
-    positions = range(len(order))
-    axis.barh([p + 0.19 for p in positions], full.loc[order, "hand-curated"], height=0.36,
-              color=CATEGORICAL["red"], label="hand-curated")
-    axis.barh([p - 0.19 for p in positions], full.loc[order, "this work"], height=0.36,
-              color=CATEGORICAL["blue"], label="this work")
-    for position, field in enumerate(order):
-        gap = full.loc[field, "hand-curated"] - full.loc[field, "this work"]
-        if gap >= 5:
-            axis.annotate(f"$-${gap:.0f}", (full.loc[field, "hand-curated"], position),
-                          xytext=(3, 0), textcoords="offset points", va="center",
-                          fontsize=5.2, color=DIM)
-    axis.set_yticks(list(positions),
-                    [str(name).replace("_", " ") for name in order], fontsize=5.2)
-    axis.tick_params(axis="y", length=0)
-    axis.spines["left"].set_visible(False)
-    axis.set_xlim(0, 122)
-    axis.set_xticks([0, 50, 100])
-    axis.set_xlabel("field reported (%)")
-    # Above the bars, not among them: the panel is sorted ascending, so the free space is at
-    # the bottom right, which is exactly where the short bars and their gap labels are.
-    axis.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2, frameon=False,
-                fontsize=5.4, handlelength=0.9, handletextpad=0.35, borderpad=0.0,
-                columnspacing=1.0)
-
-    save(figure, "fig_gao")
+    save(figure, "fig_gao", legend_room=True)
+    print(f"{drawn} panel(s) drawn, {skipped} skipped for want of records")
 
 
 if __name__ == "__main__":

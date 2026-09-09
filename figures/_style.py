@@ -210,8 +210,31 @@ def route_key(axis, palette: dict, order, *, title="") -> None:
                   va="center")
 
 
+def walled(axis, xlim, ylim):
+    """Limits set to the density's own support, and a box drawn round it.
+
+    Two spines is the house rule and it is right for a curve or a scatter, because nothing is
+    drawn where the missing spines would be. A filled bivariate density on a bounded field is
+    the one exception. Yield stops at 100%, records pile up against it, and the outer contour
+    therefore ends in a flat cut along the bound rather than closing -- measured, up to 13% of
+    its length on the yield and selectivity panels, and 29% along conversion in fig_gao(b).
+
+    That cut is honest. What made it read as a shape escaping its panel was padding the axis
+    past the bound: the limit went to 110%, the cut stayed at 100, and the flat edge floated in
+    white with no line beneath it. Nothing was outside the axes -- the truncation just had
+    nothing to be truncated *by*. Putting the limit on the bound and closing the box gives every
+    flat edge a wall to lie on, and the panel reads as a density filling its range.
+    """
+    axis.set_xlim(*xlim)
+    axis.set_ylim(*ylim)
+    for side in ("top", "right"):
+        axis.spines[side].set_visible(True)
+    return axis
+
+
 def kde2d(axis, frame, x, y, *, hue, ramps=("blue", "red"), order=None, levels=6,
-          xlabel=None, ylabel=None, clip=None, label=True, outline=True):
+          xlabel=None, ylabel=None, clip=None, label=True, outline=True, thresh=0.20,
+          darkest=1):
     """Two filled bivariate densities layered over each other, light at the edge, dark at the core.
 
     Replaces a primitive that extracted contour paths by hand, ran a Gaussian filter to close
@@ -239,14 +262,18 @@ def kde2d(axis, frame, x, y, *, hue, ramps=("blue", "red"), order=None, levels=6
     names = order or sorted(frame[hue].dropna().unique())
     for name, key in zip(names, ramps):
         part = frame[frame[hue] == name]
-        rungs = FILL_RAMPS[key][:levels][::-1]      # light at the outside, dark at the core
-        sns.kdeplot(data=part, x=x, y=y, ax=axis, fill=True, levels=len(rungs) + 1, thresh=0.08,
-                    cmap=ListedColormap(rungs), common_norm=False, legend=False,
-                    warn_singular=False, clip=clip, alpha=0.75)
+        # `darkest` drops the near-black end of the ladder. The diagnostic this panel is
+        # styled after used a pale wash under a thin edge, and a core at L* 30 reads as a
+        # different kind of mark -- heavy enough that the panel feels full whatever its frame.
+        rungs = FILL_RAMPS[key][darkest:levels][::-1]   # light outside, darker at the core
+        sns.kdeplot(data=part, x=x, y=y, ax=axis, fill=True, levels=len(rungs) + 1,
+                    thresh=thresh, cmap=ListedColormap(rungs), common_norm=False, legend=False,
+                    warn_singular=False, clip=clip, alpha=0.72)
         if outline:
-            sns.kdeplot(data=part, x=x, y=y, ax=axis, fill=False, levels=[0.08, 1.0],
-                        thresh=0.08, color=FILL_RAMPS[key][0], linewidths=0.6, alpha=0.9,
-                        common_norm=False, legend=False, warn_singular=False, clip=clip)
+            sns.kdeplot(data=part, x=x, y=y, ax=axis, fill=False, levels=[thresh, 1.0],
+                        thresh=thresh, color=FILL_RAMPS[key][darkest], linewidths=0.6,
+                        alpha=0.9, common_norm=False, legend=False, warn_singular=False,
+                        clip=clip)
         if label:
             axis.annotate(str(name), (0.04, 0.95 - names.index(name) * 0.085),
                           xycoords="axes fraction", fontsize=6,

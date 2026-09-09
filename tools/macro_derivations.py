@@ -14,6 +14,9 @@ this whole mechanism exists to make easy.
 """
 DERIVATION = {
 
+    "GaoSI": "Gao records sitting in Supporting Information this project does not hold.",
+    "GaoRule": "Gao records in response-surface design tables our scope rules skip.",
+
     "GaoFillLow":
         "The lowest share of records this extraction fills a condition field on, over the five "
         "condition fields. Hand curation fills all five on every record, so this is the gap the "
