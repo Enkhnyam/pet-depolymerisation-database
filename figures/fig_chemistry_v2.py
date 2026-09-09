@@ -14,13 +14,12 @@ self-normalised density is not a quantity a reader can act on; only the shapes a
 (h) is a scatter, because it tests an identity rather than showing a distribution: yield cannot
 exceed conversion, so a mark above the line is an error and each one should be countable.
 
-(i) is the comparison against Gao et al., which stays in the main text. Two filled bivariate
-densities, light at the edge and dark at the core, drawn from two declared ramps -- see kde2d in
-_style.py for why the ramp is declared rather than derived. Every other field pair of the same
-comparison is in the SI.
+(i) is the comparison against Gao et al., which stays in the main text: for each dataset the
+smallest area holding 90% of its experiments, one filled and one hatched so both stay readable
+where they coincide. Every other field pair of the same comparison is in the SI.
 """
-from _style import (DIM, INK, RAMP, ROUTE, ROUTES, canvas, cloud, kde, kde2d,
-                    legend_above, save, walled)
+from _style import (DIM, INK, RAMP, ROUTE, ROUTES, canvas, cloud, kde,
+                    legend_above, overlap, save)
 from curated import gao_overlap
 from database import chemistry as chem
 
@@ -65,22 +64,21 @@ def main() -> None:
     slack = result["identity"]["rounding slack"]
     panel[7].plot([0, 100 - slack], [slack, 100], color=DIM, lw=0.5, ls=(0, (3, 2)), zorder=4)
 
-    # --- i: against the hand-curated set, on the papers both describe -------------------------
+    # --- i: against the hand-curated set, on the papers both describe ------------------------
+    # The same styling as the SI grid, and for the same reason: overlap() returns the bounds of
+    # the regions it drew, and setting the frame to those is what keeps a shape off its own
+    # spines. A filled kernel density here was tried four times and every version ran edge to
+    # edge, because a frame drawn at the data range grows with the shape inside it.
     space = gao_overlap.condition_space(gao_overlap.records())
-    long = __import__("pandas").concat([
-        space["this work"].assign(dataset="this work"),
-        space["hand-curated"].assign(dataset="Gao et al."),
-    ])
-    kde2d(panel[8], long, "temperature_c", "yield_percent", hue="dataset",
-          order=["this work", "Gao et al."], clip=((140, 210), (0, 100)),
-          xlabel="temperature (°C)", ylabel="yield (%)")
-    # Yield is populated across its whole range, so the outer contour ends in a flat cut along
-    # 0 and 100% instead of closing. Padding the axis to 110% was the wrong answer to that: it
-    # left the cut floating ten points below the top of the panel with no line under it, which
-    # is what read as a density spilling out of its frame. The limit goes on the bound instead
-    # and the box closes round it. Temperature is unbounded and the density does close in it,
-    # so x keeps its margin.
-    walled(panel[8], (136, 214), (0, 100))
+    ours, curated = space["this work"], space["hand-curated"]
+    drawn = overlap(panel[8],
+                    (ours.temperature_c, ours.yield_percent),
+                    (curated.temperature_c, curated.yield_percent),
+                    view=((140, 205), (0, 100)))
+    panel[8].set_xlim(*drawn["bounds"][0])
+    panel[8].set_ylim(*drawn["bounds"][1])
+    panel[8].set_xlabel("temperature (°C)")
+    panel[8].set_ylabel("yield (%)")
 
     # Nine panels leaves no spare cell for the route key, so it goes above the canvas with
     # room reserved for it -- dropped into a panel it sits on the data, which is where the

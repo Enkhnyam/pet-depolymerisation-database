@@ -100,11 +100,9 @@ def main() -> None:
     axis.set_xlim(0, 124)
     axis.set_xticks([0, 50, 100])
     axis.set_xlabel("field reported (%)")
-    # Above the bars: the panel is sorted ascending, so the free space is bottom right, which is
-    # exactly where the short bars and their gap labels are.
-    axis.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2, frameon=False,
-                fontsize=5.4, handlelength=0.9, handletextpad=0.35, borderpad=0.0,
-                columnspacing=1.0)
+    # No legend. Above the bars it sat on the panel letter and hid it; among them it sat on the
+    # short bars and their gap labels. Two colours already named in the caption do not need a
+    # third place to be named.
 
     save(figure, "fig_gao_records")
 

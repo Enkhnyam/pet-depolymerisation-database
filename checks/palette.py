@@ -22,15 +22,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "figures"))
 
 from _palette import CVD, CVD_TARGET, NORMAL_FLOOR, distance, drawn_colours, report, table
-from _style import (CATEGORICAL, DIM, FILL_BLUE, FILL_RED, INK, RAMP, RAMP_RED,
-                    RULE, SLOTS)
+from _style import CATEGORICAL, DIM, INK, RAMP, RULE, SLOTS
 from _setup import show
 from core.paths import FIGURES
 
 # Everything a figure is allowed to paint with: the four categorical slots, the five ramp steps,
 # the three inks, and the two the renderer supplies for the page itself.
-ALLOWED = ({c.upper() for c in list(CATEGORICAL.values()) + RAMP + RAMP_RED
-            + FILL_BLUE + FILL_RED + [INK, DIM, RULE]} | {"#FFFFFF", "#000000"})
+ALLOWED = ({c.upper() for c in list(CATEGORICAL.values()) + RAMP + [INK, DIM, RULE]}
+           | {"#FFFFFF", "#000000"})
 
 
 def stray() -> dict[str, list[str]]:
