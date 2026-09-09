@@ -11,6 +11,7 @@ wandb/
 *.fdb_latexmk
 *.out
 *.bbl
+*.toc
 *.blg
 paper_rsc.pdf
 
