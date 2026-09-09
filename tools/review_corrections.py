@@ -11,10 +11,17 @@ the thing under review, so it is shown alongside the extractor's, with the evide
 cited and the source chunk that evidence came from. The reviewer answers one question -- which
 value does the paper support -- and the answer is one of three, not free text.
 
-Built for speed, because there are 1,544 corrected records and the point is to get through a
-sample of them: one correction per screen, digit keys to answer, and the next card is already
-rendered. Nothing is uploaded; answers live in the browser until exported, the same arrangement
-the adjudication pages use.
+Two panes, the arrangement the adjudication page already uses and the one that was asked for:
+the paper on the left rendered as markdown so its tables survive -- reaction conditions live in
+tables -- and that paper's corrections on the right. Selecting one marks the chunks behind it
+and highlights, inside them, both the value the extractor wrote and the value the judge
+proposes, so "which does the paper support" is answered from one screen. Digit keys answer;
+answers live in the browser until exported, uploaded nowhere.
+
+Both kinds of provenance are marked, because the record's own source_chunk_ids resolve to
+nothing on some records: the chunks the record cites, and the chunks the judge quoted in its
+evidence, which it writes with typographic hyphens rather than ASCII ones. On eleven of the
+first hundred and twenty drawn, the judge's were the only source text there was.
 
 Sampling is stratified by field and recorded. Corrections concentrate in the mass fields, so a
 single pooled sample would say almost nothing about the ones that matter individually. And the
@@ -45,7 +52,8 @@ from core.paths import ARTIFACTS
 from core.schema import canonical_field
 
 import _page
-from review_database import FIELDS, LABELS, load_chunks, load_run, paper_title
+from build_adjudication import chunks_of
+from review_database import FIELDS, LABELS, load_run, paper_title
 
 RUNS = ARTIFACTS / "runs"
 OUT = ARTIFACTS / "review_corrections.html"
@@ -67,6 +75,18 @@ def cited_ids(text: str) -> list[str]:
 ANSWERS = [("judge", "the judge's value is right"),
            ("extractor", "the extractor's value is right"),
            ("neither", "neither, or the paper does not say")]
+
+
+def sample_id(sample: list[dict]) -> str:
+    """A name for this draw, derived from what was drawn.
+
+    The page keys its saved answers on this. Keying on the generation time instead means
+    regenerating the page silently orphans every answer already given -- which, for a page two
+    supervisors are working through, is the worst bug it could have. The same draw reproduces
+    the same id, so the work survives a rebuild.
+    """
+    rows = sorted(f"{c['doi']}#{c['index']}#{c['field']}" for c in sample)
+    return hashlib.sha256("|".join(rows).encode()).hexdigest()[:12]
 
 
 def fingerprint(record: dict) -> str:
@@ -149,231 +169,329 @@ def draw(pool: list[dict], size: int, seed: int, only: str | None) -> list[dict]
     return chosen[:size]
 
 
-def snippets(chunks: dict, cites: list, values: list, judge_cites: list) -> list[dict]:
-    """The cited chunks, with the values under review marked inside them.
+def group(sample: list[dict], corpus: Path) -> list[dict]:
+    """The sample as papers, each with its own corrections. The two-pane unit is a paper.
 
-    This is the whole point of the source pane: a number is checked against the sentence it came
-    from without opening the paper. Marking happens here rather than in the browser because a
-    value's printed form differs from its stored one -- 0.5 against "0.50" -- and Python is
-    holding both already.
+    Grouping is the point of the layout: a reviewer reads a paper once and then answers every
+    correction drawn from it, instead of meeting the same paper on four separate screens.
     """
-    ordered = [(c, "the record cites this") for c in cites if c in chunks]
-    seen = {c for c, _ in ordered}
-    ordered += [(c, "the judge cites this") for c in judge_cites
-                if c in chunks and c not in seen]
-
-    out = []
-    for cite, why in ordered:
-        text = chunks[cite][:2400]
-        marks = set()
-        for value in values:
-            if value in (None, ""):
-                continue
-            marks.add(str(value))
-            if isinstance(value, (int, float)):
-                marks.add(f"{value:g}")
-        out.append({"id": cite[:8], "why": why, "text": text,
-                    "marks": sorted((m for m in marks if len(m) >= 2), key=len, reverse=True)})
-    return out
-
-
-def payload(sample: list[dict], corpus: Path) -> list[dict]:
-    """Everything a card needs, as plain data. The browser renders, it does not compute."""
-    titles, cache, cards = {}, {}, []
+    papers: dict[str, dict] = {}
     for item in sample:
-        doi = item["doi"]
-        if doi not in cache:
-            cache[doi] = load_chunks(corpus, doi)
-            titles[doi] = paper_title(cache[doi])
-        cards.append({
-            **{key: item[key] for key in ("doi", "index", "field", "was", "to", "evidence",
+        entry = papers.setdefault(item["doi"], {"doi": item["doi"], "corrections": []})
+        entry["corrections"].append({
+            **{key: item[key] for key in ("index", "field", "was", "to", "evidence",
                                           "critique", "drop", "fingerprint")},
-            "title": titles[doi],
             "label": LABELS.get(item["field"], item["field"]),
             "record": item["record"],
-            "chunks": snippets(cache[doi], item["cites"], [item["was"], item["to"]],
-                               cited_ids(item["evidence"]) + cited_ids(item["critique"])),
+            # Both sources of provenance. The record's own source_chunk_ids resolve to nothing
+            # on some records, and the judge quotes chunk ids in its prose -- with typographic
+            # hyphens -- which is the only source those cards have.
+            "cites": item["cites"],
+            "judge_cites": cited_ids(item["evidence"]) + cited_ids(item["critique"]),
         })
-    return cards
+
+    for doi, entry in papers.items():
+        entry["chunks"] = chunks_of(corpus, doi)
+        entry["title"] = paper_title(
+            {c["id"]: re.sub(r"<[^>]+>", " ", c["html"]) for c in entry["chunks"]})
+        entry["corrections"].sort(key=lambda c: (c["index"], c["field"]))
+
+    return sorted(papers.values(), key=lambda p: -len(p["corrections"]))
 
 
-TEMPLATE = r"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+TEMPLATE = r"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>__TITLE__</title>
 <style>
-:root{--ink:#12201F;--dim:#5D716E;--faint:#93A5A2;--rule:#DFE7E5;--panel:#F7FAF9;
-  --was:#9C3F36;--to:#25517E;--ok:#2F6B4F;--warn:#9C3F36}
+:root{--bg:#eef2f1;--panel:#fff;--ink:#16211f;--dim:#61756f;--line:#d8e2df;--soft:#f5f8f7;
+ --ok:#3f6e46;--no:#a33a2e;--accent:#0e7c6b;--mark:#ffe08a;--markink:#4a3400;
+ --cite:#fff8e6;--citeline:#e0b93c;--was:#a33a2e;--to:#25517e}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1312;--panel:#131e1d;--ink:#dde7e4;--dim:#8ea29e;
+ --line:#243432;--soft:#0f1918;--ok:#7fb187;--no:#d98374;--accent:#4fc4ae;--mark:#6b5410;
+ --markink:#ffeab5;--cite:#1d2417;--citeline:#7a6420;--was:#d98374;--to:#8aa8c6}}
 *{box-sizing:border-box}
-body{margin:0;font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-  color:var(--ink);background:#fff}
-header{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.95);
-  backdrop-filter:blur(6px);border-bottom:1px solid var(--rule);padding:10px 20px;
-  display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-h1{font-size:15px;margin:0;font-weight:640}
-.count{font:12px ui-monospace,Menlo,monospace;color:var(--dim)}
-.bar{flex:1;min-width:120px;height:6px;border-radius:99px;background:var(--rule);overflow:hidden}
-.bar i{display:block;height:100%;background:var(--ok);width:0}
-button{font:inherit;cursor:pointer;border-radius:8px;border:1.5px solid var(--rule);
-  background:#fff;color:var(--ink);padding:7px 13px}
-button:hover:not(:disabled){border-color:var(--dim)}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font:14.5px/1.6 ui-sans-serif,system-ui,-apple-system,sans-serif}
+.app{display:grid;grid-template-rows:auto 1fr;height:100vh}
+header{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:10px 16px;
+ background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{font-size:.95rem;margin:0;font-weight:600}
+select,button,input{font:inherit;font-size:.85rem;padding:6px 10px;border:1px solid var(--line);
+ border-radius:7px;background:var(--panel);color:var(--ink)}
+select{max-width:44ch}
+button{cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 button:disabled{opacity:.45;cursor:default}
-button.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
-.wrap{max-width:1080px;margin:0 auto;padding:22px 20px 90px}
-.meta{font-size:12px;color:var(--dim);margin:0 0 4px}
-.title{font-size:15px;font-weight:620;margin:0 0 14px}
-.title a{color:var(--dim);font-size:12px;font-weight:400;margin-left:8px}
-.diff{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 16px}
-.side{border:1.5px solid var(--rule);border-radius:10px;padding:12px 14px}
-.side.was{border-color:var(--was)}
-.side.to{border-color:var(--to)}
-.side .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
-.side .v{font:17px ui-monospace,Menlo,monospace;margin-top:4px;word-break:break-word}
-.side.was .v{color:var(--was)}
-.side.to .v{color:var(--to)}
-.field{display:inline-block;font:11.5px ui-monospace,Menlo,monospace;background:var(--panel);
-  border:1px solid var(--rule);border-radius:99px;padding:2px 9px;color:var(--dim)}
-.why{background:var(--panel);border:1px solid var(--rule);border-radius:10px;
-  padding:12px 14px;font-size:13px;margin:0 0 16px}
-.why b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;
-  color:var(--dim);margin-bottom:5px;font-weight:640}
-.chunk{border-left:3px solid var(--rule);padding:2px 0 2px 12px;margin:0 0 12px;
-  font-size:12.5px;color:#26403D;white-space:pre-wrap;max-height:230px;overflow:auto}
-.chunk .cid{font:10.5px ui-monospace,Menlo,monospace;color:var(--faint);display:block;
-  margin-bottom:3px}
-mark{background:#FDF3C4;padding:0 2px;border-radius:3px}
-.rec{font:11.5px ui-monospace,Menlo,monospace;color:var(--dim);margin:0 0 16px;
-  display:flex;flex-wrap:wrap;gap:10px}
-.answers{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);
-  border-top:1px solid var(--rule);padding:12px 20px;display:flex;gap:10px;
-  justify-content:center;flex-wrap:wrap}
-.answers button{min-width:210px;text-align:left}
-.answers button kbd{font:11px ui-monospace,Menlo,monospace;background:var(--panel);
-  border:1px solid var(--rule);border-radius:4px;padding:1px 5px;margin-right:8px}
-.answers button.on{border-color:var(--ok);background:#EEF6F1}
-.note{width:100%;max-width:640px;margin:8px auto 0;display:block;font:inherit;
-  border:1.5px solid var(--rule);border-radius:8px;padding:7px 10px}
-.done{text-align:center;padding:70px 20px;color:var(--dim)}
-.done h2{color:var(--ink)}
-.tag{font-size:11px;color:var(--warn);border:1px solid var(--warn);border-radius:99px;
-  padding:1px 8px;margin-left:8px}
+.grow{flex:1}
+.muted{color:var(--dim);font-size:.82rem}
+.bar{width:120px;height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0}
+main{display:grid;grid-template-columns:1fr 1fr;min-height:0}
+@media(max-width:1000px){main{grid-template-columns:1fr}}
+#text,#recs{overflow-y:auto;padding:16px 20px;min-height:0}
+#text{border-right:1px solid var(--line);background:var(--panel)}
+.chunk{padding:2px 10px;border-left:3px solid transparent;border-radius:4px;margin-bottom:2px}
+.chunk.cited{background:var(--cite);border-left-color:var(--citeline)}
+.chunk.judgecite{border-left-style:dashed}
+.chunk h3,.chunk h4,.chunk h5,.chunk h6{font-size:.92rem;margin:14px 0 6px}
+.chunk p{margin:0 0 8px}
+.chunk ul{margin:0 0 8px;padding-left:20px}
+.chunk table{border-collapse:collapse;width:100%;margin:8px 0;font-size:.82rem;display:block;
+ overflow-x:auto}
+.chunk th,.chunk td{border:1px solid var(--line);padding:4px 7px;text-align:left;
+ white-space:nowrap}
+.chunk th{background:var(--soft);font-weight:600}
+mark{background:var(--mark);color:var(--markink);border-radius:2px;padding:0 2px;font-weight:600}
+.rec{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--line);
+ border-radius:8px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+.rec.on{border-left-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.rec.done{opacity:.62}
+.rechead{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:9px}
+.ix{font-family:ui-monospace,monospace;font-size:.76rem;color:var(--dim)}
+.tag{font-size:.64rem;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;
+ border-radius:4px;background:var(--soft);color:var(--dim)}
+.tag.field{background:#e8eff3;color:#25517e}
+.tag.drop{background:#f7e4e0;color:#8a2f22}
+@media(prefers-color-scheme:dark){.tag.field{background:#17262e;color:#8aa8c6}
+ .tag.drop{background:#2b1a17;color:#d98374}}
+.diff{display:grid;grid-template-columns:1fr auto 1fr;gap:9px;align-items:center;
+ margin-bottom:10px}
+.pane{border:1px solid var(--line);border-radius:7px;padding:7px 10px;background:var(--soft)}
+.pane k{display:block;font-size:.61rem;color:var(--dim);text-transform:uppercase;
+ letter-spacing:.05em}
+.pane v{font-size:1rem;font-variant-numeric:tabular-nums;word-break:break-word}
+.pane.was{border-color:var(--was)} .pane.was v{color:var(--was)}
+.pane.to{border-color:var(--to)} .pane.to v{color:var(--to)}
+.arrow{color:var(--dim);font-size:1.1rem}
+.ev{font-size:.82rem;color:var(--dim);border-top:1px solid var(--line);padding-top:8px;
+ margin-bottom:9px}
+.ev b{display:block;font-size:.61rem;text-transform:uppercase;letter-spacing:.05em;
+ margin-bottom:3px;color:var(--dim);font-weight:640}
+details{margin:0 0 9px}
+summary{font-size:.78rem;color:var(--dim);cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:5px;
+ margin-top:7px}
+.cell{background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:4px 7px}
+.cell k{display:block;font-size:.61rem;color:var(--dim);text-transform:uppercase;
+ letter-spacing:.05em}
+.cell v{font-size:.83rem;font-variant-numeric:tabular-nums}
+.null{color:var(--dim);font-style:italic;font-size:.9em}
+.ask{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding-top:9px;
+ border-top:1px solid var(--line)}
+.ask>span{font-size:.83rem;color:var(--dim);width:100%}
+.vote kbd{font:11px ui-monospace,monospace;opacity:.65;margin-right:5px}
+.vote.judge.on{background:var(--to);border-color:var(--to);color:#fff}
+.vote.extractor.on{background:var(--was);border-color:var(--was);color:#fff}
+.vote.neither.on{background:var(--dim);border-color:var(--dim);color:#fff}
+.note{flex:1;min-width:130px;font-size:.8rem}
 </style></head><body>
+<div class="app">
 <header>
   <h1>__TITLE__</h1>
-  <span class="count" id="count"></span>
+  <select id="pick"></select>
+  <span class="muted" id="stat"></span>
+  <span class="grow"></span>
+  <button id="back">&larr;</button>
+  <button id="fwd">&rarr;</button>
   <span class="bar"><i id="bar"></i></span>
-  <button id="prev">&larr; back</button>
-  <button id="skip">skip</button>
+  <span class="muted" id="progress"></span>
   <button class="primary" id="export">Download decisions</button>
 </header>
-<div class="wrap" id="card"></div>
-<div class="answers" id="answers"></div>
+<main><div id="text"></div><div id="recs"></div></main>
+</div>
+<script id="data" type="application/json">__DATA__</script>
 <script>
-const DATA = __DATA__;
+const PAPERS = JSON.parse(document.getElementById('data').textContent);
+const LABELS = __LABELS__;
 const ANSWERS = __ANSWERS__;
-const KEY = 'pet-corrections-' + DATA.length;
+const STAMP = '__STAMP__';
+const TOTAL = PAPERS.reduce((n, p) => n + p.corrections.length, 0);
+const KEY = 'pet-corrections-' + STAMP;
 const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
-const card = document.getElementById('card');
-const answers = document.getElementById('answers');
-const countEl = document.getElementById('count');
-const barEl = document.getElementById('bar');
-let cursor = 0;
+const RX_SPECIAL = /[.*+?^${}()|[\]\\]/g;
+let current = 0;
 
-function idOf(c) { return c.doi + '#' + c.index + '#' + c.field; }
+const esc = s => String(s).replace(/[&<>"]/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const fmt = v => v === null || v === undefined || v === ''
+  ? '<span class="null">not reported</span>' : esc(v);
+const idOf = (doi, c) => doi + '#' + c.index + '#' + c.field;
 function store() { localStorage.setItem(KEY, JSON.stringify(saved)); }
-function esc(s) {
-  return String(s === null || s === undefined ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-function show(v) { return v === null || v === undefined || v === '' ? 'not reported' : String(v); }
 
-function marked(chunk) {
-  let html = esc(chunk.text);
-  for (const m of chunk.marks) {
-    // whitespace-tolerant around the decimal point: the markdown conversion splits numbers,
-    // so the corpus holds "42. 7%" where the record holds 42.7, and an exact match highlights
-    // nothing on exactly the cards where the number is the question
-    const safe = esc(m).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\./g, '\\s*\\.\\s*');
-    html = html.replace(new RegExp('(?<![\\w>])' + safe + '(?![\\w])', 'g'), '<mark>$&</mark>');
+function forms(v) {
+  if (v === null || v === undefined || v === '') return [];
+  if (typeof v === 'string') return v.length > 2 ? [v] : [];
+  const out = new Set([String(v)]);
+  if (!Number.isInteger(v)) out.add(v.toFixed(1).replace(/\.0$/, ''));
+  return [...out].filter(s => s.length > 1);
+}
+
+// Highlight inside text nodes only, so a value never lands inside a tag or a table border.
+// The decimal point is allowed whitespace around it: the markdown conversion splits numbers,
+// so the corpus holds "42. 7%" where the record holds 42.7, and an exact match would fail on
+// exactly the cards where the number is the question.
+function highlight(root, values) {
+  const wanted = [];
+  for (const v of values) for (const s of forms(v)) wanted.push(s);
+  wanted.sort((a, b) => b.length - a.length);
+  if (!wanted.length) return;
+  const source = '(^|[^\\w.])(' + wanted.map(s =>
+    s.replace(RX_SPECIAL, '\\$&').replace(/\\\./g, '\\s*\\.\\s*')).join('|') + ')(?![\\w.])';
+
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const node of nodes) {
+    if (!new RegExp(source).test(node.nodeValue)) continue;
+    const span = document.createElement('span');
+    span.innerHTML = esc(node.nodeValue).replace(new RegExp(source, 'g'), '$1<mark>$2</mark>');
+    node.parentNode.replaceChild(span, node);
   }
-  return html;
 }
 
-function firstUnanswered() {
-  const i = DATA.findIndex(c => !saved[idOf(c)]);
-  return i < 0 ? DATA.length - 1 : i;
+function paperText(p) {
+  return p.chunks.map(c => '<div class="chunk" data-id="' + c.id + '">' + c.html + '</div>')
+    .join('') || '<p class="null">no text for this paper</p>';
 }
 
-function render() {
-  const c = DATA[cursor];
-  const done = Object.keys(saved).length;
-  countEl.textContent = (cursor + 1) + ' of ' + DATA.length + '  ·  ' + done + ' answered';
-  barEl.style.width = (100 * done / DATA.length) + '%';
-  document.getElementById('prev').disabled = cursor === 0;
+function answered() { return Object.values(saved).filter(d => d && d.answer).length; }
 
-  if (!c) { card.innerHTML = '<div class="done"><h2>Nothing to review</h2></div>'; return; }
+function progress() {
+  document.getElementById('progress').textContent = answered() + ' of ' + TOTAL + ' answered';
+  document.getElementById('bar').style.width = (100 * answered() / TOTAL) + '%';
+  document.getElementById('back').disabled = current === 0;
+  document.getElementById('fwd').disabled = current === PAPERS.length - 1;
+}
 
-  const rec = Object.entries(c.record)
-    .filter(([, v]) => v !== null && v !== undefined && v !== '')
-    .map(([k, v]) => '<span>' + esc(k) + ': ' + esc(v) + '</span>').join('');
-  const chunks = c.chunks.length
-    ? c.chunks.map(ch => '<div class="chunk"><span class="cid">chunk ' + esc(ch.id) + ' — ' +
-        esc(ch.why) + '</span>' + marked(ch) + '</div>').join('')
-    : '<div class="chunk"><em>the record cites no chunk that this paper contains</em></div>';
+function fillPicker() {
+  document.getElementById('pick').innerHTML = PAPERS.map((p, i) => {
+    const done = p.corrections.filter(c => (saved[idOf(p.doi, c)] || {}).answer).length;
+    return '<option value="' + i + '">' + (done === p.corrections.length ? '✓ ' : '') +
+      esc((p.title || p.doi).slice(0, 70)) + '  (' + done + '/' + p.corrections.length + ')' +
+      '</option>';
+  }).join('');
+  document.getElementById('pick').value = String(current);
+}
 
-  card.innerHTML =
-    '<p class="meta">' + esc(c.doi) + '  ·  record ' + c.index +
-      '<span class="field" style="margin-left:8px">' + esc(c.field) + '</span>' +
-      (c.drop ? '<span class="tag">judge also asked to drop this record</span>' : '') + '</p>' +
-    '<p class="title">' + esc(c.title || '(title not found)') +
-      '<a href="https://doi.org/' + encodeURIComponent(c.doi) + '" target="_blank" rel="noopener">open the paper</a></p>' +
+function card(p, c) {
+  const mine = saved[idOf(p.doi, c)] || {};
+  const cells = Object.keys(c.record).map(f =>
+    '<div class="cell"><k>' + esc(LABELS[f] || f) + '</k><v>' + fmt(c.record[f]) +
+    '</v></div>').join('');
+  const votes = ANSWERS.map(([value, text], i) =>
+    '<button class="vote ' + value + (mine.answer === value ? ' on' : '') + '" data-v="' +
+    value + '"><kbd>' + (i + 1) + '</kbd>' + esc(text) + '</button>').join('');
+  return '<div class="rec' + (mine.answer ? ' done' : '') + '" data-i="' + c.index +
+    '" data-f="' + esc(c.field) + '">' +
+    '<div class="rechead"><span class="ix">#' + c.index + '</span>' +
+      '<span class="tag field">' + esc(c.field) + '</span>' +
+      (c.drop ? '<span class="tag drop">judge would drop this record</span>' : '') + '</div>' +
     '<div class="diff">' +
-      '<div class="side was"><div class="k">extractor wrote — ' + esc(c.label) + '</div>' +
-        '<div class="v">' + esc(show(c.was)) + '</div></div>' +
-      '<div class="side to"><div class="k">judge proposes — ' + esc(c.label) + '</div>' +
-        '<div class="v">' + esc(show(c.to)) + '</div></div>' +
+      '<div class="pane was"><k>extractor wrote</k><v>' + fmt(c.was) + '</v></div>' +
+      '<div class="arrow">&rarr;</div>' +
+      '<div class="pane to"><k>judge proposes</k><v>' + fmt(c.to) + '</v></div>' +
     '</div>' +
-    '<div class="why"><b>evidence the judge cited</b>' + esc(c.evidence || '(none given)') + '</div>' +
-    (c.critique ? '<div class="why"><b>the judge\'s reasoning for this record</b>' +
-        esc(c.critique) + '</div>' : '') +
-    '<div class="why"><b>the rest of the record as extracted</b><div class="rec">' + rec + '</div></div>' +
-    '<div class="why"><b>source text the record cites</b>' + chunks + '</div>';
-
-  const mine = saved[idOf(c)] || {};
-  answers.innerHTML = ANSWERS.map(([value, text], i) =>
-      '<button data-v="' + value + '"' + (mine.answer === value ? ' class="on"' : '') +
-      '><kbd>' + (i + 1) + '</kbd>' + esc(text) + '</button>').join('') +
-    '<input class="note" id="note" placeholder="optional note" value="' +
-      esc(mine.note || '') + '">';
-
-  answers.querySelectorAll('button').forEach(b =>
-    b.onclick = () => answer(b.dataset.v));
-  document.getElementById('note').oninput = e => {
-    const id = idOf(c);
-    saved[id] = Object.assign({}, saved[id], {note: e.target.value, field: c.field,
-                                              fingerprint: c.fingerprint});
-    store();
-  };
+    '<div class="ev"><b>evidence the judge cited</b>' + esc(c.evidence || '(none given)') +
+      '</div>' +
+    (c.critique ? '<details><summary>the judge\'s full reasoning for this record</summary>' +
+      '<div class="ev" style="border:0;padding-top:6px">' + esc(c.critique) + '</div></details>'
+      : '') +
+    '<details><summary>the record as extracted</summary><div class="grid">' + cells +
+      '</div></details>' +
+    '<div class="ask"><span>Which value does the paper support?</span>' + votes +
+      '<input class="note" placeholder="note (optional)" value="' + esc(mine.note || '') +
+      '"></div></div>';
 }
 
-function answer(value) {
-  const c = DATA[cursor];
-  saved[idOf(c)] = Object.assign({}, saved[idOf(c)], {
-    answer: value, field: c.field, doi: c.doi, index: c.index,
-    fingerprint: c.fingerprint, was: c.was, to: c.to,
+function drawPaper() {
+  const p = PAPERS[current];
+  document.getElementById('stat').textContent = p.corrections.length + ' correction' +
+    (p.corrections.length === 1 ? '' : 's') + ' · ' + p.doi;
+  document.getElementById('text').innerHTML = paperText(p);
+  document.getElementById('recs').innerHTML = p.corrections.map(c => card(p, c)).join('');
+
+  document.querySelectorAll('#recs .rec').forEach(el => {
+    const c = p.corrections.find(x => x.index === Number(el.dataset.i) &&
+                                      x.field === el.dataset.f);
+    el.addEventListener('click', event => {
+      if (event.target.tagName === 'BUTTON' || event.target.tagName === 'INPUT') return;
+      select(c, el);
+    });
+    el.querySelectorAll('.vote').forEach(b =>
+      b.onclick = () => decide(p, c, b.dataset.v, el));
+    el.querySelector('.note').onchange = e => {
+      const id = idOf(p.doi, c);
+      saved[id] = Object.assign({}, saved[id], {note: e.target.value || null});
+      store();
+    };
+  });
+
+  if (p.corrections.length) select(p.corrections[0], document.querySelector('#recs .rec'));
+  fillPicker();
+  progress();
+}
+
+// Both provenance sources are marked, and differently: the chunks the record cites, and the
+// chunks the judge quoted in its evidence. Some records cite nothing that resolves, and then
+// the judge's are the only source text there is.
+function select(c, element) {
+  document.querySelectorAll('#recs .rec').forEach(el => el.classList.remove('on'));
+  if (element) element.classList.add('on');
+
+  const p = PAPERS[current];
+  document.getElementById('text').innerHTML = paperText(p);
+  const own = new Set(c.cites);
+  const theirs = new Set(c.judge_cites.filter(id => !own.has(id)));
+  let first = null;
+  document.querySelectorAll('#text .chunk').forEach(el => {
+    const id = el.dataset.id;
+    if (!own.has(id) && !theirs.has(id)) return;
+    el.classList.add('cited');
+    if (theirs.has(id)) el.classList.add('judgecite');
+    highlight(el, [c.was, c.to]);
+    if (!first) first = el;
+  });
+  if (first) first.scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+
+function decide(p, c, value, element) {
+  const id = idOf(p.doi, c);
+  saved[id] = Object.assign({}, saved[id], {
+    doi: p.doi, extracted_index: c.index, field: c.field, answer: value,
+    was: c.was, to: c.to, fingerprint: c.fingerprint,
     decided: new Date().toISOString()
   });
   store();
-  cursor = Math.min(cursor + 1, DATA.length - 1);
-  render();
-  window.scrollTo(0, 0);
+  element.classList.add('done');
+  element.querySelectorAll('.vote').forEach(b =>
+    b.classList.toggle('on', b.dataset.v === value));
+  fillPicker();
+  progress();
+
+  const next = element.nextElementSibling;
+  if (next && next.classList.contains('rec')) {
+    const c2 = p.corrections.find(x => x.index === Number(next.dataset.i) &&
+                                       x.field === next.dataset.f);
+    select(c2, next);
+    next.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  }
 }
 
-document.getElementById('prev').onclick = () => { cursor = Math.max(0, cursor - 1); render(); window.scrollTo(0, 0); };
-document.getElementById('skip').onclick = () => { cursor = Math.min(cursor + 1, DATA.length - 1); render(); window.scrollTo(0, 0); };
+function go(i) {
+  current = Math.min(PAPERS.length - 1, Math.max(0, i));
+  drawPaper();
+  document.getElementById('recs').scrollTo(0, 0);
+}
+
+document.getElementById('pick').onchange = e => go(Number(e.target.value));
+document.getElementById('back').onclick = () => go(current - 1);
+document.getElementById('fwd').onclick = () => go(current + 1);
 document.getElementById('export').onclick = () => {
   const blob = new Blob([JSON.stringify({
-    generated: new Date().toISOString(), sample: '__STAMP__',
-    answered: Object.keys(saved).length, total: DATA.length, decisions: saved
+    generated: new Date().toISOString(), sample: STAMP,
+    answered: answered(), total: TOTAL, decisions: saved
   }, null, 1)], {type: 'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -381,25 +499,29 @@ document.getElementById('export').onclick = () => {
   a.click();
 };
 document.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT') return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  const on = document.querySelector('#recs .rec.on');
   const i = ['1', '2', '3'].indexOf(e.key);
-  if (i >= 0) { answer(ANSWERS[i][0]); return; }
-  if (e.key === 'ArrowRight') document.getElementById('skip').click();
-  if (e.key === 'ArrowLeft') document.getElementById('prev').click();
+  if (i >= 0 && on) { on.querySelectorAll('.vote')[i].click(); return; }
+  if (e.key === 'ArrowRight') go(current + 1);
+  if (e.key === 'ArrowLeft') go(current - 1);
 });
 
-cursor = firstUnanswered();
-render();
+drawPaper();
 </script></body></html>
 """
 
 
-def build(sample: list[dict], corpus: Path, title: str, stamp: str) -> str:
+def build(sample: list[dict], corpus: Path, title: str, drawn: str) -> str:
+    # "</" is escaped because the payload rides in a <script type="application/json"> block and
+    # the judge's prose can contain anything; a literal </script> inside it would end the tag.
     page = (TEMPLATE
-            .replace("__DATA__", json.dumps(payload(sample, corpus)))
+            .replace("__DATA__", json.dumps(group(sample, corpus), ensure_ascii=False)
+                     .replace("</", "<\\/"))
+            .replace("__LABELS__", json.dumps(LABELS))
             .replace("__ANSWERS__", json.dumps(ANSWERS))
             .replace("__TITLE__", title)
-            .replace("__STAMP__", stamp))
+            .replace("__STAMP__", drawn))
     _page.validate(page)
     return page
 
@@ -424,10 +546,11 @@ def main() -> None:
         print(f"   {field:22s} {n:5,}")
 
     sample = pool if not args.sample else draw(pool, args.sample, args.seed, args.field)
+    drawn = sample_id(sample)
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     out = Path(args.out) if args.out else OUT
-    out.write_text(build(sample, ARTIFACTS / "data" / args.corpus, args.title, stamp),
+    out.write_text(build(sample, ARTIFACTS / "data" / args.corpus, args.title, drawn),
                    encoding="utf-8")
 
     # The draw is written down. Re-running the sampler later draws a different sample and
@@ -435,7 +558,7 @@ def main() -> None:
     # and the fingerprints let an ingest refuse a decision that has drifted onto another record.
     MANIFEST.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST.write_text(json.dumps({
-        "drawn": stamp, "seed": args.seed, "extraction": args.extraction,
+        "sample": drawn, "drawn": stamp, "seed": args.seed, "extraction": args.extraction,
         "judge": args.judge, "pool": len(pool), "size": len(sample),
         "by field": dict(Counter(c["field"] for c in sample)),
         "records": [{k: c[k] for k in ("doi", "index", "field", "was", "to", "fingerprint")}
@@ -443,7 +566,8 @@ def main() -> None:
     }, indent=1), encoding="utf-8")
 
     print(f"\n{out.relative_to(ROOT)}  {out.stat().st_size / 1e6:.1f} MB, "
-          f"{len(sample)} corrections")
+          f"{len(sample)} corrections across "
+          f"{len({c['doi'] for c in sample})} papers, sample {drawn}")
     for field, n in Counter(c["field"] for c in sample).most_common():
         print(f"   {field:22s} {n:3d}")
     print(f"{MANIFEST.relative_to(ROOT)}  the draw, so it stays fixed")
