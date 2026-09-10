@@ -278,6 +278,36 @@ def _column(frame: pd.DataFrame, prefix: str, field: str) -> pd.Series:
     return frame[f"{prefix}{field}"]
 
 
+def extra_records(frame: pd.DataFrame) -> pd.DataFrame:
+    """How complete the records only this work holds are, against the ones both datasets hold.
+
+    The obvious suspicion about an extraction that returns more records than a person did is
+    that the surplus is junk -- fragments, duplicates, rows misread out of a table. This is the
+    test of it, and it passes: the 91 records hand curation does not have report their fields at
+    the same rate as the 131 both datasets share, better on temperature and reaction time, and
+    they come from 13 of the 19 papers rather than from one anomalous document.
+
+    The two mass fields are the exception and are the same two the judge corrects most often,
+    which is consistent with what those records are: runs stated in a results table whose
+    absolute charges are given once in a methods paragraph.
+    """
+    extra = frame[frame.category == "ours"]
+    shared = frame[frame.category == "both"]
+    rows = []
+    for field in NUMERIC + TEXT:
+        rows.append({
+            "field": field,
+            "shared": _column(shared, "ours_", field).notna().mean(),
+            "ours only": _column(extra, "ours_", field).notna().mean(),
+        })
+    table = pd.DataFrame(rows).set_index("field")
+    table.attrs["extra"] = len(extra)
+    table.attrs["shared"] = len(shared)
+    table.attrs["extra papers"] = int(extra.doi.nunique())
+    table.attrs["papers"] = int(frame.doi.nunique())
+    return table
+
+
 def disagreements(frame: pd.DataFrame) -> pd.DataFrame:
     """Every numeric value both datasets report, and how far apart the two are.
 
@@ -409,6 +439,7 @@ def compute() -> dict:
         "per paper": per_paper(frame),
         "reclassification": reclassification(frame),
         "disagreements": disagreements(frame),
+        "extra records": extra_records(frame),
         "identical": identical(frame),
         "ours only": ours_only(frame).reason.value_counts()
                      .reindex(OURS_ONLY_REASONS).fillna(0).astype(int),

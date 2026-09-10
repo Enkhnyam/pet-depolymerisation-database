@@ -341,6 +341,12 @@ def collect() -> tuple[dict, dict]:
         # What a disagreement between the two datasets actually looks like, which the
         # agreement table cannot say: how many of the shared numeric values are identical, and
         # how far apart the rest are.
+        "GaoExtraRecords": f"{gao['extra records'].attrs['extra']:,}",
+        "GaoExtraPapers": f"{gao['extra records'].attrs['extra papers']}",
+        "GaoExtraCatalystGap":
+            f"{100 * (gao['extra records'].loc['catalyst_amount_g', 'shared'] - gao['extra records'].loc['catalyst_amount_g', 'ours only']):.0f}",
+        "GaoExtraSolventGap":
+            f"{100 * (gao['extra records'].loc['solvent_amount_g', 'shared'] - gao['extra records'].loc['solvent_amount_g', 'ours only']):.0f}",
         "GaoValuesCompared": f"{len(gao['disagreements']):,}",
         "GaoValuesSame": f"{int(gao['disagreements'].identical.sum()):,}",
         "GaoValuesDiffer": f"{int((~gao['disagreements'].identical).sum()):,}",

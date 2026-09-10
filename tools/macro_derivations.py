@@ -14,6 +14,15 @@ this whole mechanism exists to make easy.
 """
 DERIVATION = {
 
+    "GaoExtraRecords": "Records this work holds on the shared papers that Gao et al. do not.",
+    "GaoExtraPapers":
+        "How many of the shared papers those come from. Spread rather than concentrated, which "
+        "is what rules out one anomalous document explaining them.",
+    "GaoExtraCatalystGap":
+        "Percentage points by which the records we hold alone report catalyst mass less often "
+        "than the shared ones do. One of only two fields where the surplus is thinner.",
+    "GaoExtraSolventGap": "The same for solvent mass.",
+
     "GaoValuesCompared":
         "Numeric values both this work and Gao et al. report for the same record and field.",
     "GaoValuesSame":

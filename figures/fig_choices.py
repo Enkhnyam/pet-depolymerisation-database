@@ -22,6 +22,7 @@ The free judge is drawn at $0.01 so it has somewhere to sit.
 import numpy as np
 import seaborn as sns
 from matplotlib.lines import Line2D
+from matplotlib.ticker import NullLocator
 
 from _style import CATEGORICAL, DIM, EMPHASIS, INK, RAMP, RULE, canvas, save
 from curated import extractions, shots, source_tracking, thresholds
@@ -101,43 +102,62 @@ def main() -> None:
     axis.set_xlabel("")
     axis.set_ylabel("$F_1$, mean of three repeats")
 
-    # --- f: every benchmark run of every model -----------------------------------------------
-    # Two versions before this one reported three means with a spread bar, and both hid the
-    # thing the panel exists to settle. The question behind choosing an extractor is not "which
-    # mean is highest" but "is the gap bigger than the noise", and three repeats an arm is few
-    # enough that the runs themselves are the honest answer: luna's worst run scores 0.785 and
-    # terra's best scores 0.785, so those two are not separated by this evidence, while oss sits
-    # below both on two runs of three.
+    # --- f: what more money actually buys ----------------------------------------------------
+    # Three versions of this panel argued one variable at a time -- this model against that one,
+    # one worked example against none -- and the two interact, because an example is input
+    # tokens on every paper. Every arm on one plane turns it into the question a reader has:
+    # which configurations are not beaten on both counts at once.
     #
-    # Same form as (d) and (e), which show their repeats for the same reason. Cost goes under
-    # the model's name, because it is the other half of the choice and belongs where the name is
-    # rather than floating beside a mark.
+    # The shaded quadrant is what a Pareto argument is. Anything inside it costs more than the
+    # shipped setting and scores less, so terra sitting there at eight times the price is the
+    # panel's own conclusion rather than a sentence in the caption.
     axis = panel[5]
-    per_run = extractions.runs()
-    shipped_shots = int(extractions.compute()["n_shots"].iloc[0])
-    per_run = per_run[per_run.n_shots == shipped_shots]
-    means = per_run.groupby("model").f1.mean().sort_values()
-    order = list(means.index)
-    COSTS = {"luna": "\\$0.18", "terra": "\\$1.23", "oss": "free"}
+    configs = extractions.configurations()
+    shipped_row = configs[(configs.model == "luna")
+                          & (configs.n_shots == int(_setup.DATABASE_SHOTS)
+                             if hasattr(_setup, "DATABASE_SHOTS") else configs.n_shots == 1)]
+    shipped_row = shipped_row.iloc[0]
 
-    np.random.seed(0)
-    sns.stripplot(data=per_run, x="model", y="f1", order=order, ax=axis, size=3.4,
-                  color=RAMP[3], alpha=0.95, jitter=0.10, legend=False)
-    for position, name in enumerate(order):
-        colour = EMPHASIS if name == means.idxmax() else RAMP[2]
-        axis.plot([position - 0.26, position + 0.26], [means[name]] * 2, color=colour, lw=1.6,
-                  solid_capstyle="butt", zorder=5)
-        axis.annotate(f"{means[name]:.3f}", (position + 0.28, means[name]), xytext=(1, 0),
-                      textcoords="offset points", va="center", fontsize=5.6, color=DIM)
-    axis.set_xticks(range(len(order)),
-                    [f"{name}\n{COSTS[str(name)]}" for name in order], fontsize=6)
-    axis.set_xlim(-0.55, len(order) - 0.45)
-    axis.set_xlabel(f"extraction model and cost of one run\n"
-                    f"{len(per_run) // len(order)} repeats each · bar is the mean")
-    # The same y range as (e), so the size of a model gap and the size of the sourcing gap can
-    # be compared by eye instead of by reading two different axes.
+    # oss bills nothing at all, and a logarithmic axis has no room for zero. It sits at the
+    # left-hand tick, which is labelled "free" rather than given a price it never had.
+    FREE = 0.045
+    place = lambda c: FREE if c <= 0 else c
+
+    axis.fill_between([place(shipped_row.cost), 3], -1, shipped_row.f1,
+                      color=RULE, alpha=0.55, zorder=0, linewidth=0)
+    axis.annotate("dearer and worse", (2.6, 0.653), ha="right", fontsize=5.2, color=DIM)
+
+    frontier = configs[configs["on frontier"]].sort_values("cost")
+    axis.step([place(c) for c in frontier.cost], frontier.f1, where="post", color=RAMP[2],
+              lw=1.0, zorder=2)
+
+    for row in configs.itertuples():
+        x = place(row.cost)
+        edge = row._7                       # on frontier
+        axis.errorbar(x, row.f1, yerr=row.sd, fmt="none", ecolor=DIM, elinewidth=0.5,
+                      capsize=1.4, zorder=3)
+        axis.plot([x], [row.f1], marker="o", ms=3.6, zorder=4,
+                  color=RAMP[2] if edge else "white",
+                  markeredgecolor=RAMP[2] if edge else DIM, markeredgewidth=0.9)
+    axis.plot([place(shipped_row.cost)], [shipped_row.f1], marker="D", ms=5.0, color=EMPHASIS,
+              markeredgecolor="white", markeredgewidth=0.7, zorder=6)
+
+    for label, row, offset in (("gpt-oss", configs[configs.model == "oss"].iloc[0], (6, -8)),
+                               ("terra", configs[configs.model == "terra"].iloc[0], (-6, -9)),
+                               ("luna, 1 example", shipped_row, (4, 9))):
+        axis.annotate(label, (place(row.cost), row.f1), xytext=offset,
+                      textcoords="offset points", fontsize=5.6, color=DIM,
+                      ha="right" if offset[0] < 0 else "left")
+
+    axis.set_xscale("log")
+    axis.set_xlim(0.030, 3.4)
+    # A log axis labels its own minor ticks, and at this width they printed over the four that
+    # carry the meaning.
+    axis.xaxis.set_minor_locator(NullLocator())
+    axis.set_xticks([FREE, 0.1, 0.3, 1.0], ["free", "\\$0.10", "\\$0.30", "\\$1"])
     axis.set_ylim(0.64, 0.86)
     axis.set_ylabel("")
+    axis.set_xlabel("cost of one run\nfilled: on the frontier · hollow: beaten")
 
     # What the two marks in (a)-(d) mean. Without this a reader has a yellow dot and a dark
     # diamond on four panels and no way to tell which is the setting and which is the optimum.

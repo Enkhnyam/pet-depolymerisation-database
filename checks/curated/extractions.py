@@ -44,6 +44,57 @@ def runs() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+REPEATS = 3          # arms with fewer runs than this are not a position on the plane
+
+
+def configurations() -> pd.DataFrame:
+    """Every benchmark configuration as a point of score against money.
+
+    The extractor choice is usually argued one variable at a time -- this model beats that one,
+    one worked example beats none -- and the two interact through cost, because an example is
+    input tokens on every paper. Put every arm on one plane and the argument becomes a Pareto
+    one: which configurations are not beaten on both counts at once.
+
+    Cost comes from the spend ledger, which records what each run actually billed, so a free
+    endpoint reads as free rather than as a token count nobody paid for.
+    """
+    import cost as cost_check
+    # the package form, not a bare name: checks/curated is on sys.path when
+    # checks/run.py runs this file, and is not when a figure imports it
+    from curated import shots as shots_check
+
+    ledger = cost_check.compute()
+    ledger = ledger.assign(name=ledger.run.str.split("/").str[-1]).set_index("name")
+
+    def billed(name):
+        return float(ledger.loc[name, "cost_usd"]) if name in ledger.index else float("nan")
+
+    # Both sweeps, because the two dimensions of this choice live in different folders: the
+    # model comparison in extract_*, the worked-example sweep in shots_*. A Pareto argument over
+    # one of them alone is the argument this figure already made twice.
+    both = pd.concat([
+        runs()[["model", "n_shots", "run", "f1"]],
+        shots_check.compute().assign(model="luna")[["model", "n_shots", "run", "f1"]],
+    ]).drop_duplicates(subset=["run"])
+    both = both.assign(cost=[billed(name) for name in both.run]).dropna(subset=["cost"])
+
+    grouped = (both.groupby(["model", "n_shots"])
+               .agg(f1=("f1", "mean"), sd=("f1", "std"), cost=("cost", "mean"),
+                    repeats=("f1", "size"))
+               .reset_index())
+    # Arms the sweep only ran once are dropped rather than plotted beside arms with three: at
+    # this spread a single run is not a position on the plane, and one of them would have sat on
+    # the frontier on the strength of a run nobody repeated.
+    grouped = grouped[grouped.repeats >= REPEATS].reset_index(drop=True)
+
+    # A configuration is on the frontier when nothing costs less *and* scores at least as much.
+    grouped["on frontier"] = [
+        not ((grouped.cost <= row.cost) & (grouped.f1 >= row.f1)
+             & ((grouped.cost < row.cost) | (grouped.f1 > row.f1))).any()
+        for row in grouped.itertuples()]
+    return grouped.sort_values("cost").reset_index(drop=True)
+
+
 def arms(shots: int | None = None) -> pd.DataFrame:
     """Mean and spread per model, over the repeats of one arm.
 

@@ -21,11 +21,9 @@ in artifacts/data/gao/ and not a computation.
 """
 import numpy as np
 import seaborn as sns
-from matplotlib.ticker import NullLocator
 
-from _style import CATEGORICAL, DIM, INK, RAMP, canvas, save
+from _style import CATEGORICAL, DIM, INK, RAMP, RULE, canvas, save
 from curated import gao_overlap
-from curated.gao_overlap import TOLERANCE
 
 # Why a record sits in one dataset and not the other, largest first, coloured by whose count it
 # raises: the blue ramp for Gao's reasons, red for the one that is our error, blue for ours.
@@ -83,47 +81,41 @@ def main() -> None:
     axis.set_xticks([0, 50, 100])
     axis.set_xlabel("shared records agreeing, per field")
 
-    # --- c: what a disagreement actually looks like -------------------------------------------
-    # Panel (b) says how often the two agree. It cannot say what a disagreement is, and that is
-    # the interesting half: of the 842 numeric values both datasets report, 797 are identical to
-    # the digit, and the 45 that differ are almost all masses, apart by factors rather than by
-    # percent. Temperature and reaction time never disagree at all.
+    # --- c: are the records only we hold as good as the ones both hold? ----------------------
+    # The obvious suspicion about an extraction returning more records than a person did is that
+    # the surplus is junk. This is the test, and the shape of the panel is the answer: a short
+    # line means the two populations report that field at the same rate. Nine of the ten lines
+    # are short, and two of those run the other way -- the extra records carry temperature and
+    # reaction time more often than the shared ones do.
     #
-    # One dot per differing value rather than a fourth bar chart, on a log axis because the
-    # differences run from a rounded percentage point to a factor of seven and a linear axis
-    # would stack forty of them against the left spine. The 20% line is the tolerance the
-    # heuristic grader allows, so a reader can see which disagreements the graders would even
-    # call disagreements.
+    # A dumbbell rather than paired bars. What matters here is the distance between two numbers,
+    # and a bar chart makes a reader compare two lengths from a shared baseline to recover it.
     axis = panel[2]
-    gaps = result["disagreements"]
-    off = gaps[~gaps.identical & gaps.ratio.notna() & (gaps.ratio > 1)]
-    fields = list(off.groupby("field").ratio.median().sort_values().index)
-    np.random.seed(0)
-    sns.stripplot(data=off, x="ratio", y="field", order=fields, ax=axis, size=3.4,
-                  hue="field", hue_order=fields, legend=False, jitter=0.22, alpha=0.9,
-                  palette={f: (CATEGORICAL["red"] if f.endswith("_amount_g")
-                               else CATEGORICAL["blue"]) for f in fields})
-    axis.set_xscale("log")
-    axis.axvline(1 + TOLERANCE, color=INK, lw=0.7, ls=(0, (3, 2)), zorder=1)
-    axis.annotate(f"{TOLERANCE:.0%} tolerance", (1 + TOLERANCE, -0.55), xytext=(-3, 0),
-                  textcoords="offset points", fontsize=5.2, color=DIM, va="center",
-                  ha="right")
-    axis.set_xlim(1.003, 16)
-    # A log axis puts its own labelled minor ticks between the decades, and at this range they
-    # landed on top of the four that carry the meaning.
-    axis.xaxis.set_minor_locator(NullLocator())
-    # Three ticks, not four: 1.01 and 1.1 are a millimetre apart at this width and printed on
-    # top of each other.
-    axis.set_xticks([1.01, 2, 10], ["$\\times$1.01", "$\\times$2", "$\\times$10"])
-    axis.set_yticks(range(len(fields)),
+    extra = result["extra records"] * 100
+    order = list((extra["ours only"] - extra["shared"]).sort_values().index)
+    for position, field in enumerate(order):
+        low, high = extra.loc[field, "shared"], extra.loc[field, "ours only"]
+        axis.plot([low, high], [position] * 2, color=RULE, lw=1.6, solid_capstyle="round",
+                  zorder=1)
+        axis.plot([low], [position], marker="o", ms=4.0, color=DIM, zorder=3,
+                  markeredgecolor="white", markeredgewidth=0.6)
+        axis.plot([high], [position], marker="o", ms=4.0, zorder=3,
+                  color=CATEGORICAL["red"] if high < low - 5 else CATEGORICAL["blue"],
+                  markeredgecolor="white", markeredgewidth=0.6)
+        if abs(high - low) >= 5:
+            axis.annotate(f"{high - low:+.0f}", (max(low, high), position), xytext=(5, 0),
+                          textcoords="offset points", va="center", fontsize=5.4, color=DIM)
+    axis.set_yticks(range(len(order)),
                     [f.replace("_percent", " %").replace("_amount_g", " (g)").replace("_", " ")
-                     for f in fields], fontsize=5.4)
+                     for f in order], fontsize=5.4)
     axis.tick_params(axis="y", length=0)
     axis.spines["left"].set_visible(False)
-    axis.set_ylim(-0.85, len(fields) - 0.3)
-    axis.set_ylabel("")
-    axis.set_xlabel(f"factor apart, where they differ\n"
-                    f"{int(gaps.identical.sum())} of {len(gaps)} values identical")
+    axis.set_xlim(35, 118)
+    axis.set_xticks([40, 60, 80, 100], ["40", "60", "80", "100%"])
+    axis.set_ylim(-0.8, len(order) - 0.4)
+    meta = result["extra records"].attrs
+    axis.set_xlabel(f"records reporting the field\n"
+                    f"grey: {meta['shared']} shared · blue: {meta['extra']} ours")
 
     save(figure, "fig_gao_records")
 
