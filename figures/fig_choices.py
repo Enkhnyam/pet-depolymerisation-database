@@ -101,36 +101,43 @@ def main() -> None:
     axis.set_xlabel("")
     axis.set_ylabel("$F_1$, mean of three repeats")
 
-    # --- f: what each model scores, and what it cost -----------------------------------------
-    # This was a scatter on a logarithmic cost axis, with the free judge parked at $0.01 so it
-    # had somewhere to sit and a grey rule at the best score that explained itself to nobody.
-    # Two quantities about three models do not need a log scale: the score is the bar, the cost
-    # is written on the end of it, and the reader can compare both by reading down the column.
+    # --- f: every benchmark run of every model -----------------------------------------------
+    # Two versions before this one reported three means with a spread bar, and both hid the
+    # thing the panel exists to settle. The question behind choosing an extractor is not "which
+    # mean is highest" but "is the gap bigger than the noise", and three repeats an arm is few
+    # enough that the runs themselves are the honest answer: luna's worst run scores 0.785 and
+    # terra's best scores 0.785, so those two are not separated by this evidence, while oss sits
+    # below both on two runs of three.
+    #
+    # Same form as (d) and (e), which show their repeats for the same reason. Cost goes under
+    # the model's name, because it is the other half of the choice and belongs where the name is
+    # rather than floating beside a mark.
     axis = panel[5]
-    scores = extractions.compute().sort_values("f1")
-    COSTS = {"luna": "\\$0.18", "terra": "\\$1.23", "oss": "free, unmetered"}
-    best = scores.f1.idxmax()
-    # Dots rather than bars. On a zero-based axis three scores between 0.754 and 0.805 are
-    # three bars of the same length, and the 0.051 that separates the cheapest model from the
-    # best one disappears. A dot carries no zero baseline to honour, so the axis can show the
-    # range the models actually occupy.
-    for position, name in enumerate(scores.index):
-        row = scores.loc[name]
-        axis.errorbar(row["f1"], position, xerr=row["f1 sd"], fmt="none", ecolor=INK,
-                      elinewidth=0.7, capsize=2.2, zorder=3)
-        axis.plot([row["f1"]], [position], marker="o", ms=5.4,
-                  color=EMPHASIS if name == best else RAMP[2], markeredgecolor="white",
-                  markeredgewidth=0.7, zorder=4)
-        axis.annotate(f"{row['f1']:.3f}  ·  {COSTS[str(name)]}",
-                      (row["f1"] + row["f1 sd"], position), xytext=(6, 0),
+    per_run = extractions.runs()
+    shipped_shots = int(extractions.compute()["n_shots"].iloc[0])
+    per_run = per_run[per_run.n_shots == shipped_shots]
+    means = per_run.groupby("model").f1.mean().sort_values()
+    order = list(means.index)
+    COSTS = {"luna": "\\$0.18", "terra": "\\$1.23", "oss": "free"}
+
+    np.random.seed(0)
+    sns.stripplot(data=per_run, x="model", y="f1", order=order, ax=axis, size=3.4,
+                  color=RAMP[3], alpha=0.95, jitter=0.10, legend=False)
+    for position, name in enumerate(order):
+        colour = EMPHASIS if name == means.idxmax() else RAMP[2]
+        axis.plot([position - 0.26, position + 0.26], [means[name]] * 2, color=colour, lw=1.6,
+                  solid_capstyle="butt", zorder=5)
+        axis.annotate(f"{means[name]:.3f}", (position + 0.28, means[name]), xytext=(1, 0),
                       textcoords="offset points", va="center", fontsize=5.6, color=DIM)
-    axis.set_yticks(range(len(scores)), [str(n) for n in scores.index], fontsize=6.5)
-    axis.tick_params(axis="y", length=0)
-    axis.spines["left"].set_visible(False)
-    axis.set_xlim(0.68, 0.90)
-    axis.set_xticks([0.70, 0.75, 0.80, 0.85])
-    axis.set_ylim(-0.6, len(scores) - 0.4)
-    axis.set_xlabel("$F_1$ and the cost of one run\nmean of three repeats, bar the spread")
+    axis.set_xticks(range(len(order)),
+                    [f"{name}\n{COSTS[str(name)]}" for name in order], fontsize=6)
+    axis.set_xlim(-0.55, len(order) - 0.45)
+    axis.set_xlabel(f"extraction model and cost of one run\n"
+                    f"{len(per_run) // len(order)} repeats each · bar is the mean")
+    # The same y range as (e), so the size of a model gap and the size of the sourcing gap can
+    # be compared by eye instead of by reading two different axes.
+    axis.set_ylim(0.64, 0.86)
+    axis.set_ylabel("")
 
     # What the two marks in (a)-(d) mean. Without this a reader has a yellow dot and a dark
     # diamond on four panels and no way to tell which is the setting and which is the optimum.

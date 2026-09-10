@@ -338,6 +338,15 @@ def collect() -> tuple[dict, dict]:
         "GaoTopGapOurs": f"{int(by_paper.loc[paper_gap.idxmax(), 'this work'])}",
         "GaoOursLeadTheirs": f"{int(by_paper.loc[paper_gap.idxmin(), 'hand-curated'])}",
         "GaoOursLeadOurs": f"{int(by_paper.loc[paper_gap.idxmin(), 'this work'])}",
+        # What a disagreement between the two datasets actually looks like, which the
+        # agreement table cannot say: how many of the shared numeric values are identical, and
+        # how far apart the rest are.
+        "GaoValuesCompared": f"{len(gao['disagreements']):,}",
+        "GaoValuesSame": f"{int(gao['disagreements'].identical.sum()):,}",
+        "GaoValuesDiffer": f"{int((~gao['disagreements'].identical).sum()):,}",
+        # The score at which the best model's worst run meets the runner-up's best, which is
+        # what the model panel turns on.
+        "BenchOverlapScore": f"{_bench_overlap(extractions.runs(), extractions.compute()):.3f}",
         "GaoSI": f"{int(gao['split']['si'])}",
         "GaoRule": f"{int(gao['split']['rule'])}",
         "GaoFillLow": f"{100 * gao['completeness']['this work'].loc[CONDITION_FIELDS].min():.0f}",
@@ -404,6 +413,24 @@ def collect() -> tuple[dict, dict]:
         "adjudication": adjudicated.REAL,
     }
     return values, runs
+
+
+def _bench_overlap(runs, arms) -> float:
+    """Where the top model's worst run meets the runner-up's best, at the shipped setting.
+
+    The extractor comparison rests on this: a mean says luna beats terra by 0.024, and the runs
+    say luna's lowest and terra's highest are the same number. Computed rather than read off a
+    panel, so the caption cannot claim a coincidence the data stops supporting.
+
+    Both frames arrive as arguments rather than being fetched here, so the call site names the
+    check they come from: tools/provenance.py attributes a macro by reading the expression that
+    produces it, and a helper that fetches its own data leaves the macro traceable to nothing.
+    """
+    runs = runs[runs.n_shots == int(arms["n_shots"].iloc[0])]
+    means = runs.groupby("model").f1.mean().sort_values(ascending=False)
+    top, second = means.index[0], means.index[1]
+    return round(min(runs[runs.model == top].f1.min(),
+                     runs[runs.model == second].f1.max()), 3)
 
 
 def _route_pairs(routes: dict) -> int:

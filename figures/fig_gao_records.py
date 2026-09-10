@@ -19,8 +19,13 @@ Every category in (a) was settled by a person reading the paper: an automatic ru
 label and a chemist overruled it fourteen times. That is why the classification is a fixed table
 in artifacts/data/gao/ and not a computation.
 """
+import numpy as np
+import seaborn as sns
+from matplotlib.ticker import NullLocator
+
 from _style import CATEGORICAL, DIM, INK, RAMP, canvas, save
 from curated import gao_overlap
+from curated.gao_overlap import TOLERANCE
 
 # Why a record sits in one dataset and not the other, largest first, coloured by whose count it
 # raises: the blue ramp for Gao's reasons, red for the one that is our error, blue for ours.
@@ -78,32 +83,47 @@ def main() -> None:
     axis.set_xticks([0, 50, 100])
     axis.set_xlabel("shared records agreeing, per field")
 
-    # --- c: paper by paper, who holds more ----------------------------------------------------
-    # The totals in (a) say the two sets differ by 142 records and why; they cannot say whether
-    # that is spread across the corpus or concentrated. It is concentrated, and it runs both
-    # ways: five of the nineteen papers give us more records than the hand curation has, and one
-    # gives us none at all.
+    # --- c: what a disagreement actually looks like -------------------------------------------
+    # Panel (b) says how often the two agree. It cannot say what a disagreement is, and that is
+    # the interesting half: of the 842 numeric values both datasets report, 797 are identical to
+    # the digit, and the 45 that differ are almost all masses, apart by factors rather than by
+    # percent. Temperature and reaction time never disagree at all.
+    #
+    # One dot per differing value rather than a fourth bar chart, on a log axis because the
+    # differences run from a rounded percentage point to a factor of seven and a linear axis
+    # would stack forty of them against the left spine. The 20% line is the tolerance the
+    # heuristic grader allows, so a reader can see which disagreements the graders would even
+    # call disagreements.
     axis = panel[2]
-    counts_by_paper = result["per paper"]
-    gao_side = counts_by_paper["hand-curated"]
-    our_side = counts_by_paper["this work"]
-    top = max(gao_side.max(), our_side.max()) * 1.12
-
-    axis.plot([0, top], [0, top], color="white", lw=1.6, zorder=1)
-    axis.plot([0, top], [0, top], color=INK, lw=0.7, zorder=2)
-    ahead = our_side > gao_side
-    for mask, colour, label in ((~ahead, CATEGORICAL["red"], "Gao holds more"),
-                                (ahead, CATEGORICAL["blue"], "we hold more")):
-        axis.scatter(gao_side[mask], our_side[mask], s=13, color=colour, alpha=0.85,
-                     linewidths=0.4, edgecolors="white", zorder=3, label=label)
-    # No labels on the outliers: a truncated DOI is unreadable at this size and both of these
-    # truncate to the same sixteen characters. The caption names them.
-    axis.set_xlim(0, top)
-    axis.set_ylim(0, top)
-    axis.set_xlabel("records Gao holds, per paper")
-    axis.set_ylabel("records we hold")
-    axis.legend(loc="upper left", frameon=False, fontsize=5.4, handletextpad=0.15,
-                borderpad=0.0, labelspacing=0.25, markerscale=1.1)
+    gaps = result["disagreements"]
+    off = gaps[~gaps.identical & gaps.ratio.notna() & (gaps.ratio > 1)]
+    fields = list(off.groupby("field").ratio.median().sort_values().index)
+    np.random.seed(0)
+    sns.stripplot(data=off, x="ratio", y="field", order=fields, ax=axis, size=3.4,
+                  hue="field", hue_order=fields, legend=False, jitter=0.22, alpha=0.9,
+                  palette={f: (CATEGORICAL["red"] if f.endswith("_amount_g")
+                               else CATEGORICAL["blue"]) for f in fields})
+    axis.set_xscale("log")
+    axis.axvline(1 + TOLERANCE, color=INK, lw=0.7, ls=(0, (3, 2)), zorder=1)
+    axis.annotate(f"{TOLERANCE:.0%} tolerance", (1 + TOLERANCE, -0.55), xytext=(-3, 0),
+                  textcoords="offset points", fontsize=5.2, color=DIM, va="center",
+                  ha="right")
+    axis.set_xlim(1.003, 16)
+    # A log axis puts its own labelled minor ticks between the decades, and at this range they
+    # landed on top of the four that carry the meaning.
+    axis.xaxis.set_minor_locator(NullLocator())
+    # Three ticks, not four: 1.01 and 1.1 are a millimetre apart at this width and printed on
+    # top of each other.
+    axis.set_xticks([1.01, 2, 10], ["$\\times$1.01", "$\\times$2", "$\\times$10"])
+    axis.set_yticks(range(len(fields)),
+                    [f.replace("_percent", " %").replace("_amount_g", " (g)").replace("_", " ")
+                     for f in fields], fontsize=5.4)
+    axis.tick_params(axis="y", length=0)
+    axis.spines["left"].set_visible(False)
+    axis.set_ylim(-0.85, len(fields) - 0.3)
+    axis.set_ylabel("")
+    axis.set_xlabel(f"factor apart, where they differ\n"
+                    f"{int(gaps.identical.sum())} of {len(gaps)} values identical")
 
     save(figure, "fig_gao_records")
 

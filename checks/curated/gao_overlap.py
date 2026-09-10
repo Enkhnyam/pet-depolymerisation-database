@@ -278,6 +278,58 @@ def _column(frame: pd.DataFrame, prefix: str, field: str) -> pd.Series:
     return frame[f"{prefix}{field}"]
 
 
+def disagreements(frame: pd.DataFrame) -> pd.DataFrame:
+    """Every numeric value both datasets report, and how far apart the two are.
+
+    The agreement table says how often the two agree at the grader's tolerance. It cannot say
+    what a disagreement looks like, and the answer turns out to be the interesting part: of 842
+    values reported by both, 797 are identical to the digit -- temperature and reaction time on
+    every one of the 118 records that carry them -- and the 45 that differ are almost all masses,
+    apart by factors rather than by percent. Catalyst mass disagreements have a median relative
+    difference of 40% and a maximum of 669%; PET and solvent masses sit at 100%, which is a
+    factor of two.
+
+    That is the same failure this project's judge concentrates its corrections on, arrived at
+    from the outside: authors state an absolute charge once and vary it implicitly as a ratio,
+    and whichever reader misses that -- person or model -- lands a factor out. It is the
+    strongest external corroboration available for the error profile the judge reports.
+    """
+    both = frame[frame.category == "both"]
+    rows = []
+    for field in NUMERIC:
+        theirs = pd.to_numeric(_column(both, "gao_", field), errors="coerce")
+        ours = pd.to_numeric(_column(both, "ours_", field), errors="coerce")
+        keep = theirs.notna() & ours.notna()
+        for a, b in zip(theirs[keep], ours[keep]):
+            # The ratio of the larger to the smaller, not the relative difference: "a factor
+            # of two" is what these disagreements are, and a reader converting 100% into that
+            # in their head is a reader the axis has failed.
+            ratio = (max(abs(a), abs(b)) / min(abs(a), abs(b))
+                     if min(abs(a), abs(b)) else float("nan"))
+            rows.append({"field": field, "gao": a, "ours": b,
+                         "identical": a == b, "ratio": ratio,
+                         "relative": abs(b - a) / abs(a) if a else float("nan")})
+    return pd.DataFrame(rows)
+
+
+def reclassification(frame: pd.DataFrame) -> pd.DataFrame:
+    """What the automatic rule proposed for each record, against what a chemist settled on.
+
+    The five reasons in the accounting are human verdicts, and this is the audit of them. It
+    matters most in one direction: the rule proposed "our extraction missed it" for 20 records
+    and a person reading the papers confirmed 11 of them, moving six to values plotted rather
+    than tabulated and three to design tables our scope skips. Reported automatically, this
+    comparison would have blamed the extraction for nearly twice as many records as it deserves,
+    which is the reason the classification is human work and is worth showing rather than
+    asserting.
+    """
+    gao = frame[frame.category != "ours"]
+    return pd.DataFrame({
+        "the rule proposed": gao.rule_said.value_counts(),
+        "a chemist settled on": gao.category.value_counts(),
+    }).reindex(REASONS).fillna(0).astype(int)
+
+
 def per_paper(frame: pd.DataFrame) -> pd.DataFrame:
     """Records each side holds, paper by paper.
 
@@ -355,6 +407,8 @@ def compute() -> dict:
         "condition space": condition_space(frame),
         "completeness": completeness(frame),
         "per paper": per_paper(frame),
+        "reclassification": reclassification(frame),
+        "disagreements": disagreements(frame),
         "identical": identical(frame),
         "ours only": ours_only(frame).reason.value_counts()
                      .reindex(OURS_ONLY_REASONS).fillna(0).astype(int),

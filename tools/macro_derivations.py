@@ -14,6 +14,17 @@ this whole mechanism exists to make easy.
 """
 DERIVATION = {
 
+    "GaoValuesCompared":
+        "Numeric values both this work and Gao et al. report for the same record and field.",
+    "GaoValuesSame":
+        "How many of those are identical to the digit. Two datasets built independently, one by "
+        "hand and one by extraction, agreeing exactly on 95% of every number they share.",
+    "GaoValuesDiffer": "The remainder, which are almost all masses and apart by factors.",
+    "BenchOverlapScore":
+        "The score at which the best extractor's worst run meets the runner-up's best, at the "
+        "shipped setting. The two are not separated by this benchmark, and the model panel says "
+        "so rather than quoting a difference in means.",
+
     "GaoPapersTheyLead": "Papers where the hand curation holds more records than this work.",
     "GaoPapersWeLead": "Papers where this work holds more. The size difference runs both ways.",
     "GaoTopGapTheirs":
