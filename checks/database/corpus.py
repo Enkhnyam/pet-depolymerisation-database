@@ -137,6 +137,12 @@ def compute() -> dict:
             "records": len(extracted),
             "median records per yielding paper": per_paper.median(),
             "largest single paper": per_paper.max(),
+            # The manuscript's extraction table claims zero unparseable outputs, and that claim
+            # was the one number in the table typed by hand. The extractor records it per run:
+            # a paper whose reply did not validate against the response schema, after the
+            # fenced-JSON retry. Read rather than asserted.
+            "unparseable outputs": int(json.loads(
+                (DATABASE / "run_meta.json").read_text()).get("parse_failed_papers", 0)),
         },
     }
 

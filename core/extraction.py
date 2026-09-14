@@ -73,7 +73,11 @@ def run_llm(llm_params: dict, messages, response_model=ExtractionResponse, **kwa
 
 
 def read_prompt(harness_params: dict) -> str:
-    return prompt_path(harness_params.get("prompt_file", "prompt.txt")).read_text(encoding="utf-8")
+    # extraction_prompt.txt, not prompt.txt: the older default carried a verbatim table
+    # copied out of a source paper as a source-tracking illustration, which is not ours to
+    # publish, and every config names extraction_prompt.txt anyway.
+    return prompt_path(harness_params.get("prompt_file",
+                                          "extraction_prompt.txt")).read_text(encoding="utf-8")
 
 def construct_prompt(harness_params: dict, target_doi: str) -> list[dict]:
     n_shots = harness_params["n_shots"]

@@ -185,7 +185,7 @@ def corrections(extraction: Path, judge: Path) -> list[dict]:
             if not verdict:
                 continue
             for fix in verdict.get("fixes") or []:
-                # canonical_field because the judge names PET_amount_g both ways; cli/release.py
+                # canonical_field because the judge names PET_amount_g both ways; cli/apply_fixes.py
                 # resolves it the same way, so the page and the released data agree on which
                 # corrections exist
                 field = canonical_field(fix.get("field"))

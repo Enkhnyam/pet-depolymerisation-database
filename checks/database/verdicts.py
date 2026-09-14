@@ -22,7 +22,7 @@ def compute() -> dict:
         verdicts += json.loads(path.read_text())["verdicts"]
 
     # Partition on drop_record, the judge's own instruction to remove a record, because that is
-    # what cli/release.py and cli/apply_fixes.py act on. Counting "rejected outright" as "rejected
+    # what cli/apply_fixes.py acts on. Counting "rejected outright" as "rejected
     # with no field fixes" instead put 66 records that the judge asked to drop into the corrected
     # column, and left the paper reporting 29 drops against the 95 the released files perform.
     accepted = sum(1 for verdict in verdicts if verdict["verdict"] == "correct")

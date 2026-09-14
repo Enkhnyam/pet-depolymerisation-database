@@ -222,6 +222,10 @@ DERIVATION = {
         "should yield none -- but this is also the audit's blind spot, since a missed "
         "experiment is invisible.",
     "DatabaseRecords": "Records extracted across the whole corpus.",
+    "DatabaseUnparseable":
+        "Papers whose reply did not validate against the response schema, after the "
+        "fenced-JSON retry. The extraction table quotes this as evidence that a "
+        "schema-constrained response format holds; it is read from the run, not asserted.",
     "DatabaseMedianRecords": "Median records per yielding paper.",
     "DatabaseLargestPaper": "Records from the single largest paper.",
     "DatabaseCost": "USD spent on the mass extraction.",
@@ -234,7 +238,7 @@ DERIVATION = {
         "Rejected with a proposed replacement value. The record survives into the corrected "
         "database with those fields rewritten.",
     "JudgeDropped":
-        "Rejected outright -- the judge set drop_record, so cli/release.py deletes the row "
+        "Rejected outright -- the judge set drop_record, so cli/apply_fixes.py deletes the row "
         "rather than repairing it. Partitioned on that flag, because that is what the "
         "released files act on.",
     "JudgePassRate": "Accepted as a share of judged. The headline quality figure.",

@@ -132,6 +132,7 @@ def collect() -> tuple[dict, dict]:
         "DatabaseYielding": f"{co['extraction']['papers yielding records']:,}",
         "DatabaseEmpty": f"{co['extraction']['papers yielding none']:,}",
         "DatabaseRecords": f"{co['extraction']['records']:,}",
+        "DatabaseUnparseable": f"{co['extraction']['unparseable outputs']:,}",
         "DatabaseMedianRecords": f"{co['extraction']['median records per yielding paper']:.0f}",
         "DatabaseLargestPaper": f"{co['extraction']['largest single paper']:,}",
         # --- the judge on the database ---------------------------------------
