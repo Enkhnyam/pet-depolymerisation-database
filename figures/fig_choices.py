@@ -15,20 +15,26 @@ also the cheapest, which is the kind of coincidence worth stating rather than le
 cannot carry the claim to significance and the panel shows the repeats rather than an interval,
 so a reader can see how much of the gap is spread.
 
-(f) Cost against score. A logarithmic cost axis, which is the one place in this project a log
-scale is right: the models differ by two orders of magnitude in price and by hundredths in F1.
-The free judge is drawn at $0.01 so it has somewhere to sit.
+(f) Does paying more buy anything? Not a plane of score against cost, which is what this was and
+what made it unreadable: cost is the variable the panel is about and the one the arms are least
+separated on -- seven of the eight between nothing and $0.22, the eighth at $1.23. Rows sorted by
+price instead, one arm each, score the only axis. Prices rise down the column and scores do not
+follow; the step line is the best score anything at that price or less reached, so a dot left of
+it is an arm beaten on both counts.
 """
 import numpy as np
 import seaborn as sns
 from matplotlib.lines import Line2D
-from matplotlib.ticker import NullLocator
 
 from _style import CATEGORICAL, DIM, EMPHASIS, INK, RAMP, RULE, canvas, save
 from curated import extractions, shots, source_tracking, thresholds
 
 # The value each threshold actually ships at, read from the check rather than repeated here.
 import _setup
+
+# The extractors as (f) names them. Short forms: the caption spells each one out in full, and a
+# row label three words wide would take the axis with it.
+MODELS = {"oss": "gpt-oss", "luna": "luna", "terra": "terra"}
 
 SWEEPS = [("accept", _setup.ACCEPT, "acceptance cutoff $\\tau$"),
           ("catalyst", _setup.CATALYST, "catalyst similarity gate"),
@@ -102,62 +108,65 @@ def main() -> None:
     axis.set_xlabel("")
     axis.set_ylabel("$F_1$, mean of three repeats")
 
-    # --- f: what more money actually buys ----------------------------------------------------
-    # Three versions of this panel argued one variable at a time -- this model against that one,
-    # one worked example against none -- and the two interact, because an example is input
-    # tokens on every paper. Every arm on one plane turns it into the question a reader has:
-    # which configurations are not beaten on both counts at once.
+    # --- f: does paying more buy anything? ---------------------------------------------------
+    # Third form of this panel. It was a scatter of score against cost, which failed because cost
+    # is the variable the panel is about and the one the arms are least separated on -- seven of
+    # eight between nothing and $0.22, the eighth at $1.23 -- so any axis wide enough for terra
+    # collapsed the rest into a labelled cloud. Sorting by price instead fixed that.
     #
-    # The shaded quadrant is what a Pareto argument is. Anything inside it costs more than the
-    # shipped setting and scores less, so terra sitting there at eight times the price is the
-    # panel's own conclusion rather than a sentence in the caption.
+    # What it then acquired was clutter. A staircase of the best score at each price ran through
+    # the dots, and because it is a step function drawn over a scatter it read as a data series
+    # connecting them -- the one thing it is not. A shaded band for the shipped arm's spread took
+    # a third of the width, and the error bars already said what it said.
+    #
+    # Both are gone and neither claim is lost. Domination is a property of an arm, so it is drawn
+    # on the arm: an arm that nothing cheaper beats is filled, an arm beaten on both price and
+    # score at once is hollow. That is the same partition the staircase drew, read off one
+    # marker instead of off a line and a position. The shipped arm keeps a single dashed rule so
+    # a reader can drop a vertical from it; the error bars carry the spread.
     axis = panel[5]
-    configs = extractions.configurations()
+    configs = extractions.configurations().sort_values("cost").reset_index(drop=True)
     shipped_row = configs[(configs.model == "luna")
                           & (configs.n_shots == int(_setup.DATABASE_SHOTS)
                              if hasattr(_setup, "DATABASE_SHOTS") else configs.n_shots == 1)]
     shipped_row = shipped_row.iloc[0]
+    rows = len(configs)
 
-    # oss bills nothing at all, and a logarithmic axis has no room for zero. It sits at the
-    # left-hand tick, which is labelled "free" rather than given a price it never had.
-    FREE = 0.045
-    place = lambda c: FREE if c <= 0 else c
+    # One rule at what ships, to drop a vertical from. Behind everything.
+    axis.axvline(shipped_row.f1, color=RULE, lw=0.9, ls=(0, (3, 2)), zorder=0)
 
-    axis.fill_between([place(shipped_row.cost), 3], -1, shipped_row.f1,
-                      color=RULE, alpha=0.55, zorder=0, linewidth=0)
-    axis.annotate("dearer and worse", (2.6, 0.653), ha="right", fontsize=5.2, color=DIM)
+    for index, row in configs.iterrows():
+        top = rows - 1 - index
+        ships = row.model == shipped_row.model and row.n_shots == shipped_row.n_shots
+        frontier = bool(row["on frontier"])
+        axis.errorbar(row.f1, top, xerr=row.sd, fmt="none",
+                      ecolor=DIM if frontier else RULE, elinewidth=0.6, capsize=1.6, zorder=2)
+        # filled = nothing cheaper beats it; hollow = beaten on price and score at once
+        axis.plot([row.f1], [top], marker="D" if ships else "o", ms=4.6 if ships else 3.8,
+                  color=(EMPHASIS if ships else RAMP[2]) if frontier else "white",
+                  markeredgecolor=EMPHASIS if ships else (RAMP[2] if frontier else DIM),
+                  markeredgewidth=0.6 if frontier else 0.9, zorder=3)
+        # The price, in a column of its own past the axis, right-aligned so eight of them can be
+        # compared digit by digit rather than by the length of anything.
+        axis.annotate("free" if row.cost <= 0 else f"\\${row.cost:.2f}", (1.15, top),
+                      xycoords=("axes fraction", "data"), ha="right", va="center",
+                      fontsize=5.4, color=EMPHASIS if ships else DIM)
 
-    frontier = configs[configs["on frontier"]].sort_values("cost")
-    axis.step([place(c) for c in frontier.cost], frontier.f1, where="post", color=RAMP[2],
-              lw=1.0, zorder=2)
-
-    for row in configs.itertuples():
-        x = place(row.cost)
-        edge = row._7                       # on frontier
-        axis.errorbar(x, row.f1, yerr=row.sd, fmt="none", ecolor=DIM, elinewidth=0.5,
-                      capsize=1.4, zorder=3)
-        axis.plot([x], [row.f1], marker="o", ms=3.6, zorder=4,
-                  color=RAMP[2] if edge else "white",
-                  markeredgecolor=RAMP[2] if edge else DIM, markeredgewidth=0.9)
-    axis.plot([place(shipped_row.cost)], [shipped_row.f1], marker="D", ms=5.0, color=EMPHASIS,
-              markeredgecolor="white", markeredgewidth=0.7, zorder=6)
-
-    for label, row, offset in (("gpt-oss", configs[configs.model == "oss"].iloc[0], (6, -8)),
-                               ("terra", configs[configs.model == "terra"].iloc[0], (-6, -9)),
-                               ("luna, 1 example", shipped_row, (4, 9))):
-        axis.annotate(label, (place(row.cost), row.f1), xytext=offset,
-                      textcoords="offset points", fontsize=5.6, color=DIM,
-                      ha="right" if offset[0] < 0 else "left")
-
-    axis.set_xscale("log")
-    axis.set_xlim(0.030, 3.4)
-    # A log axis labels its own minor ticks, and at this width they printed over the four that
-    # carry the meaning.
-    axis.xaxis.set_minor_locator(NullLocator())
-    axis.set_xticks([FREE, 0.1, 0.3, 1.0], ["free", "\\$0.10", "\\$0.30", "\\$1"])
-    axis.set_ylim(0.64, 0.86)
-    axis.set_ylabel("")
-    axis.set_xlabel("cost of one run\nfilled: on the frontier · hollow: beaten")
+    axis.annotate("per run", (1.15, rows - 0.35), xycoords=("axes fraction", "data"),
+                  ha="right", va="bottom", fontsize=5.2, color=DIM)
+    axis.set_yticks(range(rows),
+                    [f"{MODELS[row.model]} \u00b7 {row.n_shots}"
+                     for row in configs.itertuples()][::-1],
+                    fontsize=5.6)
+    axis.tick_params(axis="y", length=0)
+    axis.spines["left"].set_visible(False)
+    axis.set_ylim(-0.5, rows - 0.15)
+    axis.set_xlim(0.712, 0.832)
+    axis.set_xticks([0.72, 0.76, 0.80])
+    # That the rows run cheapest to dearest is not stated: the price column ascends, which says
+    # it once and without a word. One line, because the marker now carries what three explained.
+    axis.set_xlabel("$F_1$ on the benchmark, bars \u00b11 s.d.\n"
+                    "hollow: beaten on price and score")
 
     # What the two marks in (a)-(d) mean. Without this a reader has a yellow dot and a dark
     # diamond on four panels and no way to tell which is the setting and which is the optimum.

@@ -1,7 +1,10 @@
 """The funnel from search to corpus, and what the extraction produced on it.
 
 The drop from papers that passed the filter to papers we actually hold is licensing, not
-relevance: we have a text-and-data-mining entitlement with Elsevier and with nobody else.
+relevance. The entitlement is not Elsevier-only, which this file used to say: it also covers the
+Wiley and Springer subscription content that arrives as PDF, and that is most of the PDF route
+rather than a corner of it. `access` counts the two routes apart, because a licensing sentence in
+the manuscript should not be a guess about which publisher was reached how.
 """
 import csv
 import json
@@ -93,15 +96,34 @@ def compute() -> dict:
             empty["unclassified"] += 1
 
     kept_dois = {row["doi"].lower() for row in kept}
+    # How each paper was licensed to us, as against what file format it arrived in. Elsevier XML
+    # and any PDF Unpaywall calls closed came under the text-and-data-mining entitlement; Europe
+    # PMC deposits and the PDFs Unpaywall calls open are open access. The distinction is the one
+    # a reader checking our right to have read these papers needs, and it does not follow from
+    # the format alone -- 125 of the 493 PDFs are open access and 368 are not.
+    oa = {row["doi"].strip().lower(): row["is_oa"].strip().lower() == "true"
+          for row in csv.DictReader(data_path("oa_status.csv").open(encoding="utf-8"))}
+    access, entitled_by = Counter(), Counter()
     for path in data_path("corpus_markdown").glob("*.md"):
         doi = path.stem.replace("@", "/").lower()
-        if doi in kept_dois:
-            by_source[SOURCE_TAGS.get(formats.get(doi), "OtherSource")] += 1
+        if doi not in kept_dois:
+            continue
+        by_source[SOURCE_TAGS.get(formats.get(doi), "OtherSource")] += 1
+        fmt = formats.get(doi)
+        if fmt == "Elsevier XML" or (fmt == "PDF" and not oa.get(doi, False)):
+            access["under a mining entitlement"] += 1
+            entitled_by[PUBLISHERS.get(doi.split("/")[0], "other")] += 1
+        elif fmt in ("Europe PMC JATS", "PDF"):
+            access["open access"] += 1
+        else:
+            access["route not recorded"] += 1
 
     return {
         "empty papers": pd.Series(empty).sort_values(ascending=False),
         "funnel": funnel,
         "obtained by": by_source,
+        "licensed by": pd.Series(access).sort_values(ascending=False),
+        "entitlement, by publisher": pd.Series(entitled_by).sort_values(ascending=False),
         # roughly four characters to a token; the paper quotes this to say the judge's context
         # window was never the binding constraint
         "largest judged tokens": largest_chars // 4,

@@ -45,7 +45,7 @@ import _setup
 import cost
 from curated import extractions, gao_overlap, matrix, shots, source_tracking, thresholds
 from database import chemistry, corpus, formats, provenance, verdicts, withinpaper
-from human import adjudicated, growth, integrity, worklist
+from human import adjudicated, corrections, growth, integrity, worklist
 
 OUT = ARTIFACTS / "paper_numbers.tex"
 FIELD_TABLE = ARTIFACTS / "paper_table_fields.tex"
@@ -96,6 +96,7 @@ def collect() -> tuple[dict, dict]:
     src = source_tracking.compute()
     sweeps = thresholds.compute()
     audit = adjudicated.compute(adjudicated.REAL)
+    _corr = corrections.compute()
     table, mcnemar = audit["table"], audit["mcnemar"]
     counts, funnel = ve["counts"], co["funnel"]
     routes = ch["by route"]["records"]
@@ -117,6 +118,10 @@ def collect() -> tuple[dict, dict]:
     database_meta = json.loads((_setup.DATABASE / "run_meta.json").read_text())
     database_shots = json.loads(
         (_setup.DATABASE / "config.json").read_text())["harness_params"]["n_shots"]
+    # The cost-against-score plane the SI's choices figure draws, and the arm on it that ships.
+    _configs = extractions.configurations()
+    _shipped = _configs[(_configs.model == "luna")
+                        & (_configs.n_shots == int(database_shots))].iloc[0]
 
     values = {
         # --- the corpus ------------------------------------------------------
@@ -177,6 +182,19 @@ def collect() -> tuple[dict, dict]:
         # --- the curated benchmark -------------------------------------------
         "CuratedExperiments": f"{len(curated_rows):,}",
         "CuratedPapers": f"{curated_rows.doi.nunique():,}",
+        # --- what a proposed correction is worth, by what it asks you to do ---
+        "CorrSampled": f"{_corr.attrs['sampled']}",
+        "CorrAccepted": f"{_corr.attrs['accepted']}",
+        "CorrAcceptedDefensible": f"{_corr.attrs['accepted but defensible']}",
+        "CorrCaught": f"{int(_corr[corrections.CAUGHT].sum())}",
+        "CorrBoth": f"{int(_corr[corrections.BOTH].sum())}",
+        "CorrRejected": f"{int(_corr[corrections.REJECTED].sum())}",
+        "CorrBestShare": f"{100 * _corr['caught share'].iloc[0]:.0f}",
+        "CorrWorstShare": f"{100 * _corr['caught share'].iloc[-1]:.0f}",
+        "CorrRenameCases": f"{int(_corr.loc['substance', 'cases'])}",
+        "CorrRenameCaught": f"{int(_corr.loc['substance', corrections.CAUGHT])}",
+        "CorrRenameBoth": f"{int(_corr.loc['substance', corrections.BOTH])}",
+        "CorrNumberCases": f"{int(_corr.loc['number', 'cases'])}",
         # --- the adjudication -------------------------------------------------
         "AdjRecords": f"{audit['records'].shape[0]:,}",
         "AdjJudgeFlagged": f"{int(table.loc['judge', 'flagged']):,}",
@@ -344,9 +362,21 @@ def collect() -> tuple[dict, dict]:
         "GaoExtraRecords": f"{gao['extra records'].attrs['extra']:,}",
         "GaoExtraPapers": f"{gao['extra records'].attrs['extra papers']}",
         "GaoExtraCatalystGap":
-            f"{100 * (gao['extra records'].loc['catalyst_amount_g', 'shared'] - gao['extra records'].loc['catalyst_amount_g', 'ours only']):.0f}",
+            f"{-100 * gao['extra records'].loc['catalyst_amount_g', 'gap']:.0f}",
         "GaoExtraSolventGap":
-            f"{100 * (gao['extra records'].loc['solvent_amount_g', 'shared'] - gao['extra records'].loc['solvent_amount_g', 'ours only']):.0f}",
+            f"{-100 * gao['extra records'].loc['solvent_amount_g', 'gap']:.0f}",
+        # How the surplus-completeness panel splits, counted rather than eyeballed. The caption
+        # used to say "nine of the ten distances are short" and then name two exceptions, which
+        # is eleven fields out of ten; and "three run the wrong way for the suspicion" counted
+        # the labelled gaps rather than the positive ones, of which there are four.
+        "GaoExtraFields": f"{len(gao['extra records'])}",
+        # Whether the surplus is fragments is a question about records, not about fields, so
+        # these come from the per-record profile rather than from the per-field one.
+        "GaoSharedMean": f"{gao['fields per record'].attrs['shared mean']:.1f}",
+        "GaoSurplusMean": f"{gao['fields per record'].attrs['ours only mean']:.1f}",
+        "GaoSharedThin": f"{gao['fields per record'].attrs['shared thin']}",
+        "GaoSurplusThin": f"{gao['fields per record'].attrs['ours only thin']}",
+        "GaoThinFields": f"{gao_overlap.THIN - 1}",
         "GaoValuesCompared": f"{len(gao['disagreements']):,}",
         "GaoValuesSame": f"{int(gao['disagreements'].identical.sum()):,}",
         "GaoValuesDiffer": f"{int((~gao['disagreements'].identical).sum()):,}",
@@ -366,6 +396,13 @@ def collect() -> tuple[dict, dict]:
         "GrowthAllFone": f"{growth_rows['f1'].iloc[2]:.3f}",
         "CostLuna": f"{cost.arm_cost('luna', ex.loc['luna', 'n_shots']):.2f}",
         "CostTerra": f"{cost.arm_cost('terra', ex.loc['terra', 'n_shots']):.2f}",
+        # The cost-against-score plane, and the one line on it a reader should decide from: how
+        # wide a repeat is, and how many arms that width fails to separate from the shipped one.
+        "ChoiceArms": f"{len(_configs)}",
+        "ChoiceShippedSd": f"{_shipped.sd:.3f}",
+        "ChoiceWithinSpread":
+            f"{int(((_configs.f1 >= _shipped.f1 - _shipped.sd) & (_configs.f1 < _shipped.f1)).sum())}",
+        "ChoiceBeaten": f"{int((~_configs['on frontier']).sum())}",
         "WithinPaperPapers": f"{int(within_lead['papers'])}",
         "WithinPaperPositive": f"{100 * within_lead['as predicted']:.0f}",
         "WithinPaperShare": f"{100 * int(within_lead['papers']) / int(co['extraction']['papers yielding records']):.0f}",
@@ -374,6 +411,13 @@ def collect() -> tuple[dict, dict]:
         "CorpusNotObtained": f"{int(funnel['passed the filter']) - int(funnel['converted to chunked text']):,}",
         "CorpusUnextracted": f"{int(funnel['converted to chunked text']) - int(funnel['extracted so far']):,}",
         **{f"Corpus{tag}": f"{count:,}" for tag, count in co["obtained by"].items()},
+        # How the corpus was licensed to us, which the format counts do not say: most of the PDF
+        # route is Wiley and Springer subscription content under the same entitlement that
+        # supplies Elsevier's XML, not open access.
+        "CorpusEntitlement": f"{co['licensed by']['under a mining entitlement']:,}",
+        "CorpusOpenAccess": f"{co['licensed by']['open access']:,}",
+        "CorpusWileyEntitled": f"{co['entitlement, by publisher']['Wiley']:,}",
+        "CorpusSpringerEntitled": f"{co['entitlement, by publisher']['Springer']:,}",
         # --- the integrity questions a referee asks first ---------------------
         "ExemplarPool": f"{integ['contamination']['worked-example pool']}",
         "ExemplarsInBenchmark": f"{integ['contamination']['examples that are also benchmark papers']}",

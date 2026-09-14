@@ -22,6 +22,32 @@ DERIVATION = {
         "Percentage points by which the records we hold alone report catalyst mass less often "
         "than the shared ones do. One of only two fields where the surplus is thinner.",
     "GaoExtraSolventGap": "The same for solvent mass.",
+    "GaoExtraFields": "Fields the surplus-completeness comparison covers.",
+    "GaoSharedMean":
+        "Fields, of the ten compared, carried by the average record both datasets hold.",
+    "GaoSurplusMean":
+        "The same for the records this work holds alone. Within a fifth of a field of the "
+        "shared set, which is the answer to whether the surplus is fragments -- a question "
+        "about records that per-field fill rates cannot reach.",
+    "GaoSharedThin": "Shared records carrying fewer than seven of the ten fields.",
+    "GaoSurplusThin":
+        "Surplus records carrying fewer than seven of the ten fields. If the surplus were "
+        "fragments this is where they would be, and there are three of them.",
+    "GaoThinFields": "Fields below which a record counts as thin.",
+
+    "ChoiceArms":
+        "Benchmark configurations on the cost-against-score plane. Arms with fewer than three "
+        "repeats are left off it: at this spread a single run is not a position.",
+    "ChoiceShippedSd":
+        "Standard deviation in F1 across repeats of the shipped arm. The width of a repeat, and "
+        "the resolution at which any two arms on that plane can be told apart.",
+    "ChoiceBeaten":
+        "Arms beaten on both counts at once -- something costs less and scores at least as "
+        "much. On the ranked panel these are the dots sitting left of the step line.",
+    "ChoiceWithinSpread":
+        "Arms other than the shipped one that score within that width of it. They are not "
+        "distinguishably worse, so the choice among them is cost and nothing else -- which is "
+        "what the filled-versus-hollow frontier, computed on the means alone, cannot say.",
 
     "GaoValuesCompared":
         "Numeric values both this work and Gao et al. report for the same record and field.",
@@ -173,6 +199,16 @@ DERIVATION = {
         "and the database differ by one and both numbers are reported.",
     "CorpusElsevierXml": "Obtained as Elsevier full-text XML.",
     "CorpusPdf": "Obtained as PDF: Wiley and Springer under entitlement, the rest open access.",
+    "CorpusEntitlement":
+        "Papers we hold under a text-and-data-mining entitlement: Elsevier's XML plus the Wiley "
+        "and Springer subscription PDFs Unpaywall reports as closed.",
+    "CorpusOpenAccess":
+        "Papers we hold because they are open access -- Europe PMC deposits and the PDFs "
+        "Unpaywall reports as open.",
+    "CorpusWileyEntitled":
+        "Of the entitlement papers, how many are Wiley. The second-largest block after "
+        "Elsevier, and the reason the entitlement cannot be described as Elsevier-only.",
+    "CorpusSpringerEntitled": "Of the entitlement papers, how many are Springer.",
     "CorpusEuropePmc": "Obtained as Europe PMC JATS deposits.",
     "CorpusOtherSource": "Obtained by no other named route.",
     "FunnelDroppedPolymer": "Dropped: no polymer named.",
@@ -296,6 +332,31 @@ DERIVATION = {
     "AdjMetricFlagged": "Records the metric grader called incorrect.",
     "AdjJudgeTruePositives": "Of the judge's flags, how many a chemist agreed were wrong.",
     "AdjMetricTruePositives": "Of the metric's flags, how many a chemist agreed were wrong.",
+    "CorrSampled":
+        "Proposed corrections drawn stratified by field and ruled on by chemists.",
+    "CorrAccepted":
+        "Cards where the chemists accepted the judge's value. The pooled number, and the one "
+        "the figure exists to take apart.",
+    "CorrAcceptedDefensible":
+        "Of those, the cards also marked defensible either way -- the judge's value was fine "
+        "and so was the extractor's, so nothing was fixed.",
+    "CorrCaught":
+        "Cards where the judge caught an error the extractor had actually made: it accepted "
+        "the judge's value and did not also call the extractor's acceptable.",
+    "CorrBoth": "Cards where the extractor had not erred, so there was nothing to correct.",
+    "CorrRejected":
+        "Cards where the chemists did not take the judge's value -- they backed the "
+        "extractor's, or neither.",
+    "CorrBestShare": "Its hit rate, as a percentage.",
+    "CorrWorstShare":
+        "The hit rate on the kind it is least often right about, which is renaming a "
+        "substance. The spread between the two is the figure's finding.",
+    "CorrRenameCases": "Proposals to rename a catalyst or solvent that were ruled on.",
+    "CorrRenameCaught": "How many of those were a real error.",
+    "CorrRenameBoth": "How many were two acceptable names for the same compound.",
+    "CorrNumberCases":
+        "Proposals to replace one number with another that were ruled on -- too few to read a "
+        "rate from, which is why the figure draws sample size as bar thickness.",
     "AdjJudgePrecision": "Judge precision. Censused, so it carries no sampling error.",
     "AdjJudgeRecall":
         "Judge recall. Weighted, and wide, because its denominator reaches into the sampled "

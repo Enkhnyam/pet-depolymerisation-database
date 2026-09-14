@@ -278,6 +278,15 @@ def _column(frame: pd.DataFrame, prefix: str, field: str) -> pd.Series:
     return frame[f"{prefix}{field}"]
 
 
+# How far apart two fill rates have to be before the difference is worth a word. Two standard
+# errors of the difference in proportions, computed per field from the two group sizes -- so a
+# field 91 and 131 records disagree about by four points is called what it is, which is nothing.
+# It replaces a flat five-point rule that had no argument behind it and, worse, had leaked into
+# the prose: the SI caption said three fields ran the extraction's way because three of them
+# cleared five points, when the fourth ran the same way and was simply left unlabelled.
+NOISE_SIGMAS = 2
+
+
 def extra_records(frame: pd.DataFrame) -> pd.DataFrame:
     """How complete the records only this work holds are, against the ones both datasets hold.
 
@@ -287,24 +296,75 @@ def extra_records(frame: pd.DataFrame) -> pd.DataFrame:
     the same rate as the 131 both datasets share, better on temperature and reaction time, and
     they come from 13 of the 19 papers rather than from one anomalous document.
 
-    The two mass fields are the exception and are the same two the judge corrects most often,
-    which is consistent with what those records are: runs stated in a results table whose
-    absolute charges are given once in a methods paragraph.
+    `gap` is what the test turns on and `beyond noise` is whether it survives the sample sizes.
+    Eight of the ten fields do not, which is the finding: the surplus records are as complete as
+    the shared ones. The two that do are both mass fields, and they are the same two the judge
+    corrects most often, which is consistent with what those records are: runs stated in a
+    results table whose absolute charges are given once in a methods paragraph.
     """
     extra = frame[frame.category == "ours"]
     shared = frame[frame.category == "both"]
     rows = []
     for field in NUMERIC + TEXT:
+        held = {side: _column(part, "ours_", field).notna()
+                for side, part in (("shared", shared), ("ours only", extra))}
+        share = {side: held[side].mean() for side in held}
+        # standard error of a difference in two independent proportions
+        error = sum(share[side] * (1 - share[side]) / len(held[side]) for side in held) ** 0.5
         rows.append({
             "field": field,
-            "shared": _column(shared, "ours_", field).notna().mean(),
-            "ours only": _column(extra, "ours_", field).notna().mean(),
+            **share,
+            "gap": share["ours only"] - share["shared"],
+            "noise": NOISE_SIGMAS * error,
         })
     table = pd.DataFrame(rows).set_index("field")
+    table["beyond noise"] = table.gap.abs() > table.noise
     table.attrs["extra"] = len(extra)
     table.attrs["shared"] = len(shared)
     table.attrs["extra papers"] = int(extra.doi.nunique())
     table.attrs["papers"] = int(frame.doi.nunique())
+    return table
+
+
+# Where a fragment would sit. A record carrying fewer than this many of the ten compared fields
+# is thin enough that a referee would call it one, and the bands below pool everything under it.
+THIN = 7
+
+
+def fields_per_record(frame: pd.DataFrame) -> pd.DataFrame:
+    """How many of the ten compared fields each record carries, the shared set against ours alone.
+
+    extra_records() asks this field by field, and field by field cannot answer the question the
+    section actually poses. "Is the surplus fragments?" is a claim about records, not about
+    fields, and the two come apart completely: a population where every record is missing
+    catalyst mass and a population where a fifth of the records are nearly empty have the same
+    per-field fill rates and could not be more different. A fragment is a record with little on
+    it, so the test has to count fields per record and compare the distributions.
+
+    It answers no. The surplus averages 8.4 of the ten fields against 8.6 for the shared set,
+    both have a median of nine, and three of the 91 records carry fewer than seven fields --
+    against four of the 131 the two datasets share. Where the surplus is thinner it is thinner
+    by one field and not by five: the shared set peaks at nine fields on a record and the
+    surplus at eight, which is the two mass fields of extra_records() seen from the record's
+    side rather than the field's.
+    """
+    fields = NUMERIC + TEXT
+    counts = {}
+    for side, category in (("shared", "both"), ("ours only", "ours")):
+        part = frame[frame.category == category]
+        held = pd.concat([_column(part, "ours_", f).notna() for f in fields], axis=1)
+        counts[side] = held.sum(axis=1)
+
+    bands = list(range(len(fields), THIN - 1, -1))
+    labels = [str(b) for b in bands] + [f"{THIN - 1} or fewer"]
+    table = pd.DataFrame(
+        {side: [(held == b).mean() for b in bands] + [(held < THIN).mean()]
+         for side, held in counts.items()}, index=labels)
+    table.index.name = "fields on the record"
+    table.attrs = {"fields": len(fields),
+                   **{f"{side} records": len(held) for side, held in counts.items()},
+                   **{f"{side} mean": held.mean() for side, held in counts.items()},
+                   **{f"{side} thin": int((held < THIN).sum()) for side, held in counts.items()}}
     return table
 
 
@@ -440,6 +500,7 @@ def compute() -> dict:
         "reclassification": reclassification(frame),
         "disagreements": disagreements(frame),
         "extra records": extra_records(frame),
+        "fields per record": fields_per_record(frame),
         "identical": identical(frame),
         "ours only": ours_only(frame).reason.value_counts()
                      .reindex(OURS_ONLY_REASONS).fillna(0).astype(int),
@@ -482,6 +543,14 @@ def main() -> None:
          result["ours only"], fmt="{:.0f}")
 
     show("agreement on the records both datasets hold", result["agreement"])
+
+    extra = result["extra records"]
+    show("how much of a record the surplus carries, against the shared ones", extra)
+    beyond = extra[extra["beyond noise"]]
+    print(f"\n  {len(extra) - len(beyond)} of the {len(extra)} fields differ by less than "
+          f"{NOISE_SIGMAS} standard errors, so the surplus records are as complete as the "
+          f"\n  shared ones on all but {', '.join(beyond.index)}")
+
     print("\n  glycolysis only: Gao curated no hydrolysis or methanolysis, so nothing here "
           "\n  transfers to them. database/withinpaper.by_route() is what does.")
 

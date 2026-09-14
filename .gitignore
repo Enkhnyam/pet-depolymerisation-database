@@ -2,48 +2,45 @@
 .venv/
 .env
 __pycache__/
-wandb/
 
-# --- LaTeX build output ----------------------------------------------------------------------
-*.aux
-*.log
-*.fls
-*.fdb_latexmk
-*.out
-*.bbl
-*.toc
-*.blg
-paper_rsc.pdf
+# --- everything this repository does not publish ----------------------------------------------
+# core/paths.py states the policy: pushable source lives at the project root, and everything we
+# cannot push -- copyrighted paper text, model run output, generated reports and figures -- lives
+# under artifacts/. There is no exception. An earlier version kept artifacts/backup/ so the
+# manuscript could be rebuilt from a clone, and that folder carried the converted full text of 24
+# papers, only 7 of which are licensed for redistribution. Rebuilding from a clone is not worth
+# republishing other people's articles.
+/artifacts/
 
-# --- office and editor junk ------------------------------------------------------------------
-# LibreOffice writes one of these beside every open spreadsheet. One of them got committed.
-.~lock.*#
+# Local corpora, run logs and experiment tracking: inputs we were licensed to read, not to pass on.
+/download_data_pdf/
+/download_data_xml/
+/logs/
+/wandb/
 
-# --- artifacts/ ------------------------------------------------------------------------------
-# One rule, replacing a page of them: nothing under artifacts/ is tracked except the backup.
-#
-# core/paths.py always stated the policy -- "pushable source lives at the project root;
-# everything we can't push (copyrighted data + generated output) lives under artifacts/,
-# git-ignored" -- and the tree did not obey it. 118 MB was tracked, 64 MB of it converted
-# publisher full text across 1,027 files, which is not ours to redistribute. The rest was
-# output: review and adjudication HTML, release workbooks, the macro file, the figures.
-#
-# artifacts/backup/ is the exception and is built by tools/backup.py, not by hand: the LLM runs'
-# extractions and verdicts, the curated answer key, the chemists' decisions, the Scopus funnel
-# and the Gao CSVs. 43 MB, and none of it can be recomputed from what is pushed. Everything
-# else under artifacts/ either can be, or must not leave this machine.
-#
-# `backup.py --check` fails if that folder has gone stale or is missing a declared input, so
-# "the repository is enough to rebuild the paper" is tested rather than asserted.
-#
-# No trailing comments on the patterns. gitignore only treats "#" as a comment at the start of
-# a line, so "pattern  # why" is a pattern containing spaces and a hash, and matches nothing --
-# which is exactly how the first version of this section silently ignored none of it.
-/artifacts/*
-!/artifacts/backup/
-
-# PDFs are output, or someone else's paper. The manuscript's own figures were excepted here so
-# that latexmk on a fresh checkout would not fail at the first \includegraphics; they are not
-# any more, because they are generated -- restore the backup and run scripts/paper.sh, which
-# draws them from the checks.
+# --- manuscript ------------------------------------------------------------------------------
+# The paper itself is published by the journal; this repository is the code behind it.
+*.tex
 *.pdf
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.toc
+/overleaf/
+
+# --- working notes, not documentation ---------------------------------------------------------
+# Kept locally because they are useful; not published because they are a running conversation with
+# ourselves rather than anything a reader of this repository needs.
+/PLAN.md
+/VERIFY.md
+/VERIFY-audit.md
+
+# --- editor and office junk -------------------------------------------------------------------
+.~lock.*#
+.claude/
+*.code-workspace
+.DS_Store

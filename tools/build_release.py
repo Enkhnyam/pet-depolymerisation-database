@@ -28,6 +28,7 @@ Sheets, in the order someone reads them:
     build_release.py --no-baselines  leave the uncatalysed runs out
 """
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -40,10 +41,19 @@ from core.paths import ARTIFACTS
 from core.solubility import classify
 
 SOURCE = ARTIFACTS / "huggingface" / "full" / "records-00000-of-00001.parquet"
+
+# A catalyst cell naming more than one substance. Module level because review_corrections.py
+# excludes these from its sample and must not carry its own copy of the rule: two spellings of
+# "what counts as a mixture" drifting apart is exactly the kind of bug that is invisible until
+# somebody reviews a record the release would never have shipped.
+MULTI_CATALYST = re.compile(r"\s/\s|\s\+\s|,\s|\sand\s")
 BASIS = ARTIFACTS / "data" / "yield_basis.csv"
 OUT = ARTIFACTS / "release" / "pet_homogeneous_release.xlsx"
 # Bump on any change to the filter or the columns. Frozen for the release.
-VERSION = "1.0"
+# 1.1: core.solubility learned to read a bare metal-oxide formula by shape rather than from a
+# hand-written list, and to tell activated carbon from the acetate abbreviation. Nine records
+# that 1.0 shipped as homogeneous are heterogeneous and are no longer in the release.
+VERSION = "1.1"
 
 HEADER, RULE = "1F3B4D", "C9D6D3"
 PALETTE = ["3E6E8E", "B0523E", "86689F", "8D8677", "6C9E9C", "B08A3E", "57896B",
@@ -134,7 +144,7 @@ def build(with_baselines: bool):
     basis = pd.read_csv(BASIS).set_index("doi").yield_basis
     included["yield_basis"] = included.doi.map(basis).replace("", np.nan)
 
-    multi = included.catalyst.astype(str).str.contains(r"\s/\s|\s\+\s|,\s|\sand\s", na=False)
+    multi = included.catalyst.astype(str).str.contains(MULTI_CATALYST, na=False)
     included["single_component"] = ~multi
     # A cell naming two substances was given one dot-disconnected SMILES, which RDKit parses
     # without complaint and describes as a molecule that has never existed: "TBD / zinc acetate"

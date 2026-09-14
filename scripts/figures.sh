@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Draw every figure the manuscript includes.
+# Draw every figure.
 #
-# The list is the manuscript's own \includegraphics, exactly as tools/sync_captions.py reads it,
-# so a figure cannot be drawn that nothing uses and cannot be used that nothing draws. It used to
-# be a hard-coded four names here and the same four names again in sync_captions.py; between them
-# they drew fig4_choices for a paper that did not include it and skipped nothing that it did.
+# The list is figures/*.py, one module per figure. It used to be the manuscript's own
+# \includegraphics, so that a figure could not be drawn that nothing used -- a real guard when
+# the manuscript lived here, and impossible now that it does not. One module per figure is the
+# same guarantee from the other side: nothing is drawn that has no source, and nothing has source
+# that is not drawn.
 #
-# Panels carry only their letter; what a panel argues belongs in the caption, which is written by
-# hand in the manuscript. Numbers in a caption are macros, and checks/paper.py fails if a literal
-# in one duplicates a value a macro already defines.
+# Panels carry only their letter; what a panel argues belongs in its caption, which is written by
+# hand alongside the manuscript. Numbers in a caption come from tools/paper_numbers.py.
 #
 #   scripts/figures.sh              redraw
 #   FIGURES_CHECK=1 scripts/figures.sh   report stale figures, write nothing (exit 1 if any)
@@ -20,13 +20,10 @@ set -u; cd "$(dirname "$0")/.."
 
 STALE=0
 
-# Every manuscript, so a figure only the SI includes is still drawn and still checked.
-for figure in $(grep -ho 'artifacts/figures/[a-z0-9_]*\.pdf' paper_rsc.tex paper_rsc_v2.tex paper_si.tex \
-                | sed 's|.*/||; s|\.pdf$||' | sort -u); do
-  [ -f "figures/${figure}.py" ] || continue      # hand-drawn, nothing to run
+for figure in $(ls figures/fig_*.py | sed 's|figures/||; s|\.py$||' | sort); do
   out=$(./.venv/bin/python -W ignore "figures/${figure}.py" 2>&1) || { echo "!!! ${figure} failed"; echo "$out"; exit 1; }
   echo "$out"
-  case "$out" in *"stale artifacts/figures"*) STALE=$((STALE + 1));; esac
+  case "$out" in *"stale artifacts/figures_pdf"*) STALE=$((STALE + 1));; esac
 done
 
 if [ "${FIGURES_CHECK:-}" ] && [ "$STALE" -gt 0 ]; then

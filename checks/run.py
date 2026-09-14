@@ -13,13 +13,15 @@ from pathlib import Path
 # three entries named files that had been deleted. Order is alphabetical by group so a run reads
 # the same way twice.
 #
-# paper.py last: it reads artifacts/paper_numbers.tex, which the checks above are what
-# tools/paper_numbers.py computes it from, so its verdict is only meaningful after they pass.
+# paper.py used to run last. It checked the manuscript -- that every macro the body used was
+# defined, and that no literal in the text duplicated a computed value. The manuscript is not in
+# this repository, so neither is that check; tools/paper_numbers.py still emits the macros, which
+# is the half of the mechanism that is about the evaluation rather than about the prose.
 def scripts() -> list[str]:
     here = Path(__file__).parent
     found = sorted(str(p.relative_to(here)) for p in here.glob("*/*.py")
                    if not p.name.startswith("_"))
-    return found + ["cost.py", "palette.py", "paper.py"]
+    return found + ["cost.py", "palette.py"]
 
 
 

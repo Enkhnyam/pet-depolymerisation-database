@@ -255,9 +255,16 @@ audited = as_extracted.assign(**{{c: as_extracted["corrected_" + c] for c in FIE
 
 ## Provenance
 
-Built from open-access full text obtained through Europe PMC, Elsevier and publisher PDFs. Only
-the extracted values are redistributed here; no article text is included beyond the passage
-identifiers.
+Most of the source corpus is **not** open access. It was read under institutional
+text-and-data-mining entitlements covering Elsevier, Wiley and Springer; the remainder are
+open-access deposits from Europe PMC and open-access PDFs located via Unpaywall. Saying
+"built from open-access full text", as an earlier version of this card did, was simply wrong.
+
+What that entitlement permits is reading and mining, not redistribution, so **no article text is
+published here.** Every row carries extracted values, the chunk identifiers a value was read
+from, and the judge's short critique of it. Recovering the passage behind an identifier requires
+your own access to the paper. The `cc-by-4.0` licence above applies to this extracted dataset,
+not to the articles it was read from, which remain under their publishers' terms.
 
 Artifact set `{artifact}`. Every number in this card and in the paper is generated from that
 frozen run.

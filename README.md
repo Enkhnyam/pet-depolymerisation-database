@@ -1,51 +1,63 @@
-# PET depolymerisation database
+# PET depolymerisation database — extraction and evaluation code
 
-A database of PET depolymerisation experiments extracted from 447 papers, with a quality figure
-derived from judge–metric agreement rather than from curating the whole corpus.
+The code behind *Building and Auditing Chemical Databases with LLMs*: a two-model pipeline that
+extracts experimental records from chemistry papers and then audits them, and the evaluation
+suite that decides whether the result can be trusted.
+
+The database itself is released separately as data. This repository is how it was built and,
+more to the point, how it was checked.
+
+## What is worth looking at
+
+**`checks/`** is the argument. Every number the paper quotes is computed here, by a script that
+prints it — no number is typed into the manuscript by hand. `tools/paper_numbers.py` reads the
+checks once and emits them as a single file of LaTeX macros, so a figure, a table and a sentence
+quoting the same quantity cannot drift apart. That mechanism is the reason the evaluation is
+auditable rather than merely reported.
+
+```bash
+scripts/checks.sh                  # every number, grouped as the paper uses them
+scripts/checks.sh curated          # one group: curated | database | human | release
+```
+
+Checks are read-only: none calls a model, none writes a file.
+
+**`core/`** is the library — schema, extraction, judging, and the string-matching grader the LLM
+judge is measured against. No printing, no CLI.
+
+**`figures/`** draws the paper's figures by importing `compute()` from the check that prints the
+same numbers, so a panel and the checks cannot disagree.
 
 ## Layout
 
 ```
-core/       the library — schema, extraction, judging, the metric grader. No printing, no CLI.
-cli/        the pipeline, one file per stage. These write to artifacts/runs/.
-configs/    one YAML per run. The filename is the run directory name.
-checks/     analysis that prints. Read-only: no check calls a model or writes a file.
-tools/      things that produce files — figures and the supervisor review pages.
-artifacts/  everything produced. Nothing here is hand-edited.
+core/       library: schema, extraction, judging, the heuristic grader
+cli/        the pipeline, one file per stage — these are the only things that spend money
+configs/    one YAML per run; the filename is the run directory name
+checks/     analysis that prints; read-only
+figures/    the paper's figures, drawn from the checks
+tools/      things that produce files — macros, reports, the reviewable HTML pages
+prompts/    the extraction and judging prompts, verbatim
 ```
 
-## Running things
+## Running it
 
-Two kinds of script. The top level derives things from what already exists and is always safe to
-run; `run/` spends money or hours and asks first.
+Nothing here runs end-to-end from a clone, and that is deliberate: the corpus is 1,027 papers we
+were licensed to *read* under text-and-data-mining agreements, not to redistribute. What a clone
+gives you is the pipeline, the prompts, the schema, the grader and the whole evaluation suite,
+which is what a reader needs to judge the method or point it at their own corpus.
 
 ```bash
-scripts/checks.sh                     # every number, grouped as the paper uses them
-scripts/checks.sh curated             # one group: curated | database | human
-scripts/figures.sh                    # draw the figures into artifacts/figures/
-scripts/pages.sh                      # the reviewable HTML pages
+uv sync
+CONFIRM=1 scripts/run/extract.sh      # extraction over a corpus you supply
+CONFIRM=1 scripts/run/judge.sh        # the audit pass over it
 ```
 
-```bash
-CONFIRM=1 scripts/run/extract.sh              # the 447-paper extraction (~$8.50, not resumable)
-CONFIRM=1 scripts/run/judge.sh                # judging it (free, ~3 h, resumable)
-CONFIRM=1 scripts/run/ablation_shots.sh       # n_shots 0..6 x 3 (~$8)
-CONFIRM=1 scripts/run/ablation_source.sh      # citing sources on/off x 3 (~$3)
-```
+Run scripts ask before they start; top-level scripts only derive things that already exist.
 
-## Figures
-
-```
-core/ → checks/ (compute + print) → figures/ (compute + draw)
-```
-
-A figure module imports `compute()` from the check that prints the same numbers, so a panel and
-`scripts/checks.sh` cannot disagree — nothing is recomputed for a plot. `figures/_style.py` holds
-the palette and the panel primitives, so all three canvases share one visual language by
-construction.
-
-Three canvases, one per claim: `fig1_database` (what was built), `fig2_chemistry` (does it behave
-like chemistry), `fig3_quality` (how far we can vouch for it).
+If you want to try the pipeline on papers rather than read the code, the companion
+[toolkit](https://github.com/Enkhnyam/chemistry-data-extractor-toolkit) is the same two-model
+design as a local web app, and it ships with two open-access papers already processed.
 
 ## Configs
 
@@ -53,16 +65,21 @@ The filename is the run directory under `artifacts/runs/`.
 
 | pattern | meaning |
 |---|---|
-| `extract_<model>` | that model on the 24 curated papers — the benchmark |
+| `extract_<model>` | that model on the curated benchmark papers |
 | `judge_<A>_on_<B>` | judge A grading extraction B — the agreement matrix |
-| `mass_<model>` | that model on the 447-paper corpus — the database |
+| `mass_<model>` | that model on the full corpus — the database |
 
 `extract_luna` and `mass_luna` are the same model on different corpora: the first can be scored
-against the curated table, the second cannot, which is the point of the project.
+against a hand-curated table, the second cannot, which is the problem the judge exists to solve.
 
-## The one thing to know about the labelled set
+## One thing that will bite you
 
-The 48 human-labelled records in `artifacts/gold/` identify records **by position** within the
-run they were drawn from, which is kept beside them as `artifacts/gold/source_run/`. They are
-only meaningful against that run — scoring them against a different extraction silently relabels
-about a quarter of them. `_setup.golden()` handles this; do not repoint it at `EXTRACTION`.
+The human-labelled records identify records **by position** within the run they were drawn from,
+and are only meaningful against that run — scoring them against a different extraction silently
+relabels about a quarter of them. `checks/_setup.py:golden()` handles this; do not repoint it.
+
+## Licensing
+
+The code is MIT (`LICENSE`). The papers it was run on are not ours to pass on, and none are in
+this repository — see `NOTICE.md` for what that means in practice and what the released dataset
+does and does not contain.

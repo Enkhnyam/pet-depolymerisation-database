@@ -13,7 +13,9 @@ why. A reader who disagrees with a call can find it and argue with it.
                  Ordered first so a hand decision always beats a pattern.
   2. solid       forms and materials that only exist as a suspended solid: oxides, zeolites,
                  layered double hydroxides, MOFs, supported and nano and calcined preparations,
-                 ion-exchange resins, carbons, metal plates.
+                 ion-exchange resins, carbons, metal plates. Named oxides are enumerated; any
+                 remaining bare metal-oxide formula is caught by shape, because an enumeration
+                 only knows the oxides somebody thought of.
   3. soluble     compound classes that dissolve at reaction temperature: alkali hydroxides,
                  carbonates and alkoxides, metal carboxylates, metal halides, mineral acids,
                  amidine and guanidine organocatalysts, ionic liquids, quaternary ammonium
@@ -128,6 +130,12 @@ SOLID = re.compile(
     r"\bmof\b|\bzif\b|metal[- ]organic framework|\bdmc\b|"
     r"amberlyst|amberlite|\bresin\b|dowex|nafion|\bmn-\d|purolite|"
     r"biochar|\bchar\b|carbocatalyst|carbon nitride|\bc3n4\b|graphit|graphene|\bcnt\b|"
+    # Activated carbon, which this corpus writes only as the bare abbreviation. A plain \bac\b
+    # is NOT safe here: "Ac" is also the acetate abbreviation, and \bac\b matches the Ac in
+    # Zn(Ac)2, Mn(Ac)2 and [VEIm]Ac because the bracket before it is a word boundary -- 29
+    # perfectly soluble acetates, which is how this was caught. Activated carbon is written
+    # either as the whole cell or as an added component, so those are the two shapes matched.
+    r"activated carbon|active carbon|charcoal|^\s*ac\s*$|\+\s*ac\b|"
     r"hydroxyapatite|\bhap[- ]|montmorillonit|\bmmt\b|bentonite|\bclay\b|kaolin|"
     r"perovskite|spinel|molecular sieve|silica gel|\bsio2\b|\bal2o3\b|\bzro2\b|\bceo2\b|"
     r"\bmno2\b|\bcuo\b|\bnio\b|\bmgo\b|\bcao\b|\bzno\b|\bfe2o3\b|\bfe3o4\b|\bco3o4\b|"
@@ -142,6 +150,20 @@ SOLID = re.compile(
     r"\bcn-?\d|c3n4|carbon nitride|-bdc\b|\bbdc\b|\bmil-\d|\buio-\d|"
     r"fe2o4|ferrite|\bcfo\b|\bcat-\d{3}",
     re.I)
+
+# A bare metal-oxide formula, whatever the metal. SOLID above enumerates oxides by hand --
+# zno, cuo, fe3o4, mno2 and a dozen more -- and an enumeration only knows the oxides somebody
+# thought of. Cu2O, SnO, CdO, Mn3O4, Sb2O5 and La2O3 were not on it, and each fell through to
+# SOLUBLE, where the bare element symbols that are there to catch salt names ("cu" for copper
+# acetate, "sn" for tin octanoate) matched inside the formula and called a solid oxide a
+# solution. One of them reached a review sample from a paper titled "Catalysis investigation of
+# PET depolymerization under metal oxides", which is as clear a signal as a rule ever gets.
+#
+# So the shape is recognised instead of the members: one element symbol, an optional count, an
+# O, an optional count, and nothing else. Anchored, so it reads a whole catalyst cell and never
+# a fragment of one -- "Sb2O3 in EG" is not a bare formula and keeps its curated homogeneous
+# call, which is decided two passes earlier anyway.
+BARE_OXIDE = re.compile(r"^[A-Z][a-z]?\d*O\d*$")
 
 ENZYME = re.compile(r"enzym|lipase|cutinase|petase|hydrolase|esterase|\bfast-?petase\b|"
                     r"leaf.?branch|\blcc\b|protein", re.I)
@@ -202,6 +224,8 @@ def classify(name: str, smiles: str = "", tier: str = "") -> tuple[str, str, str
         return "biocatalytic", "an enzyme, excluded as a different modality", "enzyme"
     if SOLID.search(text):
         return "heterogeneous", "named as a solid material, support or nano/calcined form", "solid"
+    if BARE_OXIDE.match(text):
+        return "heterogeneous", "a bare metal-oxide formula, insoluble as named", "oxide"
     if SOLUBLE.search(text):
         return "homogeneous", "a compound class that dissolves at reaction temperature", "soluble"
 
@@ -244,3 +268,26 @@ def decisions(names, smiles=None, tiers=None):
         phase, reason, pass_ = classify(str(name), str(structure or ""), str(tier or ""))
         rows.append({"catalyst": name, "phase": phase, "why": reason, "decided_by": pass_})
     return pd.DataFrame(rows)
+
+
+if __name__ == "__main__":
+    # The oxide rule, and the three things it must not break. Written because the enumeration it
+    # replaces was wrong for six oxides for as long as it existed and nothing noticed.
+    call = lambda name: classify(name, "", "")[0]
+    for solid in ("Cu2O", "SnO", "CdO", "Mn3O4", "Sb2O5", "La2O3", "Nb2O5", "ZnO", "TiO2"):
+        assert call(solid) == "heterogeneous", solid
+    for soluble in ("Zn(OAc)2", "[Bmim][Br]", "sodium hydroxide", "aluminium triisopropoxide",
+                    "ChCl-ZnCl2", "FeCl3"):
+        assert call(soluble) == "homogeneous", soluble
+    # a curated hand call and a predissolved statement both outrank the shape
+    assert classify("Sb2O3", "", "")[2] == "curated"
+    assert call("Sb2O3 in EG") == "homogeneous"
+    # the shape is a whole cell, never a fragment of one
+    assert not BARE_OXIDE.match("Cu2O supported on SiO2")
+    # "Ac" is acetate as often as it is activated carbon; only the whole cell and an added
+    # component are the carbon. This cost 29 soluble acetates once.
+    assert call("AC") == "heterogeneous"
+    assert call("Zn(OAc)2 (1%) + AC (1%)") == "heterogeneous"
+    for acetate in ("Zn(Ac)2", "Mn(Ac)2.2H2O", "[VEIm]Ac", "NaOAc", "Zn(OAc)2"):
+        assert call(acetate) == "homogeneous", acetate
+    print("solubility self-check ok")

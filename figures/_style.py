@@ -4,6 +4,7 @@ A figure module composes panels; it never computes. The numbers come from the ch
 them, so a panel and `scripts/checks.sh` cannot disagree.
 """
 import io
+import math
 import os
 import sys
 from pathlib import Path
@@ -310,7 +311,34 @@ def cloud(axis, x, y, *, colour, marker="o", size=7, label=None, edge=None, zord
     return axis
 
 
-def pie(axis, series, *, colours, fmt="{:,.0f}", title=""):
+def shares(values, *, decimals: int = 0) -> list[float]:
+    """Percentages that sum to exactly 100, by largest remainder.
+
+    Rounding each share on its own does not give a hundred. Fig. 2b printed 81 + 6 + 14 = 101,
+    because 80.70, 5.61 and 13.68 all round up, and a reader who adds the legend up finds the
+    figure wrong about its own total. The remainder method hands the shortfall to the slices
+    with the largest fractional parts, which is the smallest change that closes it: at most one
+    slice moves, and it moves by one unit in the last place printed.
+
+    The caller chooses the precision, because it has to match whatever the body text quotes:
+    the route pie is integers because the manuscript says 48%, and the grader pie needs one
+    decimal because no integer split of 230/16/39 sums to a hundred.
+    """
+    total = float(sum(values))
+    if not total:
+        return [0.0] * len(values)
+    scale = 10 ** decimals
+    exact = [float(v) / total * 100 * scale for v in values]
+    floors = [int(math.floor(e)) for e in exact]
+    short = int(round(100 * scale - sum(floors)))
+    by_remainder = sorted(range(len(exact)), key=lambda i: exact[i] - floors[i], reverse=True)
+    for index in by_remainder[:short]:
+        floors[index] += 1
+    return [value / scale for value in floors]
+
+
+def pie(axis, series, *, colours, fmt="{:,.0f}", title="", decimals: int = 0,
+        key="below", ncol=None):
     """A part-to-whole with a legend under it, no labels on the slices.
 
     A pie is the wrong mark for comparing magnitudes and the right one for showing that a set
@@ -327,21 +355,33 @@ def pie(axis, series, *, colours, fmt="{:,.0f}", title=""):
     align. It also gives the circle back the width four labels were spending -- the pie having
     been too small was the other complaint about this panel -- and it puts the name, the count
     and the share on one line each, where they read as a small table.
+
+    `key="right"` or `"left"` sets that table beside the circle instead of under it. Under it is
+    right for a panel in a row, where the space below is the caption's anyway; beside it is right
+    for a panel in a grid, where the space below belongs to the panel underneath and the circle is
+    the thing being squeezed. Which side depends on the panel below: a key on the same side as
+    that panel's row labels gives the column one shape -- text left, graphic right -- instead of
+    two panels leaning opposite ways.
     """
-    total = float(series.sum())
+    percent = shares(list(series.values), decimals=decimals)
     wedges, _ = axis.pie(series.values, colors=colours, startangle=90, counterclock=False,
                          radius=1.0, center=(0, 0),
                          wedgeprops=dict(linewidth=0.6, edgecolor="white"))
 
+    placement = {"right": dict(loc="center left", bbox_to_anchor=(0.98, 0.5)),
+                 # 0.20 rather than 0: the circle does not reach the axes' left edge, so a key
+                 # flush to that edge sits in open space and reads as the neighbouring panel's.
+                 "left": dict(loc="center right", bbox_to_anchor=(0.20, 0.5))}.get(
+                     key, dict(loc="upper center", bbox_to_anchor=(0.5, -0.02)))
     axis.legend(wedges,
-                [f"{name}  {fmt.format(value)} ({value / total:.0%})"
-                 for name, value in series.items()],
-                loc="upper center", bbox_to_anchor=(0.5, -0.02), frameon=False,
+                [f"{name}  {fmt.format(value)} ({share:.{decimals}f}%)"
+                 for (name, value), share in zip(series.items(), percent)],
+                **placement, frameon=False,
                 fontsize=5.4, labelcolor=INK, title=title or None,
                 title_fontproperties=dict(size=6.2),
                 handlelength=0.85, handleheight=0.85, handletextpad=0.5,
                 labelspacing=0.42, borderpad=0.0, borderaxespad=0.0,
-                ncol=1 if len(series) < 4 else 2, columnspacing=1.0)
+                ncol=ncol or (1 if len(series) < 4 else 2), columnspacing=1.0)
 
     # A square aspect that leaves the axes box alone: adjustable="box" shrinks the box to
     # satisfy the aspect, and the panel letter is anchored to the box, so the letter drifted out
@@ -552,7 +592,7 @@ def legend_above(figure, axis, labels_from=None):
 
 # Figures a save() call found different from what was already on disk. matplotlib's PDF output
 # is byte-reproducible for identical input, so "the bytes changed" means "the data changed",
-# which is the only honest definition of a stale figure: scripts/paper.sh --check used to pass
+# which is the only honest definition of a stale figure: scripts/derive.sh --check used to pass
 # over figure PDFs three days older than the macros beside them, because nothing compared them
 # to anything.
 STALE = []
