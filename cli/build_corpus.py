@@ -1,9 +1,14 @@
-"""Convert the corpus to the chunked markdown the extractor reads, using this repo's own parsers.
+"""Convert the corpus to the chunked markdown the extractor reads.
+
+The parser is SplitterMR, through the fork at github.com/Queimo/Splitter_MR that adds an
+ElsevierXmlReader for Elsevier's full-text namespaces; PDFs go through its DoclingReader and
+Europe PMC deposits through a JATS reader built on its VanillaReader. It lives in the sibling
+repository (`src.parser`, from the polymer-data pipeline) rather than here, which is why this
+file imports it rather than defining it -- do not read "our own parser" into that.
 
 Every paper goes through src.parser.Parser with identifier_source_tracking, which is what produces
 the "ID: <uuid>" markers source_chunk_ids refers to. One parser for the whole corpus, so no paper
-is chunked differently from its neighbours: Elsevier XML through the Elsevier reader, PDFs through
-docling.
+is chunked differently from its neighbours.
 
     build_corpus.py --from-csv corpus_candidates.csv           # the filtered Elsevier candidates
     build_corpus.py --from-csv corpus_candidates.csv --pdf     # the open-access PDFs instead
