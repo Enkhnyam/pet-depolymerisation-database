@@ -1,5 +1,5 @@
-"""Recompute a run bundle's eval metrics from its extractions + the public
-curated facts, and compare to the bundle's own eval.json.
+"""Recompute a run bundle's eval metrics from its extractions + the deposited
+answer key, and compare to the bundle's own eval.json.
 
     python eval_bundle.py runs/<run_name>
 
@@ -16,7 +16,8 @@ from core.schema import Experiment, load_curated
 from core.evaluation import evaluate
 
 HERE = Path(__file__).resolve().parent               # the deposit dir this script lives in
-CURATED = HERE / "curated_data_public.json"
+# The answer key, not the exemplar source -- see the note in cli/deposit.py.
+CURATED = HERE / "curated_answer_key.json"
 
 def check_if_run_matches(run_dir: Path) -> tuple[bool, str]:
     ev = json.loads((run_dir / "config.json").read_text())["harness_params"]["evaluation"]
