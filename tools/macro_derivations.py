@@ -449,7 +449,7 @@ DERIVATION = {
     "CostTerra": "The same with Terra, which scores lower and costs more.",
     "ShotsDelta": "F1 gain from one worked example over none.",
     "ShotsP": "p for that gain.",
-    "ShotsAnovaP": "One-way ANOVA among the arms that have examples: nothing separates them.",
+    "ShotsAnovaP": "One-way ANOVA among the arms that have examples. At p = 0.028 they do differ -- one example is the best arm and four the worst -- so this cannot be cited as evidence that they do not. The defensible null is the pairwise one: no pair clears the Bonferroni threshold over ShotsComparisons comparisons.",
     "ShotsBest": "Arm with the highest mean. One, which is why the database ships at one.",
     "ShotsComparisons": "Pairwise comparisons available among the arms.",
     "ShotsBonferroni": "Bonferroni-corrected alpha for that many comparisons.",

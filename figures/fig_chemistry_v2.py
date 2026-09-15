@@ -48,7 +48,12 @@ def main() -> None:
         reported = int(routed[column].notna().sum())
         inside = int(routed[column].between(*window).sum())
         share = inside / max(1, reported)
-        note = f", n={reported:,}" if share > 0.995 else f", {share:.0%} of {reported:,}"
+        # "97% of 4,102 in view" = 4,102 records report a temperature, and 97% of those fall
+        # inside the drawn window. It is NOT field completeness -- that is Fig. 3c, over a
+        # different denominator -- and the caption said so for a while, which invited the
+        # reading that temperature is 97% complete when Fig. 3c puts it at 87%.
+        note = (f", n={reported:,}" if share > 0.995
+                else f", {share:.0%} of {reported:,} in view")
         kde(panel[index], routed, column, hue="route", palette=ROUTE, order=ROUTES,
             clip=window, xlabel=f"{label}{note}",
             ylabel="relative density" if index % 3 == 0 else "")

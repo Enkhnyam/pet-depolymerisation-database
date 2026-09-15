@@ -17,12 +17,45 @@ from _setup import CURATED, RUNS_DIR, judged, scored, show, sources
 UNMATCHED = "no curated counterpart"
 
 
-def find_runs(pattern: str, meta_file: str) -> dict:
-    """Map a run's short name to its directory, for every run matching a pattern."""
-    found = {}
+# Which replicate the benchmark is computed on. Every extraction model has four runs
+# (n1_r1..r3, n4_r1) and this table must name one, not take whatever the filesystem hands back.
+#
+# It used to take whatever glob returned last, which is not even sorted order: the key below is
+# the run's *parent* directory, so each replicate silently overwrote the one before it. Table S1
+# and the agreement panel were therefore computed on an arbitrary replicate -- `n1_r3` on this
+# machine -- while the human adjudication in checks/human was performed on `n4_r1`. The two
+# disagreed about how many records the graders disagree on (54 against 51) purely because they
+# were reading different extractions.
+#
+# n4_r1 is the run the chemists actually reviewed, named in artifacts/gold/decisions/
+# adjudicated.json. Pinning to it is what makes the agreement panel and the manual-evaluation
+# panel describe the same extraction.
+REPLICATE = "n4_r1"
+
+
+def find_runs(pattern: str, meta_file: str, replicate: str | None = None) -> dict:
+    """Map a run's short name to its directory.
+
+    `replicate` pins which repeat to use where a run has several; judge runs have only one, so
+    they pass None. Without the pin the last glob result won, which is not sorted order.
+    """
+    candidates = {}
     for path in glob.glob(str(RUNS_DIR / pattern / "*" / meta_file)):
         run_dir = Path(path).parent
-        found[run_dir.parent.name] = run_dir
+        candidates.setdefault(run_dir.parent.name, []).append(run_dir)
+
+    found = {}
+    for name, dirs in candidates.items():
+        if replicate is None:
+            if len(dirs) > 1:
+                raise SystemExit(f"{name} has {len(dirs)} runs and no replicate pinned")
+            found[name] = dirs[0]
+            continue
+        matching = [d for d in dirs if d.name.endswith(replicate)]
+        if len(matching) != 1:
+            raise SystemExit(f"{name}: {len(matching)} runs match replicate {replicate!r}; "
+                             f"the benchmark table would silently change run")
+        found[name] = matching[0]
     return found
 
 
@@ -32,7 +65,7 @@ def compute() -> pd.DataFrame:
     Figures import this so a panel and its printed table can never disagree.
     """
     extractions = {name.replace("extract_", ""): run_dir
-                   for name, run_dir in find_runs("extract_*", "run_meta.json").items()}
+                   for name, run_dir in find_runs("extract_*", "run_meta.json", REPLICATE).items()}
     judges = {tuple(name.replace("judge_", "").split("_on_")): run_dir
               for name, run_dir in find_runs("judge_*_on_*", "judge_meta.json").items()}
 
