@@ -141,6 +141,22 @@ def compute():
         "ReleasePassRate": (pct(d.audit.eq("accepted").sum(), judged.sum()), src,
                             "accepted over judged, not over all rows"),
 
+        # The rest of the verdict split, on this population. The mass-run figures (JudgeAccepted
+        # and friends) are over 5,563 records, 1,621 of which the release removes as
+        # heterogeneous or unverified-phase. A sentence about the released dataset wants these.
+        "ReleaseDropped": (n(d.judge_drop_record.astype(str).str.lower().eq("true").sum()), src,
+                           "judge set drop_record: rejected outright rather than repaired"),
+        "ReleaseCorrected": (n(d.audit.eq("flagged").sum()
+                               - d.judge_drop_record.astype(str).str.lower().eq("true").sum()),
+                             src, "flagged and repairable: rejected with a proposed correction"),
+        "ReleaseCorrectedShare": (pct(d.audit.eq("flagged").sum()
+                                      - d.judge_drop_record.astype(str).str.lower().eq("true").sum(),
+                                      judged.sum()), src, "corrected as a share of judged"),
+        "ReleaseDroppedShare": (pct(d.judge_drop_record.astype(str).str.lower().eq("true").sum(),
+                                    judged.sum()), src, "dropped as a share of judged"),
+        "ReleaseFieldFixes": (n(int(d.judge_n_fixes.fillna(0).astype(int).sum())), src,
+                              "field-level changes proposed on the released records"),
+
         # --- routes
         "ReleaseGlycolysis": (n(d.route.eq("glycolysis").sum()), src, "route == glycolysis"),
         "ReleaseHydrolysis": (n(d.route.eq("hydrolysis").sum()), src, "route == hydrolysis"),
