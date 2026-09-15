@@ -29,7 +29,7 @@ not be, and is not done anywhere in this project.
 
 ## The released dataset
 
-The dataset is extracted values — numbers and names read out of papers — together with the
+It is in `data/`, and it is extracted values — numbers and names read out of papers — together with the
 identifiers of the text chunks each value came from and the judge's short critique of it. Facts
 are not copyrightable, and no article text travels with them: recovering the passage behind an
 identifier requires your own access to the paper.

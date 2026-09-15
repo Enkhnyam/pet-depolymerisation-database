@@ -1,0 +1,6061 @@
+[
+  {
+    "doi": "10.1002/app.38706",
+    "title": "1-Allyl-3-methylimidazolium Halometallate Ionic Liquids as Efficient Catalysts for the Glycolysis of Poly(ethylene terephthalate)",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[amim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 75,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 11.4,
+          "conversion_percent": 4.8,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "d3fba46f-7a92-5678-b8f2-48f4963659e5",
+            "f5cb1641-6477-5591-b362-3a8014221962"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[amim][CoCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 75,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 79.5,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "d3fba46f-7a92-5678-b8f2-48f4963659e5",
+            "f5cb1641-6477-5591-b362-3a8014221962"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[amim][CuCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 77.3,
+          "conversion_percent": 10.8,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "d3fba46f-7a92-5678-b8f2-48f4963659e5",
+            "f5cb1641-6477-5591-b362-3a8014221962"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[amim][FeCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 71.4,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "d3fba46f-7a92-5678-b8f2-48f4963659e5",
+            "f5cb1641-6477-5591-b362-3a8014221962"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[amim][MnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 74.6,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "d3fba46f-7a92-5678-b8f2-48f4963659e5",
+            "f5cb1641-6477-5591-b362-3a8014221962"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[amim][ZnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 75,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 80.1,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "d3fba46f-7a92-5678-b8f2-48f4963659e5",
+            "3c06b617-08a9-51f7-84fe-1a2fc411933b",
+            "f2ad860c-cfd4-5d8e-917c-98705dc0e15b",
+            "f5cb1641-6477-5591-b362-3a8014221962"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 75,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 9.8,
+          "conversion_percent": 3.7,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "d3fba46f-7a92-5678-b8f2-48f4963659e5",
+            "f5cb1641-6477-5591-b362-3a8014221962"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim][FeCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 75,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 48.3,
+          "conversion_percent": 19.7,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "d3fba46f-7a92-5678-b8f2-48f4963659e5",
+            "f5cb1641-6477-5591-b362-3a8014221962"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "ZnCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 75,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 76.2,
+          "conversion_percent": 94.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "d3fba46f-7a92-5678-b8f2-48f4963659e5",
+            "f5cb1641-6477-5591-b362-3a8014221962"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim][FeCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 178,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 59.2,
+          "conversion_percent": 100,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]HCO3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 14.1,
+          "conversion_percent": 82.8,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]OH",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 71.2,
+          "conversion_percent": 100,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[amim][ZnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 75,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 80.2,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6a1c6ba5-0678-540a-914f-c745edd11fca",
+            "f2f81f88-b2a2-5b77-a6c0-d9f21d66ce38"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[amim][ZnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 75,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 80.7,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6a1c6ba5-0678-540a-914f-c745edd11fca",
+            "f2f81f88-b2a2-5b77-a6c0-d9f21d66ce38"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[amim][ZnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 75,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 80.4,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6a1c6ba5-0678-540a-914f-c745edd11fca",
+            "f2f81f88-b2a2-5b77-a6c0-d9f21d66ce38"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[amim][ZnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 75,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 80.3,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6a1c6ba5-0678-540a-914f-c745edd11fca",
+            "f2f81f88-b2a2-5b77-a6c0-d9f21d66ce38"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "none",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 4.7,
+          "conversion_percent": 1.6,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "d3fba46f-7a92-5678-b8f2-48f4963659e5",
+            "f5cb1641-6477-5591-b362-3a8014221962",
+            "a2a8432e-ad61-5cea-a747-a91d96dd4632"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1002/cssc.201701798",
+    "title": "Solubilization and Upgrading of High Polyethylene Terephthalate Loadings in a Low-Costing Bifunctional Ionic Liquid",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]3[PO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 55.1,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "458904c2-f0b3-58c4-af0a-16b21bd6d243",
+            "e7856516-4832-5bc9-8223-5518ed3f2145",
+            "4179c061-adb6-54a6-a71e-a583ccb9245b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Asp]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 34.7,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "458904c2-f0b3-58c4-af0a-16b21bd6d243",
+            "4179c061-adb6-54a6-a71e-a583ccb9245b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 840,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 15.2,
+          "selectivity_percent": null,
+          "conversion_percent": 90.3,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "458904c2-f0b3-58c4-af0a-16b21bd6d243",
+            "cc445d76-9ac8-5ebd-86d0-e1f6ef60fb92",
+            "4179c061-adb6-54a6-a71e-a583ccb9245b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Lys]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 42.7,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "458904c2-f0b3-58c4-af0a-16b21bd6d243",
+            "cc445d76-9ac8-5ebd-86d0-e1f6ef60fb92",
+            "4179c061-adb6-54a6-a71e-a583ccb9245b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "betaine",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 600,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 27.3,
+          "selectivity_percent": null,
+          "conversion_percent": 31.4,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "458904c2-f0b3-58c4-af0a-16b21bd6d243",
+            "4179c061-adb6-54a6-a71e-a583ccb9245b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[C2C1Im][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 50,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "458904c2-f0b3-58c4-af0a-16b21bd6d243",
+            "d001f7b9-1634-54bd-92b9-02b22a6b8431",
+            "4179c061-adb6-54a6-a71e-a583ccb9245b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]3[PO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.03,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 45.5,
+          "selectivity_percent": null,
+          "conversion_percent": 90.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "458904c2-f0b3-58c4-af0a-16b21bd6d243",
+            "4179c061-adb6-54a6-a71e-a583ccb9245b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]3[PO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.01,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 4.5,
+          "selectivity_percent": null,
+          "conversion_percent": 10.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "458904c2-f0b3-58c4-af0a-16b21bd6d243",
+            "4179c061-adb6-54a6-a71e-a583ccb9245b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]3[PO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 60.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "458904c2-f0b3-58c4-af0a-16b21bd6d243",
+            "4179c061-adb6-54a6-a71e-a583ccb9245b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]3[PO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 160,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 4.5,
+          "selectivity_percent": null,
+          "conversion_percent": 13.6,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "458904c2-f0b3-58c4-af0a-16b21bd6d243",
+            "cce29233-bc75-5c8c-b30f-7857a0088e61",
+            "4179c061-adb6-54a6-a71e-a583ccb9245b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]3[PO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 10.6,
+          "selectivity_percent": null,
+          "conversion_percent": 31,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "458904c2-f0b3-58c4-af0a-16b21bd6d243",
+            "cce29233-bc75-5c8c-b30f-7857a0088e61",
+            "4179c061-adb6-54a6-a71e-a583ccb9245b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]3[PO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 63.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "458904c2-f0b3-58c4-af0a-16b21bd6d243",
+            "4179c061-adb6-54a6-a71e-a583ccb9245b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]3[PO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 45.5,
+          "selectivity_percent": null,
+          "conversion_percent": 90.1,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]3[PO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 4.5,
+          "selectivity_percent": null,
+          "conversion_percent": 10.1,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]3[PO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 60.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]3[PO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 160,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 4.5,
+          "selectivity_percent": null,
+          "conversion_percent": 13.6,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]3[PO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 10.6,
+          "selectivity_percent": null,
+          "conversion_percent": 31,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]3[PO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 63.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[EMIM]Ac",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 50,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "none",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0,
+          "PET_amount_g": 0.5,
+          "solvent_amount_g": 2,
+          "yield_percent": 1.5,
+          "selectivity_percent": null,
+          "conversion_percent": 1.8,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "458904c2-f0b3-58c4-af0a-16b21bd6d243",
+            "4179c061-adb6-54a6-a71e-a583ccb9245b"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1007/s10562-021-03716-3",
+    "title": "Preparation of Diacid Comprising Ionic Liquid Catalyst and Its Application in Catalytic Degradation of PET",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[HO3S-(CH2)4-mim]Cl-AlCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 2,
+          "PET_amount_g": 10,
+          "solvent_amount_g": 62,
+          "yield_percent": 68.5,
+          "selectivity_percent": null,
+          "conversion_percent": 77.6,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "4d4b13ed-9d24-5023-81c6-22be5cc7c872",
+            "67e0cdaa-f1ff-55ec-8f29-35f5b014085f"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[HO3S-(CH2)4-mim]Cl-CuCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 2,
+          "PET_amount_g": 10,
+          "solvent_amount_g": 62,
+          "yield_percent": 81.7,
+          "selectivity_percent": null,
+          "conversion_percent": 86.4,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "4d4b13ed-9d24-5023-81c6-22be5cc7c872",
+            "67e0cdaa-f1ff-55ec-8f29-35f5b014085f"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[HO3S-(CH2)4-mim]Cl-FeCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 2,
+          "PET_amount_g": 10,
+          "solvent_amount_g": 62,
+          "yield_percent": 95.5,
+          "selectivity_percent": null,
+          "conversion_percent": 98.7,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "4d4b13ed-9d24-5023-81c6-22be5cc7c872",
+            "ef0cd5e0-5ea2-509a-a44c-491fbbdfb4bc",
+            "67e0cdaa-f1ff-55ec-8f29-35f5b014085f",
+            "f4377d68-1f6c-50e3-a3c8-2811869b2687"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[HO3S-(CH2)4-mim]Cl-NiCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 2,
+          "PET_amount_g": 10,
+          "solvent_amount_g": 62,
+          "yield_percent": 51.3,
+          "selectivity_percent": null,
+          "conversion_percent": 67.5,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "4d4b13ed-9d24-5023-81c6-22be5cc7c872",
+            "67e0cdaa-f1ff-55ec-8f29-35f5b014085f"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[HO3S-(CH2)4-mim]Cl-ZnCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 2,
+          "PET_amount_g": 10,
+          "solvent_amount_g": 62,
+          "yield_percent": 90.8,
+          "selectivity_percent": null,
+          "conversion_percent": 94.3,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "4d4b13ed-9d24-5023-81c6-22be5cc7c872",
+            "67e0cdaa-f1ff-55ec-8f29-35f5b014085f"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "H2SO4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 360.0,
+          "catalyst_amount_g": 2.0,
+          "PET_amount_g": 10.0,
+          "solvent_amount_g": 62.0,
+          "yield_percent": 53.5,
+          "selectivity_percent": null,
+          "conversion_percent": 67.3,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "ef0cd5e0-5ea2-509a-a44c-491fbbdfb4bc",
+            "6a18baeb-762b-5489-b724-333b6f1825b1",
+            "67e0cdaa-f1ff-55ec-8f29-35f5b014085f"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 1
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "FeCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 360.0,
+          "catalyst_amount_g": 2.0,
+          "PET_amount_g": 10.0,
+          "solvent_amount_g": 62.0,
+          "yield_percent": 61.7,
+          "selectivity_percent": null,
+          "conversion_percent": 82.4,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "ef0cd5e0-5ea2-509a-a44c-491fbbdfb4bc",
+            "6a18baeb-762b-5489-b724-333b6f1825b1",
+            "67e0cdaa-f1ff-55ec-8f29-35f5b014085f"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 2
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[HO3S-(CH2)4-mim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 360.0,
+          "catalyst_amount_g": 2.0,
+          "PET_amount_g": 10.0,
+          "solvent_amount_g": 62.0,
+          "yield_percent": 17.2,
+          "selectivity_percent": null,
+          "conversion_percent": 47.9,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "ef0cd5e0-5ea2-509a-a44c-491fbbdfb4bc",
+            "6a18baeb-762b-5489-b724-333b6f1825b1",
+            "67e0cdaa-f1ff-55ec-8f29-35f5b014085f"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 3
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]Cl-FeCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 360.0,
+          "catalyst_amount_g": 2.0,
+          "PET_amount_g": 10.0,
+          "solvent_amount_g": 62.0,
+          "yield_percent": 69.3,
+          "selectivity_percent": null,
+          "conversion_percent": 85.2,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "ef0cd5e0-5ea2-509a-a44c-491fbbdfb4bc",
+            "6a18baeb-762b-5489-b724-333b6f1825b1",
+            "67e0cdaa-f1ff-55ec-8f29-35f5b014085f"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 4
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[HO3S-(CH2)4-mim]Cl-FeCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 300.0,
+          "catalyst_amount_g": 2.0,
+          "PET_amount_g": 10.0,
+          "solvent_amount_g": 62.0,
+          "yield_percent": 78.2,
+          "selectivity_percent": null,
+          "conversion_percent": 81.3,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "c722eb97-338a-5d3b-b925-d48db60cf524",
+            "6b75d0fa-531d-5c8d-8c9e-af68584a0e08",
+            "67e0cdaa-f1ff-55ec-8f29-35f5b014085f"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 6
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[HO3S-(CH2)4-mim]Cl-FeCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 360.0,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 5.0,
+          "solvent_amount_g": 31.0,
+          "yield_percent": 91.52,
+          "selectivity_percent": null,
+          "conversion_percent": 93.4,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "c74930f4-1f46-5fa6-8045-95367fc88279",
+            "7395d82f-a060-5be4-b68f-89ebe1916da0"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 12
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1007/s10973-020-10331-8",
+    "title": "Glycolysis of poly(ethylene terephthalate) waste catalyzed by mixed Lewis acidic ionic liquids",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]CoCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 38.1,
+          "selectivity_percent": null,
+          "conversion_percent": 85.8,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "50c61165-31b1-51de-9043-4aaa701697b5",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]CoCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "27678793-c5a4-5898-8165-e1496410a579",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]ZnCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "27678793-c5a4-5898-8165-e1496410a579",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]ZnCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 76.8,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "50c61165-31b1-51de-9043-4aaa701697b5",
+            "43bda22b-1fba-58ad-8011-7c92f0107d5a",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]ZnCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 72.8,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "27678793-c5a4-5898-8165-e1496410a579",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]Cl:CoCl2 (1:1)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 38.1,
+          "selectivity_percent": null,
+          "conversion_percent": 85.8,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]Cl:CuCl2 (1:1)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 4.8,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]Cl:FeCl3 (1:1)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 51.5,
+          "selectivity_percent": null,
+          "conversion_percent": 99.5,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]Cl:ZnCl2 (1:1)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 76.8,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]Cl:ZnCl2:CoCl2 (1:0.25:0.75)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 75.2,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]Cl:ZnCl2:CoCl2 (1:0.5:0.5)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 87.1,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]Cl:ZnCl2:CoCl2 (1:0.75:0.25)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 79.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]Cl:ZnCl2:CuCl2 (1:0.25:0.75)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 14.5,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]Cl:ZnCl2:CuCl2 (1:0.5:0.5)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 73,
+          "selectivity_percent": null,
+          "conversion_percent": 99,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]Cl:ZnCl2:CuCl2 (1:0.75:0.25)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 76.8,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]Cl:ZnCl2:FeCl3 (1:0.25:0.75)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 60.8,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]Cl:ZnCl2:FeCl3 (1:0.5:0.5)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 55.1,
+          "selectivity_percent": null,
+          "conversion_percent": 98,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]Cl:ZnCl2:FeCl3 (1:0.75:0.25)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 37.5,
+          "selectivity_percent": null,
+          "conversion_percent": 99.8,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]CoCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 79,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "27678793-c5a4-5898-8165-e1496410a579",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]CuCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 4.8,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "50c61165-31b1-51de-9043-4aaa701697b5",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]FeCl4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 51.5,
+          "selectivity_percent": null,
+          "conversion_percent": 99.5,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "50c61165-31b1-51de-9043-4aaa701697b5",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]ZnCl3/[Hmim]CoCl3 (1:1)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 87.1,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "50c61165-31b1-51de-9043-4aaa701697b5",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]ZnCl3/[Hmim]CoCl3 (1:3)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 75.2,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "50c61165-31b1-51de-9043-4aaa701697b5",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]ZnCl3/[Hmim]CoCl3 (3:1)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 79.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "50c61165-31b1-51de-9043-4aaa701697b5",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]ZnCl3/[Hmim]CuCl3 (1:1)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 73,
+          "selectivity_percent": null,
+          "conversion_percent": 99,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "50c61165-31b1-51de-9043-4aaa701697b5",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]ZnCl3/[Hmim]CuCl3 (1:3)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 14.5,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "50c61165-31b1-51de-9043-4aaa701697b5",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]ZnCl3/[Hmim]CuCl3 (3:1)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 76.8,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "50c61165-31b1-51de-9043-4aaa701697b5",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]ZnCl3/[Hmim]FeCl4 (1:1)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 55.1,
+          "selectivity_percent": null,
+          "conversion_percent": 98,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "50c61165-31b1-51de-9043-4aaa701697b5",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]ZnCl3/[Hmim]FeCl4 (1:3)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 60.8,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "50c61165-31b1-51de-9043-4aaa701697b5",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Hmim]ZnCl3/[Hmim]FeCl4 (3:1)",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.02,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 37.5,
+          "selectivity_percent": null,
+          "conversion_percent": 99.8,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "50c61165-31b1-51de-9043-4aaa701697b5",
+            "18e461d9-7be1-50b0-ad1d-9153bd50ed09"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1016/j.catcom.2010.02.011",
+    "title": "A novel method for the degradation of poly(ethylene terephthalate) catalyzed by ionic liquid [bmim]FeCl4",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 178,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.52,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 5.7,
+          "conversion_percent": 5.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim][FeCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 76.4,
+          "conversion_percent": 16.5,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim][FeCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 178,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 59.2,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 140,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.52,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 0,
+          "conversion_percent": 0,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.52,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 0,
+          "conversion_percent": 0,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 160,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.52,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 0,
+          "conversion_percent": 0,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.52,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 1.2,
+          "conversion_percent": 1.2,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim][FeCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 140,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 9.9,
+          "conversion_percent": 1.8,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim][FeCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 160,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 69.5,
+          "conversion_percent": 55.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim][FeCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 62.8,
+          "conversion_percent": 88.6,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "FeCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 140,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.48,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 0,
+          "conversion_percent": 0,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "FeCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.48,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 0,
+          "conversion_percent": 0,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "FeCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 160,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.48,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 2.3,
+          "conversion_percent": 4.2,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "FeCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.48,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 30.1,
+          "conversion_percent": 47.2,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "FeCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 178,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.48,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 52.8,
+          "conversion_percent": 79.3,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3d14b1a7-e5b9-5c2a-831a-5b25034d1ec3",
+            "fc69e9b5-245a-50ce-a4bc-f4e1a67f5f64",
+            "3315b083-77ff-5f20-8844-bce771202936"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1016/j.cattod.2025.115187",
+    "title": "DBU-based protic ionic liquids for the glycolysis of PET",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "DBU",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 60.9,
+          "selectivity_percent": null,
+          "conversion_percent": 78.4,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 72.6,
+          "selectivity_percent": null,
+          "conversion_percent": 92.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-AA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 59.6,
+          "selectivity_percent": null,
+          "conversion_percent": 75.5,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-AA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 73.4,
+          "selectivity_percent": null,
+          "conversion_percent": 88.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-CA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 54.5,
+          "selectivity_percent": null,
+          "conversion_percent": 70.3,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-CA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 67.5,
+          "selectivity_percent": null,
+          "conversion_percent": 81.2,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-OA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 52.1,
+          "selectivity_percent": null,
+          "conversion_percent": 67.2,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-OA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 67.3,
+          "selectivity_percent": null,
+          "conversion_percent": 83.2,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-PA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 56.4,
+          "selectivity_percent": null,
+          "conversion_percent": 71.4,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-PA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 74.8,
+          "selectivity_percent": null,
+          "conversion_percent": 87.6,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-SA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 53.7,
+          "selectivity_percent": null,
+          "conversion_percent": 69.3,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-SA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 68.4,
+          "selectivity_percent": null,
+          "conversion_percent": 84.4,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-SUC",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 59.7,
+          "selectivity_percent": null,
+          "conversion_percent": 76.9,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-SUC",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 71.7,
+          "selectivity_percent": null,
+          "conversion_percent": 90.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-TA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 57.8,
+          "selectivity_percent": null,
+          "conversion_percent": 75.8,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-TA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 73.1,
+          "selectivity_percent": null,
+          "conversion_percent": 88.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-TPA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 48.1,
+          "selectivity_percent": null,
+          "conversion_percent": 63.5,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "DBU-TPA",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 64.9,
+          "selectivity_percent": null,
+          "conversion_percent": 78.3,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Zn(OAc)2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 66.36,
+          "selectivity_percent": null,
+          "conversion_percent": 84.2,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Zn(OAc)2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 4,
+          "solvent_amount_g": 20,
+          "yield_percent": 83.4,
+          "selectivity_percent": null,
+          "conversion_percent": 97.5,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "9d1df863-2420-5e0c-a94e-44a42ffbbe12",
+            "41196bcc-1471-5f1c-9e37-4b7f24f0cbf2"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1016/j.eurpolymj.2009.01.025",
+    "title": "Degradation of poly(ethylene terephthalate) using ionic liquids",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]Br",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 98.7,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a0614ca8-31e5-58c2-822d-839fa2f1f8af",
+            "23ba8ec7-6e39-5482-866f-6a3f80a51092",
+            "ac6c719c-a881-514c-ad9c-87d3a9df7932"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 44.7,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a0614ca8-31e5-58c2-822d-839fa2f1f8af",
+            "23ba8ec7-6e39-5482-866f-6a3f80a51092",
+            "ac6c719c-a881-514c-ad9c-87d3a9df7932"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 4,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 59.4,
+          "conversion_percent": 70.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a4a62511-10de-5a23-b37d-69a39f5e02fc",
+            "9806a200-4d6f-565d-aef7-79690591153f",
+            "ac6c719c-a881-514c-ad9c-87d3a9df7932"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 600,
+          "catalyst_amount_g": 4,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "e2bb540e-c7dc-5365-b1c1-023ce454f980",
+            "9806a200-4d6f-565d-aef7-79690591153f",
+            "ac6c719c-a881-514c-ad9c-87d3a9df7932"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]H2PO4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 6.9,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a0614ca8-31e5-58c2-822d-839fa2f1f8af",
+            "23ba8ec7-6e39-5482-866f-6a3f80a51092",
+            "ac6c719c-a881-514c-ad9c-87d3a9df7932"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]HSO4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 0.5,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a0614ca8-31e5-58c2-822d-839fa2f1f8af",
+            "23ba8ec7-6e39-5482-866f-6a3f80a51092",
+            "ac6c719c-a881-514c-ad9c-87d3a9df7932"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[3a-C3P(C4)3][Ala]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a0614ca8-31e5-58c2-822d-839fa2f1f8af",
+            "23ba8ec7-6e39-5482-866f-6a3f80a51092",
+            "ac6c719c-a881-514c-ad9c-87d3a9df7932"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[3a-C3P(C4)3][Gly]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a0614ca8-31e5-58c2-822d-839fa2f1f8af",
+            "23ba8ec7-6e39-5482-866f-6a3f80a51092",
+            "ac6c719c-a881-514c-ad9c-87d3a9df7932"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 2,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 63,
+          "conversion_percent": 54.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a4a62511-10de-5a23-b37d-69a39f5e02fc",
+            "9806a200-4d6f-565d-aef7-79690591153f",
+            "ac6c719c-a881-514c-ad9c-87d3a9df7932"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 3,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 59.9,
+          "conversion_percent": 66.9,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a4a62511-10de-5a23-b37d-69a39f5e02fc",
+            "9806a200-4d6f-565d-aef7-79690591153f",
+            "ac6c719c-a881-514c-ad9c-87d3a9df7932"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 4,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 93,
+          "conversion_percent": 56,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 4,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 70,
+          "conversion_percent": 100,
+          "pressure_atm": null,
+          "source_chunk_ids": []
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 53.7,
+          "conversion_percent": 44.7,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a4a62511-10de-5a23-b37d-69a39f5e02fc",
+            "9806a200-4d6f-565d-aef7-79690591153f",
+            "ac6c719c-a881-514c-ad9c-87d3a9df7932"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "none",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 0,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 10.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a0614ca8-31e5-58c2-822d-839fa2f1f8af",
+            "23ba8ec7-6e39-5482-866f-6a3f80a51092",
+            "ac6c719c-a881-514c-ad9c-87d3a9df7932"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "none",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 0,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 1.8,
+          "conversion_percent": 10.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a4a62511-10de-5a23-b37d-69a39f5e02fc",
+            "9806a200-4d6f-565d-aef7-79690591153f",
+            "ac6c719c-a881-514c-ad9c-87d3a9df7932"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1016/j.eurpolymj.2021.110590",
+    "title": "Magnetic ionic liquid catalysts for the glycolysis of poly(ethylene terephthalate)",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "CoFe2O4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 150,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 72.6,
+          "selectivity_percent": null,
+          "conversion_percent": 91.2,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6941bfb4-0297-5c87-9868-d063fd7626ba",
+            "317eca02-0afe-5548-abc8-77bddc86073a",
+            "36d2bc5f-0021-5945-88e4-7f7450ff2514"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "CoFe2O4/[C10COOHbim]Br",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 150,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 88.03,
+          "selectivity_percent": null,
+          "conversion_percent": 98.4,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6941bfb4-0297-5c87-9868-d063fd7626ba",
+            "317eca02-0afe-5548-abc8-77bddc86073a",
+            "36d2bc5f-0021-5945-88e4-7f7450ff2514"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "CoFe2O4/[C10COOHbim]NTf2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 150,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 86.6,
+          "selectivity_percent": null,
+          "conversion_percent": 99.6,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6941bfb4-0297-5c87-9868-d063fd7626ba",
+            "317eca02-0afe-5548-abc8-77bddc86073a",
+            "36d2bc5f-0021-5945-88e4-7f7450ff2514"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "CoFe2O4/[C10COOHbim]OAc",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 150,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 95.4,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6941bfb4-0297-5c87-9868-d063fd7626ba",
+            "317eca02-0afe-5548-abc8-77bddc86073a",
+            "36d2bc5f-0021-5945-88e4-7f7450ff2514"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "CoFe2O4/[C6COOHbim]Br",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 150,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 79.7,
+          "selectivity_percent": null,
+          "conversion_percent": 95.3,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6941bfb4-0297-5c87-9868-d063fd7626ba",
+            "317eca02-0afe-5548-abc8-77bddc86073a",
+            "36d2bc5f-0021-5945-88e4-7f7450ff2514"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[C10COOHbim]Br",
+          "solvent": "ethylene glycol",
+          "temperature_c": 205,
+          "reaction_time_min": 150,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 9.5,
+          "selectivity_percent": null,
+          "conversion_percent": 22.9,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6941bfb4-0297-5c87-9868-d063fd7626ba",
+            "317eca02-0afe-5548-abc8-77bddc86073a",
+            "36d2bc5f-0021-5945-88e4-7f7450ff2514"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[C10COOHbim]NTf2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 205,
+          "reaction_time_min": 150,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 7.5,
+          "selectivity_percent": null,
+          "conversion_percent": 20.4,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6941bfb4-0297-5c87-9868-d063fd7626ba",
+            "317eca02-0afe-5548-abc8-77bddc86073a",
+            "36d2bc5f-0021-5945-88e4-7f7450ff2514"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[C10COOHbim]OAc",
+          "solvent": "ethylene glycol",
+          "temperature_c": 205,
+          "reaction_time_min": 150,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 32.1,
+          "selectivity_percent": null,
+          "conversion_percent": 60.5,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6941bfb4-0297-5c87-9868-d063fd7626ba",
+            "317eca02-0afe-5548-abc8-77bddc86073a",
+            "36d2bc5f-0021-5945-88e4-7f7450ff2514"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[C6COOHbim]Br",
+          "solvent": "ethylene glycol",
+          "temperature_c": 205,
+          "reaction_time_min": 150,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 8.5,
+          "selectivity_percent": null,
+          "conversion_percent": 19.8,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6941bfb4-0297-5c87-9868-d063fd7626ba",
+            "317eca02-0afe-5548-abc8-77bddc86073a",
+            "36d2bc5f-0021-5945-88e4-7f7450ff2514"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1016/j.polymdegradstab.2010.12.020",
+    "title": "Chemical recycling of poly(ethylene terephthalate) catalyzed by basic ionic liquids",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]HCO3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 20,
+          "yield_percent": 14.1,
+          "selectivity_percent": null,
+          "conversion_percent": 82.8,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "476f7882-e74d-55e6-a216-54968d6ce92a",
+            "d2dd4025-9392-5ce3-be78-801f1e365a73",
+            "a1b0b90a-8cd6-50c4-a161-1143b4c3d6c6",
+            "1ee68f40-f33b-5e5a-ac55-d7a5954d949a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]OH",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 20,
+          "yield_percent": 71.2,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "476f7882-e74d-55e6-a216-54968d6ce92a",
+            "d2dd4025-9392-5ce3-be78-801f1e365a73",
+            "a1b0b90a-8cd6-50c4-a161-1143b4c3d6c6",
+            "1ee68f40-f33b-5e5a-ac55-d7a5954d949a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]Br",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 20,
+          "yield_percent": 0,
+          "selectivity_percent": null,
+          "conversion_percent": 10.7,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "476f7882-e74d-55e6-a216-54968d6ce92a",
+            "a1b0b90a-8cd6-50c4-a161-1143b4c3d6c6",
+            "1ee68f40-f33b-5e5a-ac55-d7a5954d949a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 20,
+          "yield_percent": 6,
+          "selectivity_percent": null,
+          "conversion_percent": 28.9,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "476f7882-e74d-55e6-a216-54968d6ce92a",
+            "d2dd4025-9392-5ce3-be78-801f1e365a73",
+            "a1b0b90a-8cd6-50c4-a161-1143b4c3d6c6",
+            "1ee68f40-f33b-5e5a-ac55-d7a5954d949a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "none",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 20,
+          "yield_percent": 0,
+          "selectivity_percent": null,
+          "conversion_percent": 11,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "476f7882-e74d-55e6-a216-54968d6ce92a",
+            "d2dd4025-9392-5ce3-be78-801f1e365a73",
+            "a1b0b90a-8cd6-50c4-a161-1143b4c3d6c6",
+            "1ee68f40-f33b-5e5a-ac55-d7a5954d949a"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1016/j.polymdegradstab.2014.10.005",
+    "title": "Metal acetate-ionic liquid catalysts for PET glycolysis",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]Br",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 20,
+          "yield_percent": 0,
+          "selectivity_percent": 0,
+          "conversion_percent": 0,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "71cd0340-73bd-5f4e-a642-82b5a7643a5d",
+            "f808421f-8299-58b1-ba12-9e90ca944c68",
+            "b4458eef-b89b-591d-a685-38a2aad6e83b",
+            "fc9eada6-38d7-5a96-8ff9-243a232c008a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 20,
+          "yield_percent": 0,
+          "selectivity_percent": 0,
+          "conversion_percent": 0,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "71cd0340-73bd-5f4e-a642-82b5a7643a5d",
+            "f808421f-8299-58b1-ba12-9e90ca944c68",
+            "b4458eef-b89b-591d-a685-38a2aad6e83b",
+            "fc9eada6-38d7-5a96-8ff9-243a232c008a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Cu(OAc)2-[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 20,
+          "yield_percent": 29,
+          "selectivity_percent": 44.4,
+          "conversion_percent": 65.5,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "71cd0340-73bd-5f4e-a642-82b5a7643a5d",
+            "f808421f-8299-58b1-ba12-9e90ca944c68",
+            "b4458eef-b89b-591d-a685-38a2aad6e83b",
+            "fc9eada6-38d7-5a96-8ff9-243a232c008a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Zn(OAc)2-[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 20,
+          "yield_percent": 18.4,
+          "selectivity_percent": 29.16,
+          "conversion_percent": 63.5,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "71cd0340-73bd-5f4e-a642-82b5a7643a5d",
+            "f808421f-8299-58b1-ba12-9e90ca944c68",
+            "b4458eef-b89b-591d-a685-38a2aad6e83b",
+            "fc9eada6-38d7-5a96-8ff9-243a232c008a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "none",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180.0,
+          "reaction_time_min": 120.0,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 2.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 0.0,
+          "selectivity_percent": 0.0,
+          "conversion_percent": 0.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "71cd0340-73bd-5f4e-a642-82b5a7643a5d",
+            "f808421f-8299-58b1-ba12-9e90ca944c68"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 0
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Cu(OAc)2-[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 180.0,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 3.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 53.95,
+          "selectivity_percent": null,
+          "conversion_percent": 100.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "0bc0c3f3-323c-55db-9886-74d4260b26e6",
+            "b4458eef-b89b-591d-a685-38a2aad6e83b"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 5
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Zn(OAc)2-[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 180.0,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 3.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 45.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "0bc0c3f3-323c-55db-9886-74d4260b26e6",
+            "b4458eef-b89b-591d-a685-38a2aad6e83b"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 6
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Cu(OAc)2-[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 180.0,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 2.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 53.2,
+          "selectivity_percent": 53.2,
+          "conversion_percent": 100.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "cf4ade22-949e-51a3-91cf-99eee5e13db8",
+            "b4458eef-b89b-591d-a685-38a2aad6e83b"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 7
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Zn(OAc)2-[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 180.0,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 2.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 42.7,
+          "selectivity_percent": 42.7,
+          "conversion_percent": 100.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "cf4ade22-949e-51a3-91cf-99eee5e13db8",
+            "b4458eef-b89b-591d-a685-38a2aad6e83b"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 8
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Cu(OAc)2-[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 180.0,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 5.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 100.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "c96f81c8-1050-5c5f-b9cf-75008ff93c69",
+            "b4458eef-b89b-591d-a685-38a2aad6e83b"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 9
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Zn(OAc)2-[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 180.0,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 7.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 100.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "c96f81c8-1050-5c5f-b9cf-75008ff93c69",
+            "b4458eef-b89b-591d-a685-38a2aad6e83b"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 10
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Cu(OAc)2-[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180.0,
+          "reaction_time_min": 120.0,
+          "catalyst_amount_g": 3.0,
+          "PET_amount_g": 2.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 35.5,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "31439366-70e7-55f8-b5f0-d8e27dc98fbd",
+            "dd0b8e6f-4f85-5d02-8f73-9f268701fb73"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 11
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Zn(OAc)2-[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180.0,
+          "reaction_time_min": 120.0,
+          "catalyst_amount_g": 3.0,
+          "PET_amount_g": 2.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 56.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "31439366-70e7-55f8-b5f0-d8e27dc98fbd",
+            "dd0b8e6f-4f85-5d02-8f73-9f268701fb73"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 12
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Zn(OAc)2-[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150.0,
+          "reaction_time_min": 120.0,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 2.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 0.0,
+          "selectivity_percent": null,
+          "conversion_percent": 4.5,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "e8991766-fb21-50e3-baac-361da4953427",
+            "d4f3c10c-4dfc-5c90-bccd-7c3cb8996ad7"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 14
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Cu(OAc)2-[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 120.0,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 2.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 48.7,
+          "selectivity_percent": 52.15,
+          "conversion_percent": 93.5,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "e8991766-fb21-50e3-baac-361da4953427",
+            "d4f3c10c-4dfc-5c90-bccd-7c3cb8996ad7"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 15
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Zn(OAc)2-[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 120.0,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 2.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 39.8,
+          "selectivity_percent": 40.49,
+          "conversion_percent": 98.45,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "e8991766-fb21-50e3-baac-361da4953427",
+            "d4f3c10c-4dfc-5c90-bccd-7c3cb8996ad7"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 16
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1016/j.polymdegradstab.2021.109601",
+    "title": "TMG-derived ionic liquid catalysts for the glycolysis of PET",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[C2TMG]Cl/ZnCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 70,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 86.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "26565c5a-d179-55e0-a139-d942a27cfab2",
+            "5e4b2aab-9a87-5002-afd1-7f0f83cbd27f",
+            "5d07f3ce-adb8-556c-b25c-df7959816e1b",
+            "204b7432-1e02-55f6-a7e8-76cf31dbb669"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[C4TMG]Cl/ZnCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 70,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 81.4,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "26565c5a-d179-55e0-a139-d942a27cfab2",
+            "5e4b2aab-9a87-5002-afd1-7f0f83cbd27f",
+            "5d07f3ce-adb8-556c-b25c-df7959816e1b",
+            "204b7432-1e02-55f6-a7e8-76cf31dbb669"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[C6TMG]Cl/2ZnCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 70,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 92.7,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "26565c5a-d179-55e0-a139-d942a27cfab2",
+            "5e4b2aab-9a87-5002-afd1-7f0f83cbd27f",
+            "6ba57198-4488-50fd-9e22-8765c748fd5a",
+            "5d07f3ce-adb8-556c-b25c-df7959816e1b",
+            "204b7432-1e02-55f6-a7e8-76cf31dbb669"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[C6TMG]Cl/ZnCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 70,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 89.4,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "26565c5a-d179-55e0-a139-d942a27cfab2",
+            "5e4b2aab-9a87-5002-afd1-7f0f83cbd27f",
+            "5d07f3ce-adb8-556c-b25c-df7959816e1b",
+            "204b7432-1e02-55f6-a7e8-76cf31dbb669"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[C8TMG]Cl/ZnCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 70,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 78.7,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "26565c5a-d179-55e0-a139-d942a27cfab2",
+            "5e4b2aab-9a87-5002-afd1-7f0f83cbd27f",
+            "5d07f3ce-adb8-556c-b25c-df7959816e1b",
+            "204b7432-1e02-55f6-a7e8-76cf31dbb669"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[TMG]Cl/CoCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 70,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 81.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a5f3ebcc-68a4-5de6-abbe-f373a1de9158",
+            "3d981e57-cb07-5977-9bec-cd64e7066816",
+            "5d07f3ce-adb8-556c-b25c-df7959816e1b",
+            "204b7432-1e02-55f6-a7e8-76cf31dbb669"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[TMG]Cl/FeCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 70,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 79.2,
+          "selectivity_percent": null,
+          "conversion_percent": 89.8,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a5f3ebcc-68a4-5de6-abbe-f373a1de9158",
+            "3d981e57-cb07-5977-9bec-cd64e7066816",
+            "5d07f3ce-adb8-556c-b25c-df7959816e1b",
+            "204b7432-1e02-55f6-a7e8-76cf31dbb669"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[TMG]Cl/ZnCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 70,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 25,
+          "yield_percent": 84.5,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "a5f3ebcc-68a4-5de6-abbe-f373a1de9158",
+            "3d981e57-cb07-5977-9bec-cd64e7066816",
+            "5d07f3ce-adb8-556c-b25c-df7959816e1b",
+            "204b7432-1e02-55f6-a7e8-76cf31dbb669"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1016/j.polymdegradstab.2021.109691",
+    "title": "rGO-supported cobalt ionic liquid catalyst for glycolysis of PET",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "rGO/[TESPMI]2CoCl4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0.15,
+          "PET_amount_g": 1,
+          "solvent_amount_g": 14,
+          "yield_percent": 95.22,
+          "selectivity_percent": 95.22,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "c3dd519b-7ba3-5a0b-8da3-0e238a5f72dd"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1016/j.polymdegradstab.2021.109751",
+    "title": "Polymer ionic liquid-metal ion catalysts for PET glycolysis",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "Poly [BVim][NTf2]Co2+",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 62.5,
+          "selectivity_percent": null,
+          "conversion_percent": 79.6,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "5d8da50d-b983-5ef3-a9b7-319d4a35670d",
+            "740dfc4b-4bb8-5174-aeb0-5dcc387de29d",
+            "635dcb71-e3d3-51e4-a6c3-6ce859f80c14"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Poly [BVim][NTf2]Cu2+",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 18.2,
+          "selectivity_percent": null,
+          "conversion_percent": 25.4,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "5d8da50d-b983-5ef3-a9b7-319d4a35670d",
+            "740dfc4b-4bb8-5174-aeb0-5dcc387de29d",
+            "635dcb71-e3d3-51e4-a6c3-6ce859f80c14"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Poly [BVim][NTf2]Zn2+",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 77.8,
+          "selectivity_percent": null,
+          "conversion_percent": 95.4,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "5d8da50d-b983-5ef3-a9b7-319d4a35670d",
+            "740dfc4b-4bb8-5174-aeb0-5dcc387de29d",
+            "635dcb71-e3d3-51e4-a6c3-6ce859f80c14"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "CoCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 72.7,
+          "selectivity_percent": null,
+          "conversion_percent": 90.7,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "5d8da50d-b983-5ef3-a9b7-319d4a35670d",
+            "740dfc4b-4bb8-5174-aeb0-5dcc387de29d",
+            "635dcb71-e3d3-51e4-a6c3-6ce859f80c14"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "CuCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 17.8,
+          "selectivity_percent": null,
+          "conversion_percent": 38.9,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "5d8da50d-b983-5ef3-a9b7-319d4a35670d",
+            "740dfc4b-4bb8-5174-aeb0-5dcc387de29d",
+            "635dcb71-e3d3-51e4-a6c3-6ce859f80c14"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "FeCl3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 44.9,
+          "selectivity_percent": null,
+          "conversion_percent": 67.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "5d8da50d-b983-5ef3-a9b7-319d4a35670d",
+            "740dfc4b-4bb8-5174-aeb0-5dcc387de29d",
+            "635dcb71-e3d3-51e4-a6c3-6ce859f80c14"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Poly [BVim][NTf2]Fe3+",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 34.5,
+          "selectivity_percent": null,
+          "conversion_percent": 53.5,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "5d8da50d-b983-5ef3-a9b7-319d4a35670d",
+            "740dfc4b-4bb8-5174-aeb0-5dcc387de29d",
+            "635dcb71-e3d3-51e4-a6c3-6ce859f80c14"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "ZnCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 81.1,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "5d8da50d-b983-5ef3-a9b7-319d4a35670d",
+            "740dfc4b-4bb8-5174-aeb0-5dcc387de29d",
+            "635dcb71-e3d3-51e4-a6c3-6ce859f80c14"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1016/j.polymdegradstab.2022.110050",
+    "title": "Protic ionic liquids for the glycolysis of PET",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[DBNH][2-Me-PhO]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 30,
+          "catalyst_amount_g": 0.3,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 30,
+          "yield_percent": 84.2,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "f5502426-3900-55ad-b8be-1f49ec8ef23d",
+            "ae658b7b-3914-5d6d-a5dd-56197f334c72"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[DBNH][3-Me-PhO]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 30,
+          "catalyst_amount_g": 0.3,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 30,
+          "yield_percent": 85.4,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "f5502426-3900-55ad-b8be-1f49ec8ef23d",
+            "ae658b7b-3914-5d6d-a5dd-56197f334c72"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[DBNH][4-Cl-PhO]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 30,
+          "catalyst_amount_g": 0.3,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 30,
+          "yield_percent": 71.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "f5502426-3900-55ad-b8be-1f49ec8ef23d",
+            "ae658b7b-3914-5d6d-a5dd-56197f334c72"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[DBNH][4-Me-PhO]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 30,
+          "catalyst_amount_g": 0.3,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 30,
+          "yield_percent": 87.3,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "f5502426-3900-55ad-b8be-1f49ec8ef23d",
+            "ae658b7b-3914-5d6d-a5dd-56197f334c72"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[DBNH][PhO]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 30,
+          "catalyst_amount_g": 0.3,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 30,
+          "yield_percent": 80.2,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "f5502426-3900-55ad-b8be-1f49ec8ef23d",
+            "ae658b7b-3914-5d6d-a5dd-56197f334c72"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1016/j.wasman.2023.09.016",
+    "title": "Magnetic supported antimony ionic liquid catalyst for glycolysis of PET waste",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "Fe3O4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.06,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 30,
+          "yield_percent": 12.7,
+          "selectivity_percent": null,
+          "conversion_percent": 26,
+          "pressure_atm": 0.49,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Fe3O4@[Pmim]SbBr4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.06,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 30,
+          "yield_percent": 30.3,
+          "selectivity_percent": null,
+          "conversion_percent": 45,
+          "pressure_atm": 0.79,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Fe3O4@[Pmim]SbBr4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.12,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 30,
+          "yield_percent": 36.4,
+          "selectivity_percent": null,
+          "conversion_percent": 52,
+          "pressure_atm": 0.59,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Fe3O4@[Pmim]SbBr4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.24,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 30,
+          "yield_percent": 75.8,
+          "selectivity_percent": null,
+          "conversion_percent": 91,
+          "pressure_atm": 0.59,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Fe3O4@[Pmim]SbBr4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.36,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 30,
+          "yield_percent": 96.4,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 0.59,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Fe3O4@[Pmim]SbBr4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.36,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 18,
+          "yield_percent": 95.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 0.79,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Fe3O4@[Pmim]SbBr4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.36,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 30,
+          "yield_percent": 79.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 0.59,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Fe3O4@[Pmim]SbBr4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.36,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 30,
+          "yield_percent": 80.1,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 0.59,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Fe3O4@[Pmim]SbBr4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.36,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 30,
+          "yield_percent": 79.2,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 0.59,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "SbBr3",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.03,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 30,
+          "yield_percent": 62.8,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 3.45,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]Br",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.03,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 30,
+          "yield_percent": 8.7,
+          "selectivity_percent": null,
+          "conversion_percent": 30,
+          "pressure_atm": 0.2,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]SbBr4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.06,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 30,
+          "yield_percent": 96.3,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 2.17,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]SbBr4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.03,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 30,
+          "yield_percent": 96.2,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 2.07,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "none",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0,
+          "PET_amount_g": 6,
+          "solvent_amount_g": 30,
+          "yield_percent": 10.5,
+          "selectivity_percent": null,
+          "conversion_percent": 25,
+          "pressure_atm": 0.39,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Fe3O4.PMIM.SbBr4 -Run 4",
+          "solvent": "ethylene glycol",
+          "temperature_c": 200.0,
+          "reaction_time_min": 60.0,
+          "catalyst_amount_g": 0.36,
+          "PET_amount_g": 6.0,
+          "solvent_amount_g": 30.0,
+          "yield_percent": 79.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100.0,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "abd67980-c97f-51e4-8f39-9e270b83c9ce",
+            "2d1eb161-7b07-52bc-9854-2b7834ffecc8",
+            "33ef5d2b-4d3b-590f-8cc8-4423dd95e3aa",
+            "6c4578c1-97be-59d3-ba27-3d3e729bc3b8"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 13
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1021/acs.iecr.5b03857",
+    "title": "Ionic liquid-coordinated ferrous acetate complex immobilized on bentonite for PET glycolysis",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim-Fe][(OAc)3]/bentonite",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 20,
+          "yield_percent": 44,
+          "selectivity_percent": 44,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "d89fe265-9520-50f2-af27-2603f2c339cb",
+            "2b6cfec8-b1ef-5f7f-af11-da07170a532e",
+            "a7a6f743-359e-53b9-83bc-273878ce49fc",
+            "fc53fad8-ce59-5eb8-b5ec-ad5873e0a3d6"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1021/acsengineeringau.1c00039",
+    "title": "Amino acid ionic liquids as catalysts for PET fiber glycolysis",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]Ac",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 82.9,
+          "selectivity_percent": null,
+          "conversion_percent": 94.3,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "0df8fdb6-00ea-5327-b8dc-5f5266ffe674",
+            "2f07cc90-c057-58eb-a89d-5a56e200826b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]Arg",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 34.8,
+          "selectivity_percent": null,
+          "conversion_percent": 43,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "0df8fdb6-00ea-5327-b8dc-5f5266ffe674",
+            "2f07cc90-c057-58eb-a89d-5a56e200826b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 67.2,
+          "selectivity_percent": null,
+          "conversion_percent": 79,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "0df8fdb6-00ea-5327-b8dc-5f5266ffe674",
+            "2f07cc90-c057-58eb-a89d-5a56e200826b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]For",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 84.5,
+          "selectivity_percent": null,
+          "conversion_percent": 97.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "0df8fdb6-00ea-5327-b8dc-5f5266ffe674",
+            "2f07cc90-c057-58eb-a89d-5a56e200826b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Gly]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 84.5,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "0df8fdb6-00ea-5327-b8dc-5f5266ffe674",
+            "1d56cfcb-b149-5d8e-a865-df3b72fe1753",
+            "2f07cc90-c057-58eb-a89d-5a56e200826b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Lys]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 35.2,
+          "selectivity_percent": null,
+          "conversion_percent": 36,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "0df8fdb6-00ea-5327-b8dc-5f5266ffe674",
+            "2f07cc90-c057-58eb-a89d-5a56e200826b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]Pro",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 40.2,
+          "selectivity_percent": null,
+          "conversion_percent": 59,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "0df8fdb6-00ea-5327-b8dc-5f5266ffe674",
+            "2f07cc90-c057-58eb-a89d-5a56e200826b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]Ser",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 19.6,
+          "selectivity_percent": null,
+          "conversion_percent": 25,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "0df8fdb6-00ea-5327-b8dc-5f5266ffe674",
+            "2f07cc90-c057-58eb-a89d-5a56e200826b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]Try",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 48.5,
+          "selectivity_percent": null,
+          "conversion_percent": 79,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "0df8fdb6-00ea-5327-b8dc-5f5266ffe674",
+            "2f07cc90-c057-58eb-a89d-5a56e200826b"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "glycine",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 11.5,
+          "selectivity_percent": null,
+          "conversion_percent": 23,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "0df8fdb6-00ea-5327-b8dc-5f5266ffe674",
+            "2f07cc90-c057-58eb-a89d-5a56e200826b"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1021/acssuschemeng.1c04060",
+    "title": "Glycolysis of postconsumer PET waste catalyzed by cholinium-based ionic liquids",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Gly]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 0.01872,
+          "PET_amount_g": 0.1,
+          "solvent_amount_g": 0.4,
+          "yield_percent": 43,
+          "selectivity_percent": null,
+          "conversion_percent": 81,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "54371e89-c3e0-5d61-9d8b-4749baa1bbfa",
+            "26dc5e6c-f47c-5bba-b594-d64c28b775be",
+            "5155e836-39bc-5860-8f68-31943079e5b1"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Gly]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 120,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.01872,
+          "PET_amount_g": 0.1,
+          "solvent_amount_g": 0.4,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 83,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "4e242994-812e-593f-b2d0-a288df411d19",
+            "682afcea-e9e6-56ed-8587-1bfc41140a02",
+            "5155e836-39bc-5860-8f68-31943079e5b1"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Gly]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.01872,
+          "PET_amount_g": 0.1,
+          "solvent_amount_g": 0.4,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "4e242994-812e-593f-b2d0-a288df411d19",
+            "5155e836-39bc-5860-8f68-31943079e5b1"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Gly]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 0.01872,
+          "PET_amount_g": null,
+          "solvent_amount_g": null,
+          "yield_percent": 51,
+          "selectivity_percent": null,
+          "conversion_percent": 85,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "90d7521e-58f6-5c90-b4cb-0b22db7a030a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Gly]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 0.01872,
+          "PET_amount_g": null,
+          "solvent_amount_g": null,
+          "yield_percent": 31,
+          "selectivity_percent": null,
+          "conversion_percent": 62,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "90d7521e-58f6-5c90-b4cb-0b22db7a030a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Gly]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 0.01872,
+          "PET_amount_g": null,
+          "solvent_amount_g": null,
+          "yield_percent": 20,
+          "selectivity_percent": null,
+          "conversion_percent": 84,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "90d7521e-58f6-5c90-b4cb-0b22db7a030a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Gly]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 0.01872,
+          "PET_amount_g": null,
+          "solvent_amount_g": null,
+          "yield_percent": 28,
+          "selectivity_percent": null,
+          "conversion_percent": 75,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "90d7521e-58f6-5c90-b4cb-0b22db7a030a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Gly]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 0.01872,
+          "PET_amount_g": null,
+          "solvent_amount_g": null,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 38,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "90d7521e-58f6-5c90-b4cb-0b22db7a030a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Gly]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 0.01872,
+          "PET_amount_g": null,
+          "solvent_amount_g": null,
+          "yield_percent": 61,
+          "selectivity_percent": null,
+          "conversion_percent": 91,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "90d7521e-58f6-5c90-b4cb-0b22db7a030a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Gly]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 0.01872,
+          "PET_amount_g": 0.1,
+          "solvent_amount_g": 0.4,
+          "yield_percent": 38,
+          "selectivity_percent": null,
+          "conversion_percent": 90,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "682afcea-e9e6-56ed-8587-1bfc41140a02",
+            "5155e836-39bc-5860-8f68-31943079e5b1"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "TBA(OH)·30 H₂O",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 0.01824,
+          "PET_amount_g": 0.1,
+          "solvent_amount_g": 0.4,
+          "yield_percent": 28,
+          "selectivity_percent": null,
+          "conversion_percent": 64,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "4e242994-812e-593f-b2d0-a288df411d19",
+            "5155e836-39bc-5860-8f68-31943079e5b1"
+          ]
+        },
+        "provenance": {
+          "corrected_by": "rescue review note, 2026-08-24",
+          "correction": "yield 30 -> 28"
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "TBA(OH)·30 H₂O",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 0.01824,
+          "PET_amount_g": 0.1,
+          "solvent_amount_g": 0.4,
+          "yield_percent": 30,
+          "selectivity_percent": null,
+          "conversion_percent": 88,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "4e242994-812e-593f-b2d0-a288df411d19",
+            "5155e836-39bc-5860-8f68-31943079e5b1"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Gly]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 0.01872,
+          "PET_amount_g": null,
+          "solvent_amount_g": null,
+          "yield_percent": 36,
+          "selectivity_percent": null,
+          "conversion_percent": 61,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "90d7521e-58f6-5c90-b4cb-0b22db7a030a"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "TBA(OH) · 30 H2O",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150.0,
+          "reaction_time_min": 360.0,
+          "catalyst_amount_g": 0.0833,
+          "PET_amount_g": 0.1,
+          "solvent_amount_g": 0.4,
+          "yield_percent": 28.0,
+          "selectivity_percent": null,
+          "conversion_percent": 64.0,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "d0a1bff5-6318-510f-9e35-50800c907781",
+            "5155e836-39bc-5860-8f68-31943079e5b1"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 8
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "TBA(OH) · 30 H2O",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150.0,
+          "reaction_time_min": 480.0,
+          "catalyst_amount_g": 0.0833,
+          "PET_amount_g": 0.1,
+          "solvent_amount_g": 0.4,
+          "yield_percent": 63.0,
+          "selectivity_percent": null,
+          "conversion_percent": 92.0,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "682afcea-e9e6-56ed-8587-1bfc41140a02",
+            "5155e836-39bc-5860-8f68-31943079e5b1"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 3
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "TBA(OH) · 30 H2O",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150.0,
+          "reaction_time_min": 360.0,
+          "catalyst_amount_g": 0.0417,
+          "PET_amount_g": 0.1,
+          "solvent_amount_g": 0.4,
+          "yield_percent": 49.0,
+          "selectivity_percent": null,
+          "conversion_percent": 70.0,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "d0a1bff5-6318-510f-9e35-50800c907781",
+            "00aa7803-270d-5534-bfb4-4253d4dca8ee",
+            "5155e836-39bc-5860-8f68-31943079e5b1"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 6
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "TBA(OH) · 30 H2O",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150.0,
+          "reaction_time_min": 360.0,
+          "catalyst_amount_g": 0.0555,
+          "PET_amount_g": 0.1,
+          "solvent_amount_g": 0.4,
+          "yield_percent": 61.0,
+          "selectivity_percent": null,
+          "conversion_percent": 85.0,
+          "pressure_atm": null,
+          "source_chunk_ids": [
+            "d0a1bff5-6318-510f-9e35-50800c907781",
+            "8a675517-5b0f-58e0-91b1-bae70cf8ab37",
+            "5155e836-39bc-5860-8f68-31943079e5b1"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 7
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1021/ie503677w",
+    "title": "Glycolysis of poly(ethylene terephthalate) catalyzed by 1-butyl-3-methylimidazolium acetate",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 3,
+          "solvent_amount_g": 20,
+          "yield_percent": 58.2,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "3011f263-63d3-5989-9193-19833978f80a",
+            "87ef4fbf-0633-5d43-bb52-f8e88662d1d8",
+            "ded9f412-26d8-54a3-9948-425e39709a22",
+            "000f0380-3e31-556f-992a-4f33f16ce798"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": null,
+          "reaction_time_min": null,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 2.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 46.4,
+          "selectivity_percent": 61.9,
+          "conversion_percent": 75.1,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "25e3301c-023e-5ec9-bf1e-badc23227c8e",
+            "cfe2625c-8221-5828-832e-769b53f66f24",
+            "000f0380-3e31-556f-992a-4f33f16ce798"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 2
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 150.0,
+          "reaction_time_min": null,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 2.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 11.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "9e37f063-6c94-5008-93a2-d3f689b87186",
+            "000f0380-3e31-556f-992a-4f33f16ce798"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 4
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170.0,
+          "reaction_time_min": null,
+          "catalyst_amount_g": null,
+          "PET_amount_g": 2.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 8.14,
+          "selectivity_percent": 22.0,
+          "conversion_percent": null,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "9e37f063-6c94-5008-93a2-d3f689b87186",
+            "000f0380-3e31-556f-992a-4f33f16ce798"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 5
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190.0,
+          "reaction_time_min": 180.0,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 2.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 53.5,
+          "selectivity_percent": 53.5,
+          "conversion_percent": 100.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "0bf1c296-c9a0-5dd2-9d6d-69781b58ece1",
+            "000f0380-3e31-556f-992a-4f33f16ce798"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 9
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1021/sc5007522",
+    "title": "First-row transition metal-containing ionic liquids for the degradation of PET",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]2[CoCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 77.8,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "b271e9cf-fe8c-5e1d-9a08-dcfde2f8cd58",
+            "c63904cb-94d5-5ae4-b58f-c383903d624c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]2[CuCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 9.8,
+          "conversion_percent": 6.7,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "b271e9cf-fe8c-5e1d-9a08-dcfde2f8cd58",
+            "c63904cb-94d5-5ae4-b58f-c383903d624c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]2[NiCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 64.3,
+          "conversion_percent": 45,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "b271e9cf-fe8c-5e1d-9a08-dcfde2f8cd58",
+            "c63904cb-94d5-5ae4-b58f-c383903d624c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]2[ZnCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 77.4,
+          "conversion_percent": 99.6,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "b271e9cf-fe8c-5e1d-9a08-dcfde2f8cd58",
+            "c63904cb-94d5-5ae4-b58f-c383903d624c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][CrCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 160,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 4.2,
+          "conversion_percent": 1.7,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "b271e9cf-fe8c-5e1d-9a08-dcfde2f8cd58",
+            "c63904cb-94d5-5ae4-b58f-c383903d624c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim][FeCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 58.9,
+          "conversion_percent": 94.7,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "b271e9cf-fe8c-5e1d-9a08-dcfde2f8cd58",
+            "c63904cb-94d5-5ae4-b58f-c383903d624c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][MnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 72.1,
+          "conversion_percent": 86.7,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "b271e9cf-fe8c-5e1d-9a08-dcfde2f8cd58",
+            "c63904cb-94d5-5ae4-b58f-c383903d624c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]2[CoCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 77.8,
+          "conversion_percent": 92.8,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "ef7c683a-4ec9-517d-9de7-2f71a0a89460",
+            "652deb9b-7226-5784-83bc-2ee5aca447e9"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]2[CoCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 73.4,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "37b5fdc7-bb29-5163-bbcd-873590c85351"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]2[CoCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 108,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 73.5,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "37b5fdc7-bb29-5163-bbcd-873590c85351"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]2[CoCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 132,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 73.8,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "37b5fdc7-bb29-5163-bbcd-873590c85351"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]2[CoCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 74.1,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "37b5fdc7-bb29-5163-bbcd-873590c85351"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]2[CoCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 210,
+          "catalyst_amount_g": 1,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 74.2,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "37b5fdc7-bb29-5163-bbcd-873590c85351"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim]2[CoCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 3,
+          "solvent_amount_g": 35,
+          "yield_percent": null,
+          "selectivity_percent": 81.1,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "53bafc9b-5bb3-5ca6-ba40-e488c2fd446c",
+            "673d3511-8a3c-59b8-ac70-a6ed321a6ff0",
+            "61c24df6-0ff0-5e35-aaa6-03655ebcce78"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "none",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170.0,
+          "reaction_time_min": 240.0,
+          "catalyst_amount_g": 0.0,
+          "PET_amount_g": 5.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": 2.7,
+          "conversion_percent": 1.2,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "b271e9cf-fe8c-5e1d-9a08-dcfde2f8cd58",
+            "c63904cb-94d5-5ae4-b58f-c383903d624c"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 0
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]2[CoCl4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 175.0,
+          "reaction_time_min": 90.0,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 3.0,
+          "solvent_amount_g": 35.0,
+          "yield_percent": null,
+          "selectivity_percent": 83.9,
+          "conversion_percent": 100.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "53bafc9b-5bb3-5ca6-ba40-e488c2fd446c",
+            "673d3511-8a3c-59b8-ac70-a6ed321a6ff0"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 15
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1039/c2gc35696a",
+    "title": "Amino acid ionic liquids and urea as catalysts for the glycolysis of PET",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[N1111][ala]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 50,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 74.6,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "2ba0f4fe-0d52-522e-a950-f9745364242f",
+            "e2879f55-060f-50ce-b661-b2c22e1e0466"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[N1111][asp]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 72.7,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "2ba0f4fe-0d52-522e-a950-f9745364242f",
+            "e2879f55-060f-50ce-b661-b2c22e1e0466"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[N2222][ala]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 50,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 74.3,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "2ba0f4fe-0d52-522e-a950-f9745364242f",
+            "e2879f55-060f-50ce-b661-b2c22e1e0466"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[N2222][asp]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 60,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 72.5,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "2ba0f4fe-0d52-522e-a950-f9745364242f",
+            "e2879f55-060f-50ce-b661-b2c22e1e0466"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[N2222][ser]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 71.4,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "2ba0f4fe-0d52-522e-a950-f9745364242f",
+            "e2879f55-060f-50ce-b661-b2c22e1e0466"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Urea",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 190,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 73.9,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "2ba0f4fe-0d52-522e-a950-f9745364242f",
+            "e2879f55-060f-50ce-b661-b2c22e1e0466"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "none",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": 5.7,
+          "conversion_percent": 2.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "2ba0f4fe-0d52-522e-a950-f9745364242f",
+            "e2879f55-060f-50ce-b661-b2c22e1e0466"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Urea",
+          "solvent": "ethylene glycol",
+          "temperature_c": 160.0,
+          "reaction_time_min": 150.0,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 100.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "bed44b0f-77c5-5b95-a272-8072b0546ce9"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 0
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "Urea",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180.0,
+          "reaction_time_min": 180.0,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 5.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": 77.7,
+          "conversion_percent": 100.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "127fc50d-1fac-52f8-bbb8-5da3ddd34ad8",
+            "de39d808-ff92-5d22-8411-628f1810d35c"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 1
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1039/d0gc00327a",
+    "title": "Metal-free choline-based ionic liquid catalysts for the glycolysis of PET",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][But]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 9.9,
+          "selectivity_percent": null,
+          "conversion_percent": 33.3,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "8d7cc88a-d2eb-5b0f-86e1-3db151fa0461",
+            "df84acb5-7556-54a1-9f1b-7d675e8cc30c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 3.2,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "8d7cc88a-d2eb-5b0f-86e1-3db151fa0461",
+            "df84acb5-7556-54a1-9f1b-7d675e8cc30c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]For",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 84.5,
+          "selectivity_percent": null,
+          "conversion_percent": 97.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "8d7cc88a-d2eb-5b0f-86e1-3db151fa0461",
+            "df84acb5-7556-54a1-9f1b-7d675e8cc30c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][HSO4]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 2.9,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "8d7cc88a-d2eb-5b0f-86e1-3db151fa0461",
+            "df84acb5-7556-54a1-9f1b-7d675e8cc30c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][Mesy]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 4.2,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "8d7cc88a-d2eb-5b0f-86e1-3db151fa0461",
+            "df84acb5-7556-54a1-9f1b-7d675e8cc30c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch]Pro",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 40.5,
+          "selectivity_percent": null,
+          "conversion_percent": 65.1,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "8d7cc88a-d2eb-5b0f-86e1-3db151fa0461",
+            "df84acb5-7556-54a1-9f1b-7d675e8cc30c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": 82.9,
+          "selectivity_percent": null,
+          "conversion_percent": 94.3,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "8d7cc88a-d2eb-5b0f-86e1-3db151fa0461",
+            "df84acb5-7556-54a1-9f1b-7d675e8cc30c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "none",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 180,
+          "catalyst_amount_g": 0,
+          "PET_amount_g": 5,
+          "solvent_amount_g": 20,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 1.6,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "8d7cc88a-d2eb-5b0f-86e1-3db151fa0461",
+            "df84acb5-7556-54a1-9f1b-7d675e8cc30c"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 145.0,
+          "reaction_time_min": 180.0,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 16.1,
+          "selectivity_percent": null,
+          "conversion_percent": 19.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "2f4f306b-081c-5aea-b9c2-e6626dae5860",
+            "d65094a2-2309-5844-954a-791b3d9d00c0",
+            "8febab66-6521-567d-a69d-90e623a6646d"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 8
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 195.0,
+          "reaction_time_min": 180.0,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 85.8,
+          "selectivity_percent": null,
+          "conversion_percent": 100.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "2f4f306b-081c-5aea-b9c2-e6626dae5860",
+            "d65094a2-2309-5844-954a-791b3d9d00c0"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 10
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180.0,
+          "reaction_time_min": 240.0,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 85.2,
+          "selectivity_percent": null,
+          "conversion_percent": 98.2,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "46aa2e55-da8f-57ec-b028-ce3bd15eba6d",
+            "d65094a2-2309-5844-954a-791b3d9d00c0"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 11
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180.0,
+          "reaction_time_min": 300.0,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 100.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "46aa2e55-da8f-57ec-b028-ce3bd15eba6d",
+            "d65094a2-2309-5844-954a-791b3d9d00c0"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 12
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180.0,
+          "reaction_time_min": 180.0,
+          "catalyst_amount_g": 0.125,
+          "PET_amount_g": 5.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": null,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "8c8f0609-67ae-5474-b421-afab351e3e05",
+            "d65094a2-2309-5844-954a-791b3d9d00c0"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 13
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180.0,
+          "reaction_time_min": 180.0,
+          "catalyst_amount_g": 0.25,
+          "PET_amount_g": 5.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": 82.8,
+          "selectivity_percent": null,
+          "conversion_percent": 94.3,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "8c8f0609-67ae-5474-b421-afab351e3e05",
+            "d65094a2-2309-5844-954a-791b3d9d00c0"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 14
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Ch][OAc]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180.0,
+          "reaction_time_min": 180.0,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 5.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 100.0,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "8c8f0609-67ae-5474-b421-afab351e3e05",
+            "d65094a2-2309-5844-954a-791b3d9d00c0"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 15
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.1351/PAC-CON-11-06-10",
+    "title": "Chlorine-free metallic acetate ionic liquids for the glycolysis of PET",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[Deim][Co(OAc)3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 3,
+          "solvent_amount_g": 20,
+          "yield_percent": 56.65,
+          "selectivity_percent": 56.65,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "fcd64a2b-95e9-5be5-9740-1c79b5ce6dd6",
+            "3298a87d-faf1-5e70-8bc2-e2416b0c504e",
+            "57d9a99d-9e97-5da9-8061-b772bf59522c",
+            "81e6985b-50f4-5e2f-9bad-bd50d0555d11"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Deim][Cu(OAc)3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 3,
+          "solvent_amount_g": 20,
+          "yield_percent": 58.64,
+          "selectivity_percent": 58.64,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "fcd64a2b-95e9-5be5-9740-1c79b5ce6dd6",
+            "3298a87d-faf1-5e70-8bc2-e2416b0c504e",
+            "57d9a99d-9e97-5da9-8061-b772bf59522c",
+            "81e6985b-50f4-5e2f-9bad-bd50d0555d11"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Deim][Mn(OAc)3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 225,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 3,
+          "solvent_amount_g": 20,
+          "yield_percent": 51.3,
+          "selectivity_percent": 51.3,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "fcd64a2b-95e9-5be5-9740-1c79b5ce6dd6",
+            "3298a87d-faf1-5e70-8bc2-e2416b0c504e",
+            "57d9a99d-9e97-5da9-8061-b772bf59522c",
+            "81e6985b-50f4-5e2f-9bad-bd50d0555d11"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Deim][Ni(OAc)3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 105,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 3,
+          "solvent_amount_g": 20,
+          "yield_percent": 54.13,
+          "selectivity_percent": 54.13,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "fcd64a2b-95e9-5be5-9740-1c79b5ce6dd6",
+            "3298a87d-faf1-5e70-8bc2-e2416b0c504e",
+            "57d9a99d-9e97-5da9-8061-b772bf59522c",
+            "81e6985b-50f4-5e2f-9bad-bd50d0555d11"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Deim][Zn(OAc)3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 90,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 3,
+          "solvent_amount_g": 20,
+          "yield_percent": 67.1,
+          "selectivity_percent": 67.1,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "fcd64a2b-95e9-5be5-9740-1c79b5ce6dd6",
+            "3298a87d-faf1-5e70-8bc2-e2416b0c504e",
+            "57d9a99d-9e97-5da9-8061-b772bf59522c",
+            "81e6985b-50f4-5e2f-9bad-bd50d0555d11"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Deim][Zn(OAc)3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 150,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 3,
+          "solvent_amount_g": 20,
+          "yield_percent": 69.55,
+          "selectivity_percent": 70.94,
+          "conversion_percent": 98.05,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "617b3667-d46e-5ee5-9871-e729d7bf6fe0",
+            "7b8feee3-f9e6-51ad-9baf-105a45e9f658",
+            "ca80191a-606c-508b-aae9-f0b295077026",
+            "81e6985b-50f4-5e2f-9bad-bd50d0555d11"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Deim][Zn(OAc)3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180,
+          "reaction_time_min": 150,
+          "catalyst_amount_g": 0.125,
+          "PET_amount_g": 3,
+          "solvent_amount_g": 20,
+          "yield_percent": 91.15,
+          "selectivity_percent": 53.71,
+          "conversion_percent": 69.32,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "822aee9d-cca7-591b-a2de-b56effec5c9e",
+            "3600f18a-40a1-5b72-837f-6da0055f0d11",
+            "81e6985b-50f4-5e2f-9bad-bd50d0555d11"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Deim][Zn(OAc)3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 170,
+          "reaction_time_min": 150,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 3,
+          "solvent_amount_g": 20,
+          "yield_percent": 2.34,
+          "selectivity_percent": 5.61,
+          "conversion_percent": 41.63,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "7b8feee3-f9e6-51ad-9baf-105a45e9f658",
+            "675c5a6c-8809-56e4-b0f9-f4cadcb32a78",
+            "81e6985b-50f4-5e2f-9bad-bd50d0555d11"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[deim][Zn(OAc)3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180.0,
+          "reaction_time_min": 60.0,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 3.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 38.66,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "617b3667-d46e-5ee5-9871-e729d7bf6fe0",
+            "ca80191a-606c-508b-aae9-f0b295077026"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 5
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[deim][Zn(OAc)3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180.0,
+          "reaction_time_min": 150.0,
+          "catalyst_amount_g": 1.0,
+          "PET_amount_g": 3.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 98.72,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "822aee9d-cca7-591b-a2de-b56effec5c9e",
+            "3600f18a-40a1-5b72-837f-6da0055f0d11"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 7
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[deim][Zn(OAc)3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 160.0,
+          "reaction_time_min": 150.0,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 3.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": 0.8,
+          "conversion_percent": null,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "7b8feee3-f9e6-51ad-9baf-105a45e9f658",
+            "675c5a6c-8809-56e4-b0f9-f4cadcb32a78"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 9
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[deim][Zn(OAc)3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 180.0,
+          "reaction_time_min": 150.0,
+          "catalyst_amount_g": 0.5,
+          "PET_amount_g": 7.0,
+          "solvent_amount_g": 20.0,
+          "yield_percent": null,
+          "selectivity_percent": 40.52,
+          "conversion_percent": null,
+          "pressure_atm": 1.0,
+          "source_chunk_ids": [
+            "d5a8d0f4-205f-5884-b1c0-f409f8abbd09",
+            "3320b9e6-ba44-57be-8f67-59cc37868521"
+          ]
+        },
+        "provenance": {
+          "added_by": "rescue review",
+          "decided": "2026-08-24",
+          "from_run": "extract_luna/extract_luna_n4_r1",
+          "source_index": 12
+        }
+      }
+    ]
+  },
+  {
+    "doi": "10.3390/polym5041258",
+    "title": "Depolymerization of PET waste catalyzed by Lewis acidic ionic liquid [Bmim]ZnCl3",
+    "extracted_experiments": [
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 480,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 57.1,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "1f774e66-ddf3-587d-9d48-7ceb1ec3492b",
+            "b91ec5ae-1ea5-59da-ab17-85be766ecf93",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][MnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 83.3,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "1f774e66-ddf3-587d-9d48-7ceb1ec3492b",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][ZnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.025,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 84.9,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "1f774e66-ddf3-587d-9d48-7ceb1ec3492b",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": null,
+          "selectivity_percent": null,
+          "conversion_percent": 3.3,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "1f774e66-ddf3-587d-9d48-7ceb1ec3492b",
+            "b91ec5ae-1ea5-59da-ab17-85be766ecf93",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 240,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 8.8,
+          "selectivity_percent": null,
+          "conversion_percent": 35.4,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "1f774e66-ddf3-587d-9d48-7ceb1ec3492b",
+            "b91ec5ae-1ea5-59da-ab17-85be766ecf93",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[bmim]Cl",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 360,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 14,
+          "selectivity_percent": null,
+          "conversion_percent": 57.2,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "1f774e66-ddf3-587d-9d48-7ceb1ec3492b",
+            "b91ec5ae-1ea5-59da-ab17-85be766ecf93",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][MnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.0062,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 38.2,
+          "selectivity_percent": null,
+          "conversion_percent": 64.5,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "1f774e66-ddf3-587d-9d48-7ceb1ec3492b",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][ZnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.0126,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 83.4,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "1f774e66-ddf3-587d-9d48-7ceb1ec3492b",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][ZnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 30,
+          "catalyst_amount_g": 0.0032,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 1.33,
+          "selectivity_percent": null,
+          "conversion_percent": 7.04,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6ec3f09b-a3d6-5a49-9ec8-1bfb85358400",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][ZnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.0062,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 79.5,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "1f774e66-ddf3-587d-9d48-7ceb1ec3492b",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][ZnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 300,
+          "catalyst_amount_g": 0.0032,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 83.8,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "6ec3f09b-a3d6-5a49-9ec8-1bfb85358400",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][ZnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.0032,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 36,
+          "selectivity_percent": null,
+          "conversion_percent": 52.2,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "1f774e66-ddf3-587d-9d48-7ceb1ec3492b",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][ZnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.05,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 83,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "1f774e66-ddf3-587d-9d48-7ceb1ec3492b",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "[Bmim][ZnCl3]",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.1,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 82.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "1f774e66-ddf3-587d-9d48-7ceb1ec3492b",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      },
+      {
+        "experiment_data": {
+          "catalyst": "ZnCl2",
+          "solvent": "ethylene glycol",
+          "temperature_c": 190,
+          "reaction_time_min": 120,
+          "catalyst_amount_g": 0.0436,
+          "PET_amount_g": 2,
+          "solvent_amount_g": 22,
+          "yield_percent": 78.6,
+          "selectivity_percent": null,
+          "conversion_percent": 100,
+          "pressure_atm": 1,
+          "source_chunk_ids": [
+            "1f774e66-ddf3-587d-9d48-7ceb1ec3492b",
+            "d8d8904d-de7a-5017-88e8-83c26bbec15f",
+            "abe11b36-2c8a-5ad4-819e-255fb8d69638"
+          ]
+        }
+      }
+    ]
+  }
+]

@@ -1,11 +1,17 @@
-# PET depolymerisation database — extraction and evaluation code
+# PET depolymerisation database
 
-The code behind *Building and Auditing Chemical Databases with LLMs*: a two-model pipeline that
-extracts experimental records from chemistry papers and then audits them, and the evaluation
-suite that decides whether the result can be trusted.
+The dataset and the code behind *Building and Auditing Chemical Datasets with LLMs*: a two-model
+pipeline that extracts experimental records from chemistry papers and then audits them, and the
+evaluation suite that decides whether the result can be trusted.
 
-The database itself is released separately as data. This repository is how it was built and,
-more to the point, how it was checked.
+**The data is in [`data/`](data/)** — 3,942 homogeneous catalytic PET depolymerisation
+experiments from 561 articles, each with the judge's verdict, its critique, and the values it
+would have put there instead. `data/benchmark/` holds the 295-experiment hand-curated reference
+key the judge was validated against. See [`data/README.md`](data/README.md) for the columns and
+[`NOTICE.md`](NOTICE.md) for what is deliberately not here.
+
+The rest of this repository is how that data was built and, more to the point, how it was
+checked.
 
 ## What is worth looking at
 
