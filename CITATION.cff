@@ -1,0 +1,60 @@
+cff-version: 1.2.0
+title: >-
+  PET depolymerisation database: extracted experiments, LLM judge audit, and the
+  code that built them
+message: >-
+  If you use this dataset or code, please cite the paper below. The dataset in
+  data/ is CC BY 4.0, which asks for attribution; this is it.
+type: dataset
+authors:
+  - family-names: bin Javaid
+    given-names: Muhammad
+    affiliation: RWTH Aachen University
+  - family-names: Ben Hicham
+    given-names: Karim K.
+    affiliation: RWTH Aachen University
+  - family-names: Battulga
+    given-names: Enkhnyam
+    affiliation: RWTH Aachen University
+  - family-names: Mitsos
+    given-names: Alexander
+    affiliation: RWTH Aachen University
+  - family-names: Grohe
+    given-names: Martin
+    affiliation: RWTH Aachen University
+repository-code: https://github.com/Enkhnyam/pet-depolymerisation-database
+abstract: >-
+  3,942 homogeneous catalytic poly(ethylene terephthalate) depolymerisation
+  experiments extracted from 561 full-text articles by a schema-enforced LLM
+  extractor and audited record-by-record against those articles by an
+  independent LLM judge. Each record carries the chunk identifiers its values
+  were read from, the judge's verdict and critique, and the values the judge
+  would have substituted. Also included: the 295-experiment hand-curated
+  reference key used to validate the judge, and the extraction and evaluation
+  code.
+keywords:
+  - PET depolymerisation
+  - chemical recycling
+  - homogeneous catalysis
+  - information extraction
+  - large language models
+  - LLM-as-a-judge
+  - research data
+license: MIT
+license-url: https://github.com/Enkhnyam/pet-depolymerisation-database/blob/main/NOTICE.md
+preferred-citation:
+  type: article
+  title: >-
+    Building and Auditing Chemical Datasets with LLMs: A General LLM-as-a-Judge
+    Framework Applied to Homogeneous Catalytic PET Depolymerisation
+  authors:
+    - family-names: bin Javaid
+      given-names: Muhammad
+    - family-names: Ben Hicham
+      given-names: Karim K.
+    - family-names: Battulga
+      given-names: Enkhnyam
+    - family-names: Mitsos
+      given-names: Alexander
+    - family-names: Grohe
+      given-names: Martin

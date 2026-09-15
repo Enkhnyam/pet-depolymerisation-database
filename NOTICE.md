@@ -1,9 +1,13 @@
 # What is in this repository, and what is not
 
-## The code
+## Two licences, and which covers what
 
-MIT, in `LICENSE`. That covers everything in this repository, because everything in this
-repository is ours.
+The code is MIT, in `LICENSE`: everything under `checks/`, `cli/`, `configs/`, `core/`,
+`figures/`, `prompts/`, `scripts/` and `tools/`.
+
+The dataset in `data/` is CC BY 4.0, not MIT. It is a database of extracted values rather than
+software, and the licence that fits a database is the one that asks to be cited. `LICENSE` does
+not reach it; this file is what says so.
 
 ## The papers
 
