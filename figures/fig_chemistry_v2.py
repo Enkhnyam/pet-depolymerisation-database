@@ -46,14 +46,11 @@ def main() -> None:
 
     for index, (column, label, window) in enumerate(PANELS):
         reported = int(routed[column].notna().sum())
-        inside = int(routed[column].between(*window).sum())
-        share = inside / max(1, reported)
-        # "97% of 4,102 in view" = 4,102 records report a temperature, and 97% of those fall
-        # inside the drawn window. It is NOT field completeness -- that is Fig. 3c, over a
-        # different denominator -- and the caption said so for a while, which invited the
-        # reading that temperature is 97% complete when Fig. 3c puts it at 87%.
-        note = (f", n={reported:,}" if share > 0.995
-                else f", {share:.0%} of {reported:,} in view")
+        # Sample size only. The label used to carry a percentage as well -- the share of the
+        # reporting records falling inside the drawn window -- which read as field completeness
+        # and is not: Fig. 3c gives completeness, over a different denominator, and puts
+        # temperature at 87% where this said 97%. One number, unambiguous, is better than two.
+        note = f", n={reported:,}"
         kde(panel[index], routed, column, hue="route", palette=ROUTE, order=ROUTES,
             clip=window, xlabel=f"{label}{note}",
             ylabel="relative density" if index % 3 == 0 else "")
