@@ -68,6 +68,14 @@ def curated_overlap(frame):
     return curated, dois, shared, rows, experiments
 
 
+def verdicts_released():
+    """The judge's verdicts restricted to the released rows, for the field counts."""
+    import sys, pathlib
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+    from database import verdicts as verdicts_check
+    return verdicts_check.compute(released_only=True)
+
+
 def compute():
     """Return {macro: (value, source, derivation)}. One row per number the paper may quote."""
     d = load()
@@ -154,8 +162,12 @@ def compute():
                                       judged.sum()), src, "corrected as a share of judged"),
         "ReleaseDroppedShare": (pct(d.judge_drop_record.astype(str).str.lower().eq("true").sum(),
                                     judged.sum()), src, "dropped as a share of judged"),
-        "ReleaseFieldFixes": (n(int(d.judge_n_fixes.fillna(0).astype(int).sum())), src,
-                              "field-level changes proposed on the released records"),
+        # Counted the same way JudgeFieldFixes is -- bad_fields across rejected verdicts, not
+        # judge_n_fixes. The two differ: a field can be judged bad without the paper supporting
+        # a replacement value, so fixes (1,548) undercount fields (2,060). Quoting one against
+        # the other would compare two different things across the two populations.
+        "ReleaseFieldFixes": (n(int(verdicts_released()["fields"].sum())), src,
+                              "bad fields across rejected records, on the released population"),
 
         # --- routes
         "ReleaseGlycolysis": (n(d.route.eq("glycolysis").sum()), src, "route == glycolysis"),

@@ -66,10 +66,16 @@ def main() -> None:
                 xlabel="records (catalysts grouped by structure)")
 
     # --- e: what the judge rewrote -----------------------------------------------------------
-    fields = judged["fields"].head(9)
+    # The only panel on this figure counted over the released records rather than the mass run.
+    # A correction proposed on a record the database does not ship says nothing about the
+    # published data, and the schema this judge applies is a homogeneous-catalysis schema. The
+    # axis label carries the denominator so the panel cannot be read against its neighbours,
+    # which are all over the 5,563.
+    released = verdicts_check.compute(released_only=True)
+    fields = released["fields"].head(9)
     fields.index = [str(name).replace("_", " ") for name in fields.index]
     ranked_bars(panel[4], fields, accent=EMPHASIS,
-                xlabel="records whose field the judge corrected")
+                xlabel="fields the judge flagged, of the 3,942 released")
 
     # --- f: what stops a record getting a route ----------------------------------------------
     # The unassigned slice in (b) is the largest thing on this figure that is nobody's finding,

@@ -83,6 +83,9 @@ def collect() -> tuple[dict, dict]:
     drift: the shots pairwise count here was ten while shots.py printed fifteen.
     """
     co, ch, ve, pr = corpus.compute(), chemistry.compute(), verdicts.compute(), provenance.compute()
+    # The field-correction counts belong to the released population: they sit beside
+    # Table 3, which is on the release, and panel (e) of fig_database draws them.
+    vr = verdicts.compute(released_only=True)
     base = ch["stoichiometric base"]
     empty = co["empty papers"]
     # Share of each route's records charging 2 g of catalyst or more, the interval the counted
@@ -284,8 +287,8 @@ def collect() -> tuple[dict, dict]:
         "FunnelDroppedOffTopic": f"{abs(int(funnel['dropped, off-topic or a review'])):,}",
         "FunnelPassRate": f"{100 * int(funnel['passed the filter']) / int(funnel['candidates found']):.1f}",
         "DatabaseCost": f"{database_meta['cost_usd']:.2f}",
-        "FieldTopCount": f"{int(ve['fields'].iloc[0]):,}",
-        "FieldSecondCount": f"{int(ve['fields'].iloc[1]):,}",
+        "FieldTopCount": f"{int(vr['fields'].iloc[0]):,}",
+        "FieldSecondCount": f"{int(vr['fields'].iloc[1]):,}",
         "ShotsComparisons": f"{len(pairs_frame)}",
         "ShotsBonferroni": f"{0.05 / len(pairs_frame):.3f}",
         "ShotsSmallestPairwise": f"{pairs_frame.p.min():.2f}",
@@ -664,7 +667,7 @@ def main() -> None:
         raise SystemExit(1 if stale else 0)
 
     OUT.write_text(text, encoding="utf-8")
-    write_field_table(verdicts.compute()["fields"])
+    write_field_table(verdicts.compute(released_only=True)["fields"])
     write_matrix_table()
     print(f"{len(values)} macros -> {OUT.relative_to(ROOT)}")
     print(f"field table   -> {FIELD_TABLE.relative_to(ROOT)}")
